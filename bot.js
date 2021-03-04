@@ -14,19 +14,20 @@ client.on('guildMemberAdd', member => {
     we need you to send a screenshot of your Pokemon Go profile. \n You can do so in this channel. \n Thankyou.`);
 });
 client.on('message', message => {
+	if (message.attachments.size > 0) {
+		message.channel.send('test');
+		message.channel.send(message.attachments.size);
+		message.channel.send(message.attachments.name);
+	}
   if (!message.content.startsWith(prefix) || message.author.bot) return;
   const args = message.content.slice(prefix.length).trim().split(' ');
   const command = args.shift().toLowerCase();
-  else if (message.attachments.size > 0) {
-    message.channel.send('test');
-    message.channel.send(message.attachments.size);
-    message.channel.send(message.attachments.name);
-  } else if (command === ping)) {
+  if (command === "ping") {
     msgdelay = message.createdTimestamp - new Date().getTime();
   	message.channel.send("Pong. Message delay of: " + msgdelay + " ms");
-  } else if (command === bing)) {
+  } else if (command === "bing") {
   	message.channel.send('Bong.');
-  } /* else if (command === clear)) {
+  } /* else if (command === "clear") {
     let replyMessage = message.reply("All messages in this channel will be deleted. Type 'yes' to confirm. This will last 10 seconds.");
     let filter = msg => msg.author.id == message.author.id && msg.content.toLowerCase() == 'yes';
     message.channel.awaitMessages(filter, {max: 1, time: 20000}).then(collected => {
