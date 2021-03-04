@@ -1,0 +1,22 @@
+{
+  "name": "ocrboi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soulus98/ocrbot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/soulus98/ocrbot/issues"
+  },
+  "homepage": "https://github.com/soulus98/ocrbot#readme",
+  "dependencies": {
+    "discord.js": "^12.5.1"
+  }
+}
