@@ -1,0 +1,13 @@
+/*
+
+This is a template for new commands:
+
+module.exports = {
+	name: "",
+	description: "",
+	execute(message, args) {
+
+	},
+};
+
+*/

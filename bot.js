@@ -1,7 +1,21 @@
-const Discord = require("discord.js");
-const client = new Discord.Client();
 const {prefix} = require("./config.json");
 const {token} = require("./keys/keys.json");
+const fs = require("fs");
+const Discord = require("discord.js");
+const client = new Discord.Client();
+client.commands = new Discord.Collection();
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+
+commandFilesNames = "The currently loaded command files are: "
+for (const file of commandFiles) {
+	commandFilesNames = commandFilesNames + file +", ";
+}
+console.log(commandFilesNames);
+
+for (const file of commandFiles) {
+	const command = require(`./commands/${file}`);
+	client.commands.set(command.name, command);
+}
 
 client.once("ready", () => {
 	console.log("Ready!");
@@ -18,38 +32,29 @@ client.on("message", message => {
 		message.channel.send("test");
 		message.channel.send(message.attachments.size);
 		message.channel.send(message.attachments.name);
+		return;
 	}
   if (!message.content.startsWith(prefix) || message.author.bot) return;
   const args = message.content.slice(prefix.length).trim().split(" ");
-  const command = args.shift().toLowerCase();
-  if (command === "ping") {
-    msgdelay = message.createdTimestamp - new Date().getTime();
-  	message.channel.send("Pong. Message delay of: " + msgdelay + " ms");
-  } else if (command === "bing") {
-  	message.channel.send("Bong.");
-  } else if (command === "revert") {
-		if (!message.mentions.users.size) {
-			return message.reply("you must tag at least one user.");
+  const commandName = args.shift().toLowerCase();
+	if (!client.commands.has(commandName)) return;
+	const command = client.commands.get(commandName);
+	if (command.args && !args.length) {
+		let reply = `You didn't provide any arguments, ${message.author}!`;
+		if (command.usage) {
+			reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
 		}
-		const taggedUsers = message.mentions.users.map(user => {
-		return `${user.username}`;
-	});
-		message.channel.send("You wanted to revert: " + taggedUsers + "\n Todo: make this work");
-
-//todo: make this work...
-
-
-
-}/* else if (command === "prune"){
-	const amount = parseInt(args[0]);
-
-	if (isNaN(amount)){
-		return message.reply("You must supply a number of messages to prune.");
+		return message.channel.send(reply);
 	}
-		
-	*/
+	try {
+		command.execute(message, args);
+	} catch (error) {
+		console.error(error);
+		message.reply("An error occured while trying to run that command");
+	}
 
-} /*else if (command === "prune") {
+
+/*else if (command === "prune") {
     let replyMessage = message.reply("All messages in this channel will be deleted. Type "yes" to confirm. This will last 10 seconds.");
     let filter = msg => msg.author.id == message.author.id && msg.content.toLowerCase() == "yes";
     message.channel.awaitMessages(filter, {max: 1, time: 20000}).then(collected => {
