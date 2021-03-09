@@ -1,6 +1,7 @@
 module.exports = {
 	name: "revert",
 	description: "Will revert one member from having the Remote Raids role. ATM this is in development, and is most likely not needed.",
+	guildOnly: true,
 	execute(message, args) {
     if (!message.mentions.users.size) {
 			return message.reply("you must tag at least one user.");

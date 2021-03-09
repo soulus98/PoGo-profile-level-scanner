@@ -3,6 +3,7 @@ module.exports = {
 	description: "Automatically deletes a specified amount of messages, after a verification.",
 	args: true,
 	usage: "<number> (between 1 and 99)",
+	guildOnly:true,
 	execute(message, args) {
     const amount = parseInt(args[0]) +1;
 

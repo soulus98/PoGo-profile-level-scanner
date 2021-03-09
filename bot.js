@@ -5,17 +5,20 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const cooldowns = new Discord.Collection();
 
-commandFilesNames = "The currently loaded command files are: "
-for (const file of commandFiles) {
-	commandFilesNames = commandFilesNames + file +", ";
-}
-console.log(commandFilesNames);
-
+commandFilesNames = "The currently loaded commands and cooldowns are: \n"
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
+	commandFilesNames = commandFilesNames + prefix + command.name;
+	if (command.cooldown){
+		commandFilesNames = commandFilesNames + ":\t" + command.cooldown + " seconds \n";
+	} else {
+		commandFilesNames = commandFilesNames + "\n";
+	}
 	client.commands.set(command.name, command);
 }
+console.log(commandFilesNames);
 
 client.once("ready", () => {
 	console.log("Ready!");
@@ -24,9 +27,12 @@ client.once("ready", () => {
 client.on("guildMemberAdd", member => {
   const channel = member.guild.channels.cache.find(ch => ch.name === "ocr-bot-test");
   if (!channel) return;
-  channel.send(`Hey, ${member}. \n To confirm that you are at least level 30,
-    we need you to send a screenshot of your Pokemon Go profile. \n You can do so in this channel. \n Thankyou.`);
+  channel.send(`Hey, ${member}. \n
+								To confirm that you are at least level 30, we need you to send a screenshot of your Pokemon Go profile. \n
+								You can do so in this channel. \n
+								Thankyou.`);
 });
+
 client.on("message", message => {
 	if (message.attachments.size > 0) {
 		message.channel.send("test");
@@ -39,6 +45,9 @@ client.on("message", message => {
   const commandName = args.shift().toLowerCase();
 	if (!client.commands.has(commandName)) return;
 	const command = client.commands.get(commandName);
+	if (command.guildOnly && message.channel.type === 'dm') {
+		return message.reply("This command cannot be used in a DM");
+	}
 	if (command.args && !args.length) {
 		let reply = `You didn't provide any arguments, ${message.author}!`;
 		if (command.usage) {
@@ -46,25 +55,32 @@ client.on("message", message => {
 		}
 		return message.channel.send(reply);
 	}
+	if (!cooldowns.has(command.name) && command.cooldown) {
+		cooldowns.set(command.name, new Discord.Collection());
+	}
+	console.log(cooldowns);
+	const now = Date.now();
+	const timestamps = cooldowns.get(command.name);
+	console.log(timestamps);
+	const cooldownAmount = (command.cooldown || 3) * 1000;
+
+	if (timestamps.has(message.author.id)) {
+		const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+
+		if (now < expirationTime) {
+			const timeLeft = (expirationTime - now) / 1000;
+			return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${prefix}${command.name}\` command.`);
+		}
+	}
+	timestamps.set(message.author.id, now);
+	setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+
 	try {
 		command.execute(message, args);
 	} catch (error) {
 		console.error(error);
 		message.reply("An error occured while trying to run that command");
 	}
-
-
-/*else if (command === "prune") {
-    let replyMessage = message.reply("All messages in this channel will be deleted. Type "yes" to confirm. This will last 10 seconds.");
-    let filter = msg => msg.author.id == message.author.id && msg.content.toLowerCase() == "yes";
-    message.channel.awaitMessages(filter, {max: 1, time: 20000}).then(collected => {
-    if (!replyMessage.deleted) replyMessage.delete();
-    if (!collected.first().deteled) collected.first().delete();
-    message.channel.bulkDelete(10)
-    .then(messages => message.channel.send(`Pruned ${messages.size} messages`))
-    .catch(console.error);
-    message.reply("Confirmed!");
-    });
-  }*/
 });
+
 client.login(token);
