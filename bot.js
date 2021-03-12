@@ -40,7 +40,7 @@ client.on("message", message => {
 		try{
 			image = message.attachments.first()
 			imageName = image.id + "." + image.url.split(".").pop();
-			const imageDL = fs.createWriteStream("../screens/" + imageName);
+			const imageDL = fs.createWriteStream("./screens/Auto/" + imageName);
 			const request = https.get(image.url, function(response) {
   			response.pipe(imageDL);
 			});
