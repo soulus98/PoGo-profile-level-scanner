@@ -2,12 +2,18 @@
 
 This is a template for new commands:
 
+const { prefix } = require("../config.json");
+
 module.exports = {
 	name: "",
 	description: "",
+  aliases: [""],
+  usage: `${prefix}`,
+  cooldown: 5,
 	execute(message, args) {
 
 	},
 };
+
 
 */
