@@ -1,4 +1,4 @@
-const {prefix} = require("./config.json");
+const {prefix , timeDelay} = require("./config.json");
 const {token} = require("./keys/keys.json");
 const fs = require("fs");
 const https = require("https");
@@ -7,6 +7,7 @@ const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const cooldowns = new Discord.Collection();
+lastImageTimestamp = Date.now();
 
 commandFilesNames = "The currently loaded commands and cooldowns are: \n"
 for (const file of commandFiles) {
@@ -36,8 +37,21 @@ client.on("guildMemberAdd", member => {
 
 client.on("message", message => {
 
+//image handler
+
 	if (message.attachments.size > 0) {
+		currentTime = Date.now();
+		x = 0;
+		console.log("last: " + lastImageTimestamp + "\ncurrent: " + currentTime + "\ncompare: "+ (currentTime-lastImageTimestamp)/1000);
+		while(lastImageTimestamp+timeDelay>=currentTime){
+			currentTime = Date.now();
+		}
+		console.log("complete");
+		lastImageTimestamp = Date.now();
+		//message.channel.send("Yes.");
+		/*
 		try{
+			lastImageTimestamp = new
 			image = message.attachments.first()
 			imageName = image.id + "." + image.url.split(".").pop();
 			const imageDL = fs.createWriteStream("./screens/Auto/" + imageName);
@@ -48,7 +62,7 @@ client.on("message", message => {
 		}catch (error){
 			console.log(error)
 			message.channel.send("An error occured");
-		}
+		} */
 	}
 
 

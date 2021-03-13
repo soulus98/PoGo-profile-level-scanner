@@ -4,6 +4,6 @@ module.exports = {
 	description: "Bing!",
 	cooldown: 5,
 	execute(message, args) {
-    message.channel.send("Bong.");
+		setTimeout(() => message.channel.send("Bong."),10000);
 	},
 };
