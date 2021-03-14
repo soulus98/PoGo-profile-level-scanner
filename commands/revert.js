@@ -8,7 +8,8 @@ module.exports = {
 	guildOnly: true,
 	execute(message, args) {
     if (!message.mentions.users.size) {
-			return message.reply("you must tag at least one user.");
+			message.reply("you must tag at least one user.");
+			return `, but it failed, as a user was not mentioned.`;
 		}
 		const taggedUsers = message.mentions.users.map(user => {
 		return `${user.username}`;

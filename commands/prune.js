@@ -7,13 +7,16 @@ module.exports = {
 	usage: `\`${prefix}prune-messages <number>\` (between 1 and 99)`,
 	guildOnly:true,
 	cooldown: 0.1,
+	permissions: "MANAGE_MESSAGES",
 	execute(message, args) {
     const amount = parseInt(args[0]) +1;
 
     if (isNaN(amount)){
-      return message.reply("You must supply a number of messages to prune.");
+			message.reply("You must supply a number of messages to prune.");
+			return `, but it failed, as a number was not provided.`;
     } else if (amount < 1 || amount > 99) {
-      return message.reply("You must input a number between 1 and 99.");
+			message.reply("You must input a number between 1 and 99.");
+			return `, but it failed, as the number provided was outside the usable range.`;
     }
     message.channel.bulkDelete(amount);
 	},
