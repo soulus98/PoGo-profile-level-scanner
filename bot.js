@@ -1,4 +1,6 @@
-const {prefix , timeDelay} = require("./config.json");
+const Tesseract = require("tesseract.js");
+const Canvas = require("canvas");
+const {prefix , timeDelay, saveLocalCopy} = require("./config.json");
 const {token} = require("./keys/keys.json");
 const fs = require("fs");
 const https = require("https");
@@ -6,12 +8,11 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
 lastImageTimestamp = Date.now();
-const ocr = require("./ocr.js");
 imageAttempts = 0;
 imageLogCount = 0;
 
 client.commands = new Discord.Collection();
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
 commandFilesNames = "The currently loaded commands and cooldowns are: \n";
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
@@ -36,18 +37,19 @@ client.on("guildMemberAdd", member => {
 								Thankyou.`);
 });
 
-client.on("message", message => {	//image handler
-
+client.on("message", message => {
 	wasDelayed = false;
 	postedTime = new Date();
-	currentTime = new Date();						//This is current time
+	currentTime = new Date();
+
+	//image handler
 	if (message.attachments.size > 0) { //checks for an attachment TODO: Check that the attachment is actually an image... how...? idk lol
 		imageAttempts++;
 		var instance = imageAttempts;
 		console.log(`instance: ${instance}`);
 		console.log("Compared seconds: " + (postedTime-lastImageTimestamp)/1000 + "\ntimeDelay:" + timeDelay);
 		if (lastImageTimestamp+timeDelay<currentTime && instance-1==imageLogCount){
-			imageWrite();
+			imageWrite(message);
 		}
 		else {
 			wasDelayed = true;
@@ -55,8 +57,12 @@ client.on("message", message => {	//image handler
 				if (lastImageTimestamp+timeDelay>=currentTime){
 					currentTime = Date.now();
 					if (lastImageTimestamp+timeDelay<currentTime && instance-1==imageLogCount){
-						imageWrite();
-						return;
+						if(saveLocalCopy){
+							imageWrite(message);
+							return;
+						} else {
+							ocr();
+						}
 					}
 					setTimeout(slowCheck, timeDelay+9);
 					return;
@@ -69,32 +75,53 @@ client.on("message", message => {	//image handler
 			currentTime = Date.now(); //Keep updating the time while comparing... This is probably very laggy...
 		}														//I'd rather compare every second or so. I'll figure that later
 		*/
-		function imageWrite(){
-			imageLogCount++;
-			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
-			try{
-				image = message.attachments.first();
-				imageName = image.id + "." + image.url.split(".").pop();
-				const imageDL = fs.createWriteStream("./screens/Auto/" + imageName);
-				const request = https.get(image.url, function(response) {
-	  			response.pipe(imageDL);
-				});
-				ocr.execute(message, image.url);
-				logString = `User ${message.author.username}${message.author} sent image#${imageLogCount} at ${postedTime.toLocaleString()}`;
-				if (wasDelayed == true){
-					delayAmount = (currentTime - postedTime)/1000;
-					console.log(logString + `, and it was delayed for ${delayAmount}`);
-				} else {
-					console.log(logString);
-				}
-				message.react("👌");
-			}catch (error){
-				logString = logString + `, but an error occured. Error code: ${error}`;
+	}
+
+	function imageWrite(message){
+		imageLogCount++;
+		lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
+		logString = `User ${message.author.username}${message.author} sent image#${imageLogCount} at ${postedTime.toLocaleString()}`;
+		try{
+			image = message.attachments.first();
+			imageName = image.id + "." + image.url.split(".").pop();
+			const imageDL = fs.createWriteStream("./screens/Auto/" + imageName);
+			const request = https.get(image.url, function(response) {
+				response.pipe(imageDL);
+			});
+			ocr();
+			if (wasDelayed == true){
+				delayAmount = (currentTime - postedTime)/1000;
+				console.log(logString + `, and it was delayed for ${delayAmount}`);
+			} else {
 				console.log(logString);
-				message.react("👎");
 			}
+			message.react("👌");
+		}catch (error){
+			logString = logString + `, but an error occured. Error code: ${error}`;
+			console.log(logString);
+			message.react("👎");
 		}
 	}
+
+	async function ocr(){
+
+		const imgCanv = Canvas.createCanvas(1000,1000);
+		const ctx = imgCanv.getContext("2d");
+		const background = await Canvas.loadImage(image.url);
+		ctx.drawImage(background, 0, 0, imgCanv.width, imgCanv.height);
+		const imgAttach = new Discord.MessageAttachment(imgCanv.toBuffer(), image.url);
+
+		message.channel.send("Reeeeee", imgAttach);
+		/*Tesseract.recognize(
+			imageURL,
+			'eng',
+			{ logger: m => console.log(m) }
+		).then(({ data: { text } }) => {
+			console.log(text);
+			message.react("👍");
+		})*/
+	}
+
 
   if (!message.content.startsWith(prefix) || message.author.bot) return; //No prefix? Bot? Cancel
 	//finangling the command and argument vars

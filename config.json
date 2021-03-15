@@ -1,4 +1,5 @@
 {
 	"prefix": "]",
-	"timeDelay":5000
+	"timeDelay":5000,
+	"saveLocalCopy":true
 }

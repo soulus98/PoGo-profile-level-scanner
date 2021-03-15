@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/soulus98/ocrbot#readme",
   "dependencies": {
-    "discord.js": "^12.5.1"
+    "canvas": "^2.7.0",
+    "discord.js": "^12.5.1",
+    "tesseract.js": "^2.1.4"
   }
 }
