@@ -38,6 +38,7 @@ client.on("guildMemberAdd", member => {
 });
 
 client.on("message", message => {
+	if (message.author.bot) return; // Bot? Cancel
 	wasDelayed = false;
 	postedTime = new Date();
 	currentTime = new Date();
