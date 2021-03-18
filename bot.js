@@ -62,6 +62,7 @@ client.on("message", message => {
 							imageWrite(message);
 							return;
 						} else {
+
 							ocr();
 						}
 					}
@@ -105,22 +106,22 @@ client.on("message", message => {
 	}
 
 	async function ocr(){
-
-		const imgCanv = Canvas.createCanvas(1000,1000);
+		// test image 1080,2007
+		const imgCanv = Canvas.createCanvas(image.width/7.8,image.height/1.4);
 		const ctx = imgCanv.getContext("2d");
 		const background = await Canvas.loadImage(image.url);
-		ctx.drawImage(background, 0, 0, imgCanv.width, imgCanv.height);
+		ctx.drawImage(background,image.width/24,image.height/3,imgCanv.width,imgCanv.height,0,0,imgCanv.width,imgCanv.height);
 		const imgAttach = new Discord.MessageAttachment(imgCanv.toBuffer(), image.url);
 
 		message.channel.send("Reeeeee", imgAttach);
-		/*Tesseract.recognize(
+		Tesseract.recognize(
 			imageURL,
 			'eng',
 			{ logger: m => console.log(m) }
 		).then(({ data: { text } }) => {
 			console.log(text);
 			message.react("👍");
-		})*/
+		})
 	}
 
 
