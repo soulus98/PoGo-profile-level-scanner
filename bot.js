@@ -1,7 +1,4 @@
 const { createWorker } = require('tesseract.js');
-const worker = createWorker({
-  logger: m => console.log(m),
-});
 const Canvas = require("canvas");
 const {prefix , timeDelay, saveLocalCopy} = require("./config.json");
 const {token} = require("./keys/keys.json");
@@ -17,7 +14,7 @@ imageLogCount = 0;
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
 commandFilesNames = "The currently loaded commands and cooldowns are: \n";
-for (const file of commandFiles) {
+for (const file of commandFiles) {		//Loads commands
 	const command = require(`./commands/${file}`);
 	commandFilesNames = commandFilesNames + prefix + command.name;
 	if (command.cooldown){
@@ -126,12 +123,19 @@ client.on("message", message => {
 				imgCanv.width,imgCanv.height		//width, height (size of canvas again)
 			);
 			*/
-			const imgAttach = new Discord.MessageAttachment(imgCanv.toBuffer(), image.url);
-			console.log("Test 2");
-			message.channel.send("Reeeeee", imgAttach);
-			console.log("Test 3");
+      try{
+  			const imgAttach = new Discord.MessageAttachment(imgCanv.toBuffer(), image.url);
+  			console.log("Test 2");
+  			message.channel.send("Reeeeee", imgAttach);
+  			console.log("Test 3");
+      } catch (err){
+        console.log("there was an error: " + err);
+      }
 			/*
 			try{
+        const worker = createWorker({
+          logger: m => console.log(m),
+        });
 				(async () => {
 				  await worker.load();
 				  await worker.loadLanguage('eng');
