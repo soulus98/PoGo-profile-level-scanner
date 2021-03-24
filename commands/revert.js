@@ -12,8 +12,14 @@ module.exports = {
 			return `, but it failed, as a user was not mentioned.`;
 		}
 		const taggedUsers = message.mentions.users.map(user => {
-		return `${user.username}`;
-	});
-		message.channel.send("You wanted to revert: " + taggedUsers + "\n Todo: make this work");
+			return `${user.username}`;
+		});
+		loggString = `, tagging ${taggedUsers}`;
+		try {
+			message.channel.send("You wanted to revert: " + taggedUsers + "\n Todo: make this work");
+			return `${loggString}, and it was successful.`;
+		} catch(err){
+			return `, but it failed, due to an unexpected error. Error: ${err}`;
+		}
 	},
 };

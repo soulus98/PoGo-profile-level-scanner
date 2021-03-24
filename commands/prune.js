@@ -10,15 +10,19 @@ module.exports = {
 	permissions: "MANAGE_MESSAGES",
 	execute(message, args) {
     const amount = parseInt(args[0]) +1;
-
     if (isNaN(amount)){
 			message.reply("You must supply a number of messages to prune.");
 			return `, but it failed, as a number was not provided.`;
-    } else if (amount < 1 || amount > 99) {
+    } else if (amount < 2 || amount > 100) {
 			message.reply("You must input a number between 1 and 99.");
 			return `, but it failed, as the number provided was outside the usable range.`;
     }
-    message.channel.bulkDelete(amount);
+		try{
+			message.channel.bulkDelete(amount);
+			return `, and it was successful.`;
+		}catch(err){
+			return `, but it failed, due to an unexpected error. Error: ${err}`;
+		}
 	},
 };
 

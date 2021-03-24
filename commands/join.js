@@ -7,7 +7,11 @@ module.exports = {
   usage: `${prefix}join`,
   cooldown: 5,
 	execute(message, args) {
-		console.log("Join test 1");
-    message.client.emit("guildMemberAdd", message.member);
+		try {
+			message.client.emit("guildMemberAdd", message.member);
+			return `, and it was successful.`;
+		} catch(err){
+			return `, but it failed, due to an unexpected error. Error: ${err}`;
+		}
 	},
 };

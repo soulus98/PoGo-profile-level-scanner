@@ -10,6 +10,20 @@ const cooldowns = new Discord.Collection();
 lastImageTimestamp = Date.now();
 imageAttempts = 0;
 imageLogCount = 0;
+postDate = new Date();
+var screensFolder = `./screens/Auto/${postDate.toDateString()}`;
+
+function checkDateFolder(checkDate){
+	fs.access(screensFolder, error => {
+	    if (!error) {
+				console.log(`Folder ${checkDate.toDateString()} already existed.`);
+	    } else {
+				fs.mkdirSync(screensFolder);
+				console.log(`Folder ${checkDate.toDateString()} created.`);
+	    }
+	});
+}
+checkDateFolder(postDate);
 
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
@@ -42,18 +56,24 @@ client.on("message", message => {
 	if (message.author.bot) return; // Bot? Cancel
 	wasDelayed = false;
 	postedTime = new Date();
-	currentTime = new Date();
-
+	console.log(postedTime.toDateString());
+	currentTime = Date.now();
+	console.log("test A");
+	if (screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
+		console.log("test B");
+		screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
+		checkDateFolder(postedTime);
+	}
 	//image handler
 	if (message.attachments.size > 0) { //checks for an attachment TODO: Check that the attachment is actually an image... how...? idk lol
 		imageAttempts++;
 		var instance = imageAttempts;
-		console.log(`instance: ${instance}`);
-		console.log("Compared seconds: " + (postedTime-lastImageTimestamp)/1000 + "\ntimeDelay:" + timeDelay);
+		//console.log(`instance: ${instance}\ncurrentTime: ${currentTime}\nimageLogCount: ${imageLogCount}\nlastImageTimestamp + timeDelay: ${lastImageTimestamp+timeDelay}`);
+		console.log("Compared seconds: " + (postedTime-lastImageTimestamp)/1000);
 		if (lastImageTimestamp+timeDelay<currentTime && instance-1==imageLogCount){
+
 			imageWrite(message);
-		}
-		else {
+		} else {
 			wasDelayed = true;
 			function slowCheck(){
 				if (lastImageTimestamp+timeDelay>=currentTime){
@@ -86,7 +106,7 @@ client.on("message", message => {
 			try{
 				image = message.attachments.first();
 				imageName = image.id + "." + image.url.split(".").pop();
-				const imageDL = fs.createWriteStream("./screens/Auto/" + imageName);
+				const imageDL = fs.createWriteStream(screensFolder + "/" + imageName);
 				const request = https.get(image.url, function(response) {
 					response.pipe(imageDL);
 				});
@@ -125,9 +145,7 @@ client.on("message", message => {
 			*/
       try{
   			const imgAttach = new Discord.MessageAttachment(imgCanv.toBuffer(), image.url);
-  			console.log("Test 2");
   			message.channel.send("Reeeeee", imgAttach);
-  			console.log("Test 3");
       } catch (err){
         console.log("there was an error: " + err);
       }
