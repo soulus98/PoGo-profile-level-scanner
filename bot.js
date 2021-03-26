@@ -1,6 +1,5 @@
 const { createWorker } = require('tesseract.js');
 const Canvas = require("canvas");
-const {prefix , timeDelay, saveLocalCopy} = require("./config.json");
 const {token} = require("./keys/keys.json");
 const fs = require("fs");
 const https = require("https");
@@ -12,6 +11,14 @@ imageAttempts = 0;
 imageLogCount = 0;
 postDate = new Date();
 var screensFolder = `./screens/Auto/${postDate.toDateString()}`;
+const config = require("./config.json");
+
+function setConfigs(){
+	prefix = config.prefix;
+	timeDelay = config.timeDelay;
+	saveLocalCopy = config.saveLocalCopy;
+}
+setConfigs();
 
 function checkDateFolder(checkDate){
 	fs.access(screensFolder, error => {
@@ -43,7 +50,6 @@ console.log(commandFilesNames);
 client.once("ready", () => {console.log("Ready!");});
 
 client.on("guildMemberAdd", member => {
-	console.log("Join test 2");
   const channel = member.guild.channels.cache.find(ch => ch.name === "ocr-bot-test");
   if (!channel) return;
   channel.send(`Hey, ${member}.
@@ -56,11 +62,8 @@ client.on("message", message => {
 	if (message.author.bot) return; // Bot? Cancel
 	wasDelayed = false;
 	postedTime = new Date();
-	console.log(postedTime.toDateString());
 	currentTime = Date.now();
-	console.log("test A");
 	if (screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
-		console.log("test B");
 		screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
 		checkDateFolder(postedTime);
 	}
@@ -168,6 +171,7 @@ client.on("message", message => {
 		}
 	}
 
+	//command handler
   if (!message.content.startsWith(prefix) || message.author.bot) return; //No prefix? Bot? Cancel
 	//finangling the command and argument vars
 	const args = message.content.slice(prefix.length).trim().split(" ");
@@ -176,7 +180,7 @@ client.on("message", message => {
 		|| client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName)); //this searches aliases
 	//a bunch of checking
 	if (!command) return; 																						//is it a command
-	logString = `User: ${message.author.username}${message.author} used ${prefix}${commandName} at ${currentTime.toLocaleString()}`;
+	logString = `User: ${message.author.username}${message.author} used ${prefix}${commandName} at ${postedTime.toLocaleString()}`;
 	if (command.guildOnly && message.channel.type === 'dm') { 				//dm checking
 		logString = logString + `, but it failed, as ${prefix}${commandName} cannot be used in a DM`;
 		console.log(logString);
@@ -195,11 +199,10 @@ client.on("message", message => {
 	if (command.args && !args.length) {																//Checking for arguments if an argument is required
 		let reply = `You didn't provide any arguments, ${message.author}!`;
 		if (command.usage) {
-			reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
+			reply += `\nThe proper usage would be: ${command.usage}`;
 		}
-		logString = logString + `, but it failed, as ${prefix}${commandName} requires arguments, and none were provided.`;
+		logString = logString + `, but it failed, as it requires arguments, and none were provided.`;
 		console.log(logString);
-
 		return message.channel.send(reply);
 	}
 	if(command.cooldown){																							//per-author cooldown checking

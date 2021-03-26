@@ -1,5 +1,8 @@
 {
-	"prefix": "]",
+	"prefix":"]",
 	"timeDelay":5000,
-	"saveLocalCopy":true
+	"toggles":{
+		"saveLocalCopy":true,
+		"deleteScreens":false
+	}
 }
