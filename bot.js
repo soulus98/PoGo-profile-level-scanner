@@ -17,6 +17,7 @@ function setConfigs(){
 	prefix = config.prefix;
 	timeDelay = config.timeDelay;
 	saveLocalCopy = config.saveLocalCopy;
+	deleteScreens = config.deleteScreens;
 }
 setConfigs();
 
@@ -231,6 +232,7 @@ client.on("message", message => {
 		} else {
 			console.log(logString + addToLogString);
 		}
+		if (deleteScreens) message.delete();
 	} catch (error) {
 		console.error(error);
 		message.reply("An error occured while trying to run that command");

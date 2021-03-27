@@ -22,6 +22,10 @@ module.exports = {
 			message.reply(`${prefix}${name} is not a valid command.`);
 			return `, but it failed, as ${prefix}${name} not a valid command.`;
 		}
+		if (command.name == "modify-setting" || "toggle-setting"){
+			console.log("in toggle spot");
+			return `, and it was successful.`;
+		}
 		try {
 			data.push(`\n**Name:** ${command.name}`);
 			if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(', ')}`);
