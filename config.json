@@ -1,8 +1,1 @@
-{
-	"prefix":"]",
-	"timeDelay":5000,
-	"toggles":{
-		"saveLocalCopy":true,
-		"deleteScreens":false
-	}
-}
+{"toggles":{"saveLocalCopy":true,"deleteScreens":true},"numbers":{"timeDelay":"5001"},"chars":{"prefix":"]"}}

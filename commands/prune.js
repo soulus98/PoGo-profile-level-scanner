@@ -1,12 +1,12 @@
-const { prefix } = require("../config.json");
+const config = require("../config.json");
+const prefix = config.chars.prefix;
 module.exports = {
 	name: "prune-messages",
 	aliases: ["prune", "clear", "purge"],
 	description: "Automatically deletes a specified amount of messages, after a verification.",
 	args: true,
-	usage: `\`${prefix}prune-messages <number>\` (between 1 and 99)`,
+	usage: `\`${prefix}prune <number>\` (between 1 and 99)`,
 	guildOnly:true,
-	cooldown: 0.1,
 	permissions: "MANAGE_MESSAGES",
 	execute(message, args) {
     const amount = parseInt(args[0]) +1;

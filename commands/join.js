@@ -1,5 +1,5 @@
-const { prefix } = require("../config.json");
-
+const config = require("../config.json");
+const prefix = config.chars.prefix;
 module.exports = {
 	name: "join",
 	description: "new person test",

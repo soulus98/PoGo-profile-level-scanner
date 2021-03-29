@@ -1,4 +1,5 @@
-const { prefix } = require("../config.json");
+const config = require("../config.json");
+const prefix = config.chars.prefix;
 module.exports = {
 	name: "revert-screenshot-role",
 	aliases: ["revert", "revert-role"],

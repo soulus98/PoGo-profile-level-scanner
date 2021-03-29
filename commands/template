@@ -2,7 +2,8 @@
 
 This is a template for new commands:
 
-const { prefix } = require("../config.json");
+const config = require("../config.json");
+const prefix = config.chars.prefix;
 
 module.exports = {
 	name: "",

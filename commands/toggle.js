@@ -1,4 +1,5 @@
-const { prefix } = require("../config.json");
+config = require("../config.json");
+const prefix = config.chars.prefix;
 const fs = require("fs");
 
 module.exports = {
@@ -7,16 +8,13 @@ module.exports = {
   aliases: ["toggle", "tog"],
   usage: `\`${prefix}toggle [setting-name]\``,
   args: true,
+  cooldown: 5,
   permissions: "ADMINISTRATOR",
 	execute(message, args) {
     console.log(`args 0: ${args}`)
-    if (args.length == 0){
+    if (args.length != 1){
       message.reply(`You must supply only one argument in the form \`${prefix}toggle [setting-name]\``);
       return `, but it failed, as there were no arguments provided`;
-    }
-    if (args.length > 1){
-      message.reply(`You must supply only one argument in the form \`${prefix}toggle [setting-name]\``);
-      return `, but it failed, as "${args}" contains too many arguments.`;
     }
     try{
       fs.readFile("config.json", (err, raw) => {

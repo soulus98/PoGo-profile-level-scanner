@@ -11,15 +11,20 @@ imageAttempts = 0;
 imageLogCount = 0;
 postDate = new Date();
 var screensFolder = `./screens/Auto/${postDate.toDateString()}`;
-const config = require("./config.json");
+config = {};
+module.exports = {loadConfigs};
 
-function setConfigs(){
-	prefix = config.prefix;
-	timeDelay = config.timeDelay;
-	saveLocalCopy = config.saveLocalCopy;
-	deleteScreens = config.deleteScreens;
+function loadConfigs(){
+	config = {};
+	delete require.cache[require.resolve("./config.json")];
+	config = require("./config.json");
+	prefix = config.chars.prefix;
+	timeDelay = config.numbers.timeDelay;
+	saveLocalCopy = config.toggles.saveLocalCopy;
+	deleteScreens = config.toggles.deleteScreens;
+	console.log("Loading configs...");
+	console.log(config);
 }
-setConfigs();
 
 function checkDateFolder(checkDate){
 	fs.access(screensFolder, error => {
@@ -31,23 +36,30 @@ function checkDateFolder(checkDate){
 	    }
 	});
 }
-checkDateFolder(postDate);
 
-client.commands = new Discord.Collection();
-const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
-commandFilesNames = "The currently loaded commands and cooldowns are: \n";
-for (const file of commandFiles) {		//Loads commands
-	const command = require(`./commands/${file}`);
-	commandFilesNames = commandFilesNames + prefix + command.name;
-	if (command.cooldown){
-		commandFilesNames = commandFilesNames + ":\t" + command.cooldown + " seconds \n";
-	} else {
-		commandFilesNames = commandFilesNames + "\n";
+function loadCommands(){
+	client.commands = new Discord.Collection();
+	const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
+	commandFilesNames = "The currently loaded commands and cooldowns are: \n";
+	for (const file of commandFiles) {		//Loads commands
+		const command = require(`./commands/${file}`);
+		commandFilesNames = commandFilesNames + prefix + command.name;
+		if (command.cooldown){
+			commandFilesNames = commandFilesNames + ":\t" + command.cooldown + " seconds \n";
+		} else {
+			commandFilesNames = commandFilesNames + "\n";
+		}
+		client.commands.set(command.name, command);
 	}
-	client.commands.set(command.name, command);
+	console.log(commandFilesNames);
 }
-console.log(commandFilesNames);
 
+function load(){
+		loadConfigs();
+		checkDateFolder(postDate);
+		loadCommands();
+}
+load();
 client.once("ready", () => {console.log("Ready!");});
 
 client.on("guildMemberAdd", member => {
@@ -153,6 +165,7 @@ client.on("message", message => {
       } catch (err){
         console.log("there was an error: " + err);
       }
+
 			/*
 			try{
         const worker = createWorker({
@@ -169,6 +182,9 @@ client.on("message", message => {
 			}catch (error){
 				console.log(`An error occured while recognising. Error: ${error}`);
 			}*/
+			if (deleteScreens) {
+				message.delete();
+			}
 		}
 	}
 
@@ -232,7 +248,6 @@ client.on("message", message => {
 		} else {
 			console.log(logString + addToLogString);
 		}
-		if (deleteScreens) message.delete();
 	} catch (error) {
 		console.error(error);
 		message.reply("An error occured while trying to run that command");
