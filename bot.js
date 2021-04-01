@@ -22,6 +22,10 @@ function loadConfigs(){
 	timeDelay = config.numbers.timeDelay;
 	saveLocalCopy = config.toggles.saveLocalCopy;
 	deleteScreens = config.toggles.deleteScreens;
+	screenshotChannel = config.numbers.screenshotChannel;
+	level30Role = config.numbers.level30Role;
+	level40Role = config.numbers.level40Role;
+	level50Role = config.numbers.level50Role;
 	console.log("Loading configs...");
 	console.log(config);
 }
@@ -60,10 +64,13 @@ function load(){
 		loadCommands();
 }
 load();
-client.once("ready", () => {console.log("Ready!");});
+client.once("ready", () => {
+	channel = client.channels.cache.get(screenshotChannel);
+	console.log(`Ready! Loaded in channel <#${channel.id}> aka "${channel.name}"`);
+	channel.send("Loaded!");
+});
 
 client.on("guildMemberAdd", member => {
-  const channel = member.guild.channels.cache.find(ch => ch.name === "ocr-bot-test");
   if (!channel) return;
   channel.send(`Hey, ${member}.
 To confirm that you are at least level 30, we need you to send a screenshot of your Pokemon Go profile.
@@ -82,12 +89,13 @@ client.on("message", message => {
 	}
 	//image handler
 	if (message.attachments.size > 0) { //checks for an attachment TODO: Check that the attachment is actually an image... how...? idk lol
+		//
+		if (message.channel != channel) return;
 		imageAttempts++;
 		var instance = imageAttempts;
-		//console.log(`instance: ${instance}\ncurrentTime: ${currentTime}\nimageLogCount: ${imageLogCount}\nlastImageTimestamp + timeDelay: ${lastImageTimestamp+timeDelay}`);
+		console.log(`instance: ${instance}\ncurrentTime: ${currentTime}\nimageLogCount: ${imageLogCount}\nlastImageTimestamp + timeDelay: ${lastImageTimestamp+timeDelay}`);
 		console.log("Compared seconds: " + (postedTime-lastImageTimestamp)/1000);
 		if (lastImageTimestamp+timeDelay<currentTime && instance-1==imageLogCount){
-
 			imageWrite(message);
 		} else {
 			wasDelayed = true;
@@ -99,7 +107,6 @@ client.on("message", message => {
 							imageWrite(message);
 							return;
 						} else {
-
 							ocr();
 						}
 					}
@@ -165,25 +172,50 @@ client.on("message", message => {
       } catch (err){
         console.log("there was an error: " + err);
       }
-
 			/*
 			try{
-        const worker = createWorker({
-          logger: m => console.log(m),
-        });
+				const worker = createWorker({
+					logger: m => console.log(m),
+				});
 				(async () => {
-				  await worker.load();
-				  await worker.loadLanguage('eng');
-				  await worker.initialize('eng');
-				  const { data: { text } } = await worker.recognize(imgCanv.toBuffer());
-				  console.log(text);
-				  await worker.terminate();
+					await worker.load();
+					await worker.loadLanguage('eng');
+					await worker.initialize('eng');
+					const { data: { text } } = await worker.recognize(imgCanv.toBuffer());
+					console.log(text);
+					await worker.terminate();
 				})();
 			}catch (error){
 				console.log(`An error occured while recognising. Error: ${error}`);
 			}*/
-			if (deleteScreens) {
-				message.delete();
+			level = "reee";
+			if (isNaN(level)){
+				message.reply("@Admins There was an issue scanning this image. It may not be a Pokemon Go profile screenshot, or there may be an internal bot issue.");
+			}
+			else{
+				roleGrant(level);
+				if (deleteScreens) {
+					message.delete();
+				}
+			}
+
+		}
+		function roleGrant(level){
+			if (level<30){
+				message.author.send(`Your screenshot was scanned at level ${level}.
+Since only level 30 and over trainers are permitted, you have been temporarily blacklisted.
+Please try again in <TODO: blacklist length> or message <TODO: server staff dm> when you have reached level 30 and can prove it.`);
+				//TODO: blacklist & mention server staff
+			}
+			else if (level>29){
+				message.guild.roles.cache.get(level30Role);
+				message.react("👍");
+			}
+			if (level>39 && level40Role){
+				message.guild.roles.cache.get(level40Role);
+			}
+			if (level>49 && level50Role){
+				message.guild.roles.cache.get(level50Role);
 			}
 		}
 	}

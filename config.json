@@ -1,1 +1,18 @@
-{"toggles":{"saveLocalCopy":true,"deleteScreens":true},"numbers":{"timeDelay":"5001"},"chars":{"prefix":"]"}}
+{
+  "toggles":
+  {
+    "saveLocalCopy":true,
+    "deleteScreens":true
+  },
+  "numbers":
+  {
+    "timeDelay":"5001",
+    "screenshotChannel":"816837120219152394",
+    "level30Role":"827048389409112085",
+  	"level40Role":"827048465938513940",
+  	"level50Role":"827048508745711627"
+  },
+  "chars":{
+    "prefix":"]"
+    }
+  }
