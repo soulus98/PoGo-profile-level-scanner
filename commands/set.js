@@ -5,10 +5,12 @@ const bot = require("../bot.js");
 
 module.exports = {
 	name: "modify-setting",
-	description: "Used to change ",
+	description: `Used to change the value of certain settings. Use \`${prefix}help set\` and \`${prefix}help toggle\` to see a list of all current settings`,
   aliases: ["set", "modify"],
   usage: `\`${prefix}set [setting-name] [value]\``,
   cooldown: 5,
+	guildOnly:true,
+	permissions: "ADMINISTRATOR",
 	execute(message, args) {
 		if (args.length != 2){
 			message.reply(`You must supply two arguments in the form \`${prefix}set [setting-name] [value]\``);
@@ -19,30 +21,40 @@ module.exports = {
 				configs =JSON.parse(raw);
 				numbers = configs.numbers;
 				chars = configs.chars;
-				if (numbers[args[0]] === undefined && chars[args[0]] === undefined){
+				ids = configs.ids;
+				if (numbers[args[0]] === undefined && chars[args[0]] === undefined && ids[args[0]] === undefined){
 					message.reply(`Sorry, but ${args[0]} is not a valid setting. Use \`${prefix}help set\` and \`${prefix}help toggle\` to see a list of all settings.`);
 					console.log(`But it failed, as ${args[0]} is not a valid setting.`);
 					return;
 				}
 				if(numbers[args[0]]){
-					if(isNaN(args[1])) {
+					value = parseInt(args[1]);
+					if(isNaN(value)) {
 						message.reply(`You must supply a number for ${args[0]}.`);
-						console.log(`But it failed, as ${args[0]} requires a number, and ${args[1]} isn't.`);
+						console.log(`But it failed, as ${args[0]} requires a number, and ${args[1]} isn't one.`);
 						return;
 					}
 					was = numbers[args[0]];
-					numbers[args[0]] = args[1];
+					numbers[args[0]] = value;
 					to = numbers[args[0]];
-				}
-				else if(chars[args[0]]){
+				} else if(chars[args[0]]){
 					if(typeof(args[1]) != "string") {
 						message.reply(`You must supply a text string for ${args[0]}.`);
-						console.log(`But it failed, as ${args[0]} requires a string, and ${args[1]} isn't.`);
+						console.log(`But it failed, as ${args[0]} requires a string, and ${args[1]} isn't one.`);
 						return;
 					}
 					was = chars[args[0]];
 					chars[args[0]] = args[1];
 					to = chars[args[0]];
+				} else if(ids[args[0]]){
+					if(args[1].length < 17 || args[1].length > 19) {
+						message.reply(`You must supply a valid discord ID for ${args[0]}.`);
+						console.log(`But it failed, as ${args[0]} requires a discord ID, and ${args[1]} isn't one.`);
+						return;
+					}
+					was = ids[args[0]];
+					ids[args[0]] = args[1];
+					to = ids[args[0]];
 				}
 				const jsonString = JSON.stringify(configs);
 				fs.writeFile("./config.json",jsonString, err => {

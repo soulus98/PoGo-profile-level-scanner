@@ -1,18 +1,19 @@
 {
-  "toggles":
-  {
+  "toggles":{
     "saveLocalCopy":"(Causes each image to be saved to the server storage)",
     "deleteScreens":"(Deletes the image from the channel after processing it)"
   },
-  "numbers":
-  {
-    "timeDelay":"(How long to wait before processing the next posted image)",
-    "screenshotChannel":"(The channel to scan for screenshots)",
-    "level30Role":"(The role for successful scans. i.e. level 30+)",
-  	"level40Role":"(The role for level 40+ screenshots)",
-  	"level50Role":"(The role for level 50+ screenshots)"
+  "numbers":{
+    "timeDelay":"(How long to wait before processing the next posted image)"
   },
   "chars":{
     "prefix":"(Bot prefix for server commands)"
-    }
+  },
+  "ids":{
+    "screenshotChannel":"(The channel to scan for screenshots)",
+    "level30Role":"(The role for successful scans. i.e. level 30+)",
+    "level40Role":"(The role for level 40+ screenshots)",
+    "level50Role":"(The role for level 50+ screenshots)",
+    "modRole":"(The mod role intended to be notified when an issue occurs)"
   }
+}

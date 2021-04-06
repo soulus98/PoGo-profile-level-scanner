@@ -11,6 +11,8 @@ module.exports = {
   aliases: [""],
   usage: `${prefix}`,
   cooldown: 5,
+	guildOnly:true,
+	permissions: "ADMINISTRATOR",
 	execute(message, args) {
 
 	},

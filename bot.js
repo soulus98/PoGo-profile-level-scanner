@@ -14,6 +14,7 @@ var screensFolder = `./screens/Auto/${postDate.toDateString()}`;
 config = {};
 module.exports = {loadConfigs};
 
+
 function loadConfigs(){
 	config = {};
 	delete require.cache[require.resolve("./config.json")];
@@ -22,14 +23,14 @@ function loadConfigs(){
 	timeDelay = config.numbers.timeDelay;
 	saveLocalCopy = config.toggles.saveLocalCopy;
 	deleteScreens = config.toggles.deleteScreens;
-	screenshotChannel = config.numbers.screenshotChannel;
-	level30Role = config.numbers.level30Role;
-	level40Role = config.numbers.level40Role;
-	level50Role = config.numbers.level50Role;
+	screenshotChannel = config.ids.screenshotChannel;
+	level30Role = config.ids.level30Role;
+	level40Role = config.ids.level40Role;
+	level50Role = config.ids.level50Role;
+	modRole = config.ids.modRole;
 	console.log("Loading configs...");
 	console.log(config);
 }
-
 function checkDateFolder(checkDate){
 	fs.access(screensFolder, error => {
 	    if (!error) {
@@ -40,7 +41,6 @@ function checkDateFolder(checkDate){
 	    }
 	});
 }
-
 function loadCommands(){
 	client.commands = new Discord.Collection();
 	const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
@@ -57,7 +57,6 @@ function loadCommands(){
 	}
 	console.log(commandFilesNames);
 }
-
 function load(){
 		loadConfigs();
 		checkDateFolder(postDate);
@@ -66,7 +65,7 @@ function load(){
 load();
 client.once("ready", () => {
 	channel = client.channels.cache.get(screenshotChannel);
-	console.log(`Ready! Loaded in channel <#${channel.id}> aka "${channel.name}"`);
+	console.log(`Ready! Loaded in channel #${channel.id} aka "${channel.name}"`);
 	channel.send("Loaded!");
 });
 
@@ -147,7 +146,6 @@ client.on("message", message => {
 				message.react("👎");
 			}
 		}
-
 		async function ocr(){
 			const imgCanv = Canvas.createCanvas(image.width,image.height);	//size of canvas
 			const ctx = imgCanv.getContext("2d");
@@ -188,9 +186,9 @@ client.on("message", message => {
 			}catch (error){
 				console.log(`An error occured while recognising. Error: ${error}`);
 			}*/
-			level = "reee";
+			level = "ree";
 			if (isNaN(level)){
-				message.reply("@Admins There was an issue scanning this image. It may not be a Pokemon Go profile screenshot, or there may be an internal bot issue.");
+				message.reply(`<@&${modRole}> There was an issue scanning this image. It may not be a Pokemon Go profile screenshot, or there may be an internal bot issue.`);
 			}
 			else{
 				roleGrant(level);
@@ -201,22 +199,46 @@ client.on("message", message => {
 
 		}
 		function roleGrant(level){
-			if (level<30){
-				message.author.send(`Your screenshot was scanned at level ${level}.
-Since only level 30 and over trainers are permitted, you have been temporarily blacklisted.
-Please try again in <TODO: blacklist length> or message <TODO: server staff dm> when you have reached level 30 and can prove it.`);
-				//TODO: blacklist & mention server staff
+			try {
+				if (level<30){
+					message.author.send(`Hey trainer!
+Thanks so much for your interest in joining our raid server.
+Unfortunately we have a level requirement of 30 to gain full access, and your screenshot was scanned at ${level}.
+Gaining xp is very easy to do now with friendships, events, lucky eggs and so much more! Please stay and hang out with us here.
+You can use <#733418314222534826> to connect with other trainers and get the xp you need to hit level 30!
+Once you've reached that point, please repost your screenshot.
+
+In the meantime please join our sister server with this link.
+Hope to raid with you soon! :slight_smile:
+https://discord.gg/tNUXgXC`);
+					//TODO: blacklist & mention server staff DM
+					return;
+				}
+				else if (level>29){
+					message.author.send(`Hey, welcome to the server. :partying_face:
+To get started type \`$verify\` in <#740262255584739391> to start setting up your profile. Extra commands are pinned in said channel.
+Instructions for joining and hosting raids are over at <#733418554283655250>.
+Feel free to ask any questions you have over in <#733706705560666275>.
+Have fun raiding. :wave:
+	`);
+					message.member.roles.add(message.guild.roles.cache.get(level30Role)).catch(console.error);
+					message.react("👍");
+				}
+				const msgtxt = [];
+				if (level>39 && level40Role){
+					message.member.roles.add(message.guild.roles.cache.get(level40Role)).catch(console.error);
+					msgtxt.push(`Congratulations on achieving such a high level.
+You have been given the following vanity roles:
+<@&${level40Role}>`);
+				}
+				if (level>49 && level50Role){
+					message.member.roles.add(message.guild.roles.cache.get(level50Role)).catch(console.error);
+					msgtxt.push(`<@&${level50Role}>`);
+				}
+			} catch (e) {
+				console.log(`an error occured. Error: ${e}`);
 			}
-			else if (level>29){
-				message.guild.roles.cache.get(level30Role);
-				message.react("👍");
-			}
-			if (level>39 && level40Role){
-				message.guild.roles.cache.get(level40Role);
-			}
-			if (level>49 && level50Role){
-				message.guild.roles.cache.get(level50Role);
-			}
+			message.reply(msgtxt, { split: true });
 		}
 	}
 

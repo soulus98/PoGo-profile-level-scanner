@@ -9,6 +9,7 @@ module.exports = {
   usage: `\`${prefix}toggle [setting-name]\``,
   args: true,
   cooldown: 5,
+	guildOnly:true,
   permissions: "ADMINISTRATOR",
 	execute(message, args) {
     console.log(`args 0: ${args}`)
