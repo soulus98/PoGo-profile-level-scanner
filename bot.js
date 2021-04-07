@@ -23,6 +23,7 @@ function loadConfigs(){
 	timeDelay = config.numbers.timeDelay;
 	saveLocalCopy = config.toggles.saveLocalCopy;
 	deleteScreens = config.toggles.deleteScreens;
+	welcomeMsg = config.toggles.welcomeMsg;
 	screenshotChannel = config.ids.screenshotChannel;
 	level30Role = config.ids.level30Role;
 	level40Role = config.ids.level40Role;
@@ -65,12 +66,17 @@ function load(){
 load();
 client.once("ready", () => {
 	channel = client.channels.cache.get(screenshotChannel);
+	if (channel == undefined){
+		console.log("Oops the screenshot channel is broken.");
+	};
 	console.log(`Ready! Loaded in channel #${channel.id} aka "${channel.name}"`);
 	channel.send("Loaded!");
 });
 
 client.on("guildMemberAdd", member => {
-  if (!channel) return;
+	joinTime = new Date();
+	console.log(`New member ${member.user.username}${member} joined the server at ${joinTime.toLocaleString()}`);
+  if (!channel || !welcomeMsg) return;
   channel.send(`Hey, ${member}.
 To confirm that you are at least level 30, we need you to send a screenshot of your Pokemon Go profile.
 Please do so in this channel.
@@ -89,6 +95,9 @@ client.on("message", message => {
 	//image handler
 	if (message.attachments.size > 0) { //checks for an attachment TODO: Check that the attachment is actually an image... how...? idk lol
 		//
+		if (channel == undefined){
+			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix}set screenshotChannel <id>\``);
+		};
 		if (message.channel != channel) return;
 		imageAttempts++;
 		var instance = imageAttempts;
@@ -106,7 +115,7 @@ client.on("message", message => {
 							imageWrite(message);
 							return;
 						} else {
-							ocr();
+							crop();
 						}
 					}
 					setTimeout(slowCheck, timeDelay+9);
@@ -132,7 +141,7 @@ client.on("message", message => {
 				const request = https.get(image.url, function(response) {
 					response.pipe(imageDL);
 				});
-				ocr();
+				crop();
 				if (wasDelayed == true){
 					delayAmount = (currentTime - postedTime)/1000;
 					console.log(logString + `, and it was delayed for ${delayAmount}`);
@@ -146,31 +155,50 @@ client.on("message", message => {
 				message.react("👎");
 			}
 		}
-		async function ocr(){
+		async function crop(){
+
 			const imgCanv = Canvas.createCanvas(image.width,image.height);	//size of canvas
 			const ctx = imgCanv.getContext("2d");
-			const background = await Canvas.loadImage(image.url);
-			ctx.drawImage(background,0,0,imgCanv.width,imgCanv.height);
+			const img = Canvas.loadImage(image.url);
+			img.then((img) => {
+				ctx.drawImage(img,0,0,imgCanv.width,imgCanv.height);
 
-			/*
-			big = 3;
-			const imgCanv = Canvas.createCanvas((image.width/7)*big,(image.height/5)*big);	//size of canvas
+			/*const imgCanv = Canvas.createCanvas((image.width/7),(image.height/5));	//size of canvas
 			const ctx = imgCanv.getContext("2d");
-			const background = await Canvas.loadImage(image.url);
-			await ctx.drawImage(background, 	//img (source image)
-				image.width/28,image.height/2.2,	//sx, sy (where to start clipping)
-				imgCanv.width/big,imgCanv.height/big,		//swidth, sheight (clip size)
-				0,0,														//x, y (where to draw in the Canvas)
-				imgCanv.width,imgCanv.height		//width, height (size of canvas again)
-			);
-			*/
-      try{
-  			const imgAttach = new Discord.MessageAttachment(imgCanv.toBuffer(), image.url);
-  			message.channel.send("Reeeeee", imgAttach);
-      } catch (err){
-        console.log("there was an error: " + err);
-      }
-			/*
+			const img = Canvas.loadImage(image.url);
+			img.then((img) => {
+				ctx.drawImage(img, 	//img (source image)
+					image.width/28,image.height/2.2,	//sx, sy (where to start clipping)
+					imgCanv.width,imgCanv.height,		//swidth, sheight (clip size)
+					0,0,														//x, y (where to draw in the Canvas)
+					imgCanv.width,imgCanv.height		//width, height (size of canvas again)
+				);
+				*/
+				const imgData = ctx.getImageData(0, 0, imgCanv.width, imgCanv.height);
+				newData = greyScale(imgData);
+				ctx.putImageData(newData,0,0);
+				try{
+	  			const imgAttach = new Discord.MessageAttachment(imgCanv.toBuffer(), image.url);
+	  			message.channel.send("Reeeeee", imgAttach);
+	      } catch (err){
+	        console.log(`There was an error:  ${err}`);
+	      }
+				//.catch(err => console.log(`An error occured. Error: ${err}`));
+		});
+
+			function greyScale(imgData){
+				for (i = 0; i < imgData.data.length; i += 4) {
+					let count = imgData.data[i] + imgData.data[i + 1] + imgData.data[i + 2];
+					let colour = 0;
+					if (count > 650) colour = 255;
+					imgData.data[i] = colour;
+					imgData.data[i + 1] = colour;
+					imgData.data[i + 2] = colour;
+					imgData.data[i + 3] = 255;
+				}
+				return imgData;
+			}
+
 			try{
 				const worker = createWorker({
 					logger: m => console.log(m),
@@ -183,10 +211,10 @@ client.on("message", message => {
 					console.log(text);
 					await worker.terminate();
 				})();
-			}catch (error){
-				console.log(`An error occured while recognising. Error: ${error}`);
-			}*/
-			level = "ree";
+			}catch (err){
+				console.log(`An error occured while recognising. Error: ${err}`);
+			}
+			level = 50;
 			if (isNaN(level)){
 				message.reply(`<@&${modRole}> There was an issue scanning this image. It may not be a Pokemon Go profile screenshot, or there may be an internal bot issue.`);
 			}
@@ -196,12 +224,12 @@ client.on("message", message => {
 					message.delete();
 				}
 			}
-
-		}
+		} //ocr end
 		function roleGrant(level){
+			const msgtxt = [];
 			try {
-				if (level<30){
-					message.author.send(`Hey trainer!
+				if (level<30 && message.author){
+					msgtxt.push(`Hey trainer!
 Thanks so much for your interest in joining our raid server.
 Unfortunately we have a level requirement of 30 to gain full access, and your screenshot was scanned at ${level}.
 Gaining xp is very easy to do now with friendships, events, lucky eggs and so much more! Please stay and hang out with us here.
@@ -215,7 +243,7 @@ https://discord.gg/tNUXgXC`);
 					return;
 				}
 				else if (level>29){
-					message.author.send(`Hey, welcome to the server. :partying_face:
+					msgtxt.push(`Hey, welcome to the server. :partying_face:
 To get started type \`$verify\` in <#740262255584739391> to start setting up your profile. Extra commands are pinned in said channel.
 Instructions for joining and hosting raids are over at <#733418554283655250>.
 Feel free to ask any questions you have over in <#733706705560666275>.
@@ -224,21 +252,21 @@ Have fun raiding. :wave:
 					message.member.roles.add(message.guild.roles.cache.get(level30Role)).catch(console.error);
 					message.react("👍");
 				}
-				const msgtxt = [];
 				if (level>39 && level40Role){
 					message.member.roles.add(message.guild.roles.cache.get(level40Role)).catch(console.error);
-					msgtxt.push(`Congratulations on achieving such a high level.
-You have been given the following vanity roles:
-<@&${level40Role}>`);
+					msgtxt.push(`Also, congratulations on achieving such a high level.
+You have been given roles based on reaching:
+Level 30
+Level 40`);
 				}
 				if (level>49 && level50Role){
 					message.member.roles.add(message.guild.roles.cache.get(level50Role)).catch(console.error);
-					msgtxt.push(`<@&${level50Role}>`);
+					msgtxt.push(`Level 50`);
 				}
 			} catch (e) {
 				console.log(`an error occured. Error: ${e}`);
 			}
-			message.reply(msgtxt, { split: true });
+			message.author.send(msgtxt, { split: true });
 		}
 	}
 

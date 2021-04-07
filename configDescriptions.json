@@ -1,7 +1,8 @@
 {
   "toggles":{
     "saveLocalCopy":"(Causes each image to be saved to the server storage)",
-    "deleteScreens":"(Deletes the image from the channel after processing it)"
+    "deleteScreens":"(Deletes the image from the channel after processing it)",
+    "welcomeMsg":"(Sends a welcome message tagging new members explaining the screenshot system.)"
   },
   "numbers":{
     "timeDelay":"(How long to wait before processing the next posted image)"

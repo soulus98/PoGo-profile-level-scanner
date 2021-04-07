@@ -1,7 +1,8 @@
 {
   "toggles":{
     "saveLocalCopy":true,
-    "deleteScreens":true
+    "deleteScreens":true,
+    "welcomeMsg":true
   },
   "numbers":{
     "timeDelay":5002
