@@ -1,7 +1,7 @@
 {
   "toggles":{
     "saveLocalCopy":true,
-    "deleteScreens":true,
+    "deleteScreens":false,
     "welcomeMsg":true
   },
   "numbers":{
