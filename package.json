@@ -20,6 +20,7 @@
     "@mapbox/node-pre-gyp": "^1.0.1",
     "canvas": "^2.7.0",
     "discord.js": "^12.5.1",
+    "gm": "^1.23.1",
     "tesseract.js": "^2.1.4"
   }
 }

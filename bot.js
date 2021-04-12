@@ -44,6 +44,7 @@ function checkDateFolder(checkDate){
 function loadCommands(){
 	client.commands = new Discord.Collection();
 	const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
+	console.log(commandFiles);
 	commandFilesNames = "The currently loaded commands and cooldowns are: \n";
 	for (const file of commandFiles) {		//Loads commands
 		const command = require(`./commands/${file}`);
@@ -312,7 +313,7 @@ For this you have been given the Level 40 role`);
 			} catch (e) {
 				console.log(`an error occured. Error: ${e}`);
 			}
-			message.author.send(msgtxt.toString(), {split:True});
+			message.author.send(msgtxt.toString(), {split:true});
 		}
 	}
 

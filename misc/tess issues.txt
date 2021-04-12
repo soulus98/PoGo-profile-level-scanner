@@ -1,0 +1,30 @@
+Issue #1:
+  Error in pixReadMem: size < 12
+  Error in pixGetSpp: pix not defined
+  Error in pixGetDimensions: pix not defined
+  Error in pixGetColormap: pix not defined
+  Error in pixCopy: pixs not defined
+  Error in pixGetDepth: pix not defined
+  Error in pixGetWpl: pix not defined
+  Error in pixGetYRes: pix not defined
+  Error in pixClone: pixs not defined
+  Please call SetImage before attempting recognition.
+(Only seen once, not sure the circumstances)
+-------------------------------
+Issue #2:
+  C:\Users\user\Desktop\Soul Coding\Discord OCR bot\node_modules\tesseract.js\src\createWorker.js:173
+        throw Error(data);
+        ^
+
+  Error: RuntimeError: function signature mismatch
+      at ChildProcess.<anonymous> (C:\Users\user\Desktop\Soul Coding\Discord OCR bot\node_modules\tesseract.js\src\createWorker.js:173:15)
+      at ChildProcess.emit (events.js:315:20)
+      at emit (internal/child_process.js:903:12)
+      at processTicksAndRejections (internal/process/task_queues.js:81:21)
+
+
+(This causes a total crash even if in a try/catch block.
+Happens after "progress: 0.5" of "loading language traineddata (from cache)"
+Happens local, url, or buffer. .png or .jpg
+Happens about 50% of the time.)
+-------------------------------
