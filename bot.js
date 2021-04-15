@@ -1,5 +1,5 @@
 const { createWorker } = require('tesseract.js');
-const Canvas = require("canvas");
+const gm = require("gm");
 const {token} = require("./keys/keys.json");
 const fs = require("fs");
 const https = require("https");
