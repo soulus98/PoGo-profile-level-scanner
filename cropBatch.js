@@ -8,7 +8,6 @@ fs.readdir("screens/Manual", (err, files) => {
     return;
   }
   for (const file of files) {
-    console.log(file);
     const img = gm(`${path}/${file}`);
     img
     .size((err,size) => {
@@ -23,7 +22,6 @@ fs.readdir("screens/Manual", (err, files) => {
   }
 });
 function crop(cropSize, file, img){
-  console.log(`screens/Cropped/${file}`);
   img
   .blackThreshold("57000")
   .whiteThreshold("57001")

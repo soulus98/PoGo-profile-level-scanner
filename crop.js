@@ -1,7 +1,7 @@
 const fs = require("fs");
 const gm = require("gm");
 const {rect} = require("./rect.js");
-img = gm("image.jpg");
+img = gm("middle.jpg");
 img
 .size((err,size) => {
   if (err){
