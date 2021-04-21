@@ -9,6 +9,7 @@ Issue #1:
   Error in pixGetYRes: pix not defined
   Error in pixClone: pixs not defined
   Please call SetImage before attempting recognition.
+
 (Only seen once, not sure the circumstances)
 -------------------------------
 Issue #2:
@@ -28,3 +29,22 @@ Happens after "progress: 0.5" of "loading language traineddata (from cache)"
 Happens local, url, or buffer. .png or .jpg
 Happens about 50% of the time.)
 -------------------------------
+Issue #3:
+events.js:292
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: read ECONNRESET
+    at TLSWrap.onStreamRead (internal/stream_base_commons.js:209:20)
+Emitted 'error' event on ClientRequest instance at:
+    at TLSSocket.socketErrorListener (_http_client.js:469:9)
+    at TLSSocket.emit (events.js:315:20)
+    at emitErrorNT (internal/streams/destroy.js:106:8)
+    at emitErrorCloseNT (internal/streams/destroy.js:74:3)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  errno: -4077,
+  code: 'ECONNRESET',
+  syscall: 'read'
+}
+
+(Only seen once, while double uploading)

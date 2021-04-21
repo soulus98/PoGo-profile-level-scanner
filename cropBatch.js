@@ -15,8 +15,7 @@ fs.readdir("screens/Manual", (err, files) => {
         console.log(`An error occured: ${err}`);
         return;
       }
-      ratio = size.height/size.width;
-      cropSize = rect(ratio, size);
+      cropSize = rect(size);
       crop(cropSize, file, img);
     });
   }
@@ -26,6 +25,7 @@ function crop(cropSize, file, img){
   .blackThreshold("57000")
   .whiteThreshold("57001")
   .crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
+  .flatten()
   .write(`screens/Cropped/${file}`, (err) => {
     if (err){
       console.log(`An error occured: ${err}`);

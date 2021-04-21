@@ -4,6 +4,7 @@ const {token} = require("./keys/keys.json");
 const fs = require("fs");
 const https = require("https");
 const Discord = require("discord.js");
+const {rect} = require("./rect.js");
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
 lastImageTimestamp = Date.now();
@@ -120,12 +121,7 @@ client.on("message", message => {
 				if (lastImageTimestamp+timeDelay>=currentTime){
 					currentTime = Date.now();
 					if (lastImageTimestamp+timeDelay<currentTime && instance-1==imageLogCount){
-						if(saveLocalCopy){
-							imageWrite(message);
-							return;
-						} else {
-							crop();
-						}
+						imageWrite(message);
 					}
 					setTimeout(slowCheck, timeDelay+9);
 					return;
@@ -138,100 +134,104 @@ client.on("message", message => {
 			currentTime = Date.now(); //Keep updating the time while comparing... This is probably very laggy...
 		}														//I'd rather compare every second or so. I'll figure that later
 		*/
-
 		function imageWrite(message){
 			imageLogCount++;
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
 			logString = `User ${message.author.username}${message.author} sent image#${imageLogCount} at ${postedTime.toLocaleString()}`;
 			try{
-				image = message.attachments.first();
-				imageName = image.id + "." + image.url.split(".").pop();
-				const imageDL = fs.createWriteStream(screensFolder + "/" + imageName);
-				const request = https.get(image.url, function(response) {
-					response.pipe(imageDL);
-				});
-				crop();
+				if(saveLocalCopy){
+					image = message.attachments.first();
+					const imageName = image.id + "." + image.url.split(".").pop();
+					const imageDL = fs.createWriteStream(screensFolder + "/" + imageName);
+					const request = https.get(image.url, function(response) {
+						response.pipe(imageDL);
+					});
+				}
+				crop(image);
 				if (wasDelayed == true){
 					delayAmount = (currentTime - postedTime)/1000;
 					console.log(logString + `, and it was delayed for ${delayAmount}`);
 				} else {
 					console.log(logString);
 				}
-				message.react("👌");
+				message.react("👀");
 			}catch (error){
 				logString = logString + `, but an error occured. Error code: ${error}`;
 				console.log(logString);
-				message.react("👎");
+				message.react("❌");
 			}
 		}
-		async function crop(){
-			/*
-			const imgCanv = Canvas.createCanvas(image.width,image.height);	//size of canvas
-			const ctx = imgCanv.getContext("2d");
-			const img = Canvas.loadImage(image.url);
-			img.then((img) => {
-				ctx.drawImage(img,0,0,imgCanv.width,imgCanv.height);
-			*/
 
-			/*const imgCanv = Canvas.createCanvas((image.width/3),(image.height/5));	//size of canvas
-			const ctx = imgCanv.getContext("2d");
-			const img = Canvas.loadImage(image.url);
-			img.then((img) => {
-				ctx.drawImage(img, 	//img (source image)
-					image.width/28,image.height/2.2,	//sx, sy (where to start clipping)
-					imgCanv.width/2,imgCanv.height,		//swidth, sheight (clip size)
-					0,0,														//x, y (where to draw in the Canvas)
-					imgCanv.width,imgCanv.height		//width, height (size of canvas again)
-				);
-				*/
-
-				/*
-				const imgData = ctx.getImageData(0, 0, imgCanv.width, imgCanv.height);
-				newData = greyScale(imgData);
-				ctx.putImageData(newData,0,0);
-				try{
-	  			const imgAttach = new Discord.MessageAttachment(imgCanv.toBuffer(), image.url);
-	  			message.channel.send("Reeeeee", imgAttach);
-
-	      } catch (err){
-	        console.log(`There was an error:  ${err}`);
-	      }
-				//.catch(err => console.log(`An error occured. Error: ${err}`));
-			});
-			*/
-			recog(image);
-		}
-		function greyScale(imgData){
-			for (i = 0; i < imgData.data.length; i += 4) {
-				let count = imgData.data[i] + imgData.data[i + 1] + imgData.data[i + 2];
-				let colour = 0;
-				if (count > 650) colour = 255;
-				imgData.data[i] = colour;
-				imgData.data[i + 1] = colour;
-				imgData.data[i + 2] = colour;
-				imgData.data[i + 3] = 255;
-			}
-			return imgData;
-		}
-		async function recog(image){
-			ratio = image.height/image.width;
-			rectangle = rectGen(image, ratio);
-			try{
-				const worker = createWorker({
-				  logger: m => console.log(m)
+		function crop(image){
+				https.get(image.url, function(response){
+					img = gm(response, "image.jpg");
+					img
+				  .size((err,size) => {
+				    if (err){
+				      console.log(`An error occured while sizing "img": ${err}`);
+				      return;
+				    }
+						cropSize = rect(size);
+						cropper();
+					});
 				});
+				function cropper() {
+					https.get(image.url, function(response){
+						const imageName = image.id + "crop." + image.url.split(".").pop();
+						imgTwo = gm(response);
+						imgTwo
+						.blackThreshold("57000")
+						.whiteThreshold("57001")
+						.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
+						.flatten()
+						.toBuffer((err, imgBuff) => {
+							if (err){
+								console.log(`An error occured while buffering "img": ${err}`);
+								return;
+							}
+							console.log("Successfully buffered");
+							fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
+								console.log("Successfully written");
+							});
+							recog(imgBuff);
+						});
+					});
+				}
+					/*
+						.write(`${screensFolder}/cropped${imageName}`, (err) => {
+							if (err){
+								console.log(`An error occured while writing "img": ${err}`);
+								return;
+							}
+							console.log("Successfully written");
+						});
+						/*.toBuffer((err, imgBuff) => {
+							if (err){
+								console.log(`An error occured while buffering "img": ${err}`);
+								return;
+							}
+							recog(imgBuff);
+						});*/
+		}
+		async function recog(imgBuff){
+			try{
+				const worker = createWorker();
 				(async () => {
 					await worker.load();
 					await worker.loadLanguage('eng');
 					await worker.initialize('eng');
-					const { data: { text } } = await worker.recognize(screensFolder + "/" + imageName, { rectangle });
+					const { data: { text } } = await worker.recognize(imgBuff);
 					console.log("Image recognised. Result:");
 					console.log(text);
 					await worker.terminate();
-					level = text.match(/(\d\d)/)[0];
-					console.log(level);
+					try{
+						level = text.match(/(\d\d)/)[0];
+					} catch (err){
+						console.log(`Could not find a two digit number in ${text}`);
+						level = "Failure";
+					}
 					if (isNaN(level) || level >50){
-						message.reply(`<@&${modRole}> There was an issue scanning this image. It may not be a Pokemon Go profile screenshot, be too low quality, or there may be an internal bot issue.`);
+						message.reply(`<@&${modRole}> There was an issue scanning this image. This image might: not be a Pokemon Go profile screenshot, have an obstruction near the level number, be too low quality, have an odd aspect ratio, or there may be an internal bot issue.`);
 					} else {
 						message.reply("Test. Your level was scanned at " + level);
 						roleGrant(level);
@@ -244,24 +244,6 @@ client.on("message", message => {
 				console.log(`An error occured while recognising. Error: ${err}`);
 			}
 
-		}
-		function rectGen(image, ratio){
-			if (ratio > 2 && ratio < 2.25) {
-				rectangle = {
-					left: image.width/43.2,
-					top: image.height/1.932,
-					width: image.width/5.4,
-					height: image.height/4.1455
-				};
-			} else {
-				rectangle = {
-					left: 25,
-					top: 1100,
-					width: 200,
-					height: 700
-				};
-			}
-			return rectangle;
 		}
 		function roleGrant(level){
 			const msgtxt = [];

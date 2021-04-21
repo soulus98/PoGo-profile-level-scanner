@@ -1,6 +1,7 @@
 module.exports = {
-  rect(ratio, size){
+  rect(size){
     cropSize = {};
+    const ratio = size.height/size.width;
     if (ratio > 3){
       cropSize = {
         "wid":size.width/7,

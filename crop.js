@@ -1,28 +1,38 @@
 const fs = require("fs");
 const gm = require("gm");
 const {rect} = require("./rect.js");
-img = gm("middle.jpg");
-img
-.size((err,size) => {
-  if (err){
-    console.log(`An error occured: ${err}`);
-    return;
-  }
-  ratio = size.height/size.width;
-  console.log(ratio);
-  cropSize = rect(ratio, size);
-  crop(cropSize);
-});
-function crop(cropSize){
+images = ["image.jpg"];
+imageresults = ["result.jpg"];
+//images = ["blue1.jpg","blue2.jpg","blue3.jpg","red1.jpg","red2.jpg","red3.jpg","yellow1.jpg","yellow2.jpg","yellow3.jpg"]
+//imageresults = ["croppedblue1.jpg","croppedblue2.jpg","croppedblue3.jpg","croppedred1.jpg","croppedred2.jpg","croppedred3.jpg","croppedyellow1.jpg","croppedyellow2.jpg","croppedyellow3.jpg"]
+//"For training/oneofeach/"
+
+for (image in images) {
+  console.log(image);
+  const writeName = imageresults[image];
+  const img = gm(images[image]);
   img
-  .blackThreshold("57000")
-  .whiteThreshold("57001")
-  .crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
-  .write("result.jpg", (err) => {
+  .size((err,size) => {
     if (err){
       console.log(`An error occured: ${err}`);
       return;
     }
-    console.log("Success");
+    const cropSize = rect(size);
+    crop(cropSize,writeName);
   });
+  function crop(cropSize, writeName){
+    console.log(writeName);
+    img
+    .blackThreshold("57000")
+    .whiteThreshold("57001")
+    .crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
+    .flatten()
+    .write(writeName, (err) => {
+      if (err){
+        console.log(`An error occured: ${err}`);
+        return;
+      }
+      console.log("Success");
+    });
+  }
 }

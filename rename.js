@@ -1,6 +1,7 @@
 const fs = require("fs");
 const canvas = require('canvas');
 const pngFiles = fs.readdirSync("./screens/Manual").filter(file => file.endsWith(".png"));
+console.log("Renaming pngs...");
 for (const file of pngFiles) {
   const oldP = "./screens/Manual/" + file;
   img = canvas.loadImage(oldP);
@@ -18,6 +19,7 @@ for (const file of pngFiles) {
   });
 }
 const jpegFiles = fs.readdirSync("./screens/Manual").filter(file => file.endsWith(".jpeg"));
+console.log("Renaming jpeg...");
 for (const file of jpegFiles) {
   const oldP = "./screens/Manual/" + file;
   img = canvas.loadImage(oldP);
@@ -39,6 +41,7 @@ for (const file of jpegFiles) {
 
 }
 const jfifFiles = fs.readdirSync("./screens/Manual").filter(file => file.endsWith(".jfif"));
+console.log("Renaming jfifs...");
 for (const file of jfifFiles) {
   const oldP = "./screens/Manual/" + file;
   img = canvas.loadImage(oldP);
@@ -58,6 +61,7 @@ for (const file of jfifFiles) {
   });
 }
 const jpgFiles = fs.readdirSync("./screens/Manual").filter(file => file.endsWith(".jpg"));
+console.log("Renaming jpgs...");
 for (const file of jpgFiles) {
   const oldP = "./screens/Manual/" + file;
   img = canvas.loadImage(oldP);
