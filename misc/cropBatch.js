@@ -1,8 +1,9 @@
 const fs = require("fs");
 const gm = require("gm");
 const {rect} = require("./rect.js");
-path = "screens/Manual";
-fs.readdir("screens/Manual", (err, files) => {
+
+path = "screens/Manual/jpgs";
+fs.readdir(path, (err, files) => {
   if (err) {
     console.log(`An error occured: ${err}`);
     return;
@@ -26,7 +27,7 @@ function crop(cropSize, file, img){
   .whiteThreshold("57001")
   .crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
   .flatten()
-  .write(`screens/Cropped/${file}`, (err) => {
+  .write(`screens/Manual/jcropped/${file}`, (err) => {
     if (err){
       console.log(`An error occured: ${err}`);
       return;
