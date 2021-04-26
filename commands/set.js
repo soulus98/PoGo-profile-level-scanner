@@ -5,9 +5,9 @@ const bot = require("../bot.js");
 
 module.exports = {
 	name: "modify-setting",
-	description: `Used to change the value of certain settings. Use \`${prefix}help set\` and \`${prefix}help toggle\` to see a list of all current settings`,
+	description: `Used to change the value of certain settings. Currently toggles settings for all instances of the bot, as there is only one intended instance. Use \`${prefix}show-options\` to see all current settings.`,
   aliases: ["set", "modify"],
-  usage: `\`${prefix}set [setting-name] [value]\``,
+  usage: `\`${prefix}set [setting] [value]\``,
   cooldown: 5,
 	guildOnly:true,
 	permissions: "ADMINISTRATOR",
@@ -63,7 +63,7 @@ module.exports = {
 						console.log(`But an unexpected write error occured. Error: ${err}`);
 						return;
 					} else {
-						message.channel.send(`"${args[0]}" was successfully changed from ${was} to ${to}.\n Please verify that this is the correct value, as I have no value checking system (yet).`);
+						message.channel.send(`"${args[0]}" was successfully changed from \`${was}\` to \`${to}\`.\n Please verify that this is the correct value, as I have no value checking system (yet).`);
 						console.log(`and successfully changed "${args[0]}" from ${was} to ${to}.`);
 						bot.loadConfigs();
 						return;

@@ -23,43 +23,6 @@ module.exports = {
 			message.reply(`\`${prefix}${name}\` is not a valid command.`);
 			return `, but it failed, as ${prefix}${name} not a valid command.`;
 		}
-		if (command.name == "modify-setting"){
-			dataPush(data);
-			data.push("\n**Settings:**");
-			numbers = config.numbers;
-			chars = config.chars;
-			numberKeys = Object.keys(numbers);
-			charsKeys = Object.keys(chars);
-			numberDescriptions = configDescriptions.numbers;
-			charsDescriptions = configDescriptions.chars;
-			var y = 0;
-			for(var x in numbers){
-				data.push(`\`${numberKeys[y]}\` : \`${numbers[x]}\` ${numberDescriptions[x]}`);
-				y++;
-			}
-			y = 0;
-			for(var x in chars){
-				data.push(`\`${charsKeys[y]}\` : \`${chars[x]}\` ${charsDescriptions[x]}`);
-				y++;
-			}
-			data.push("All channels and roles must be **only** the id in numbers, no other characters");
-			message.reply(data, { split: true });
-			return `, and it was successful.`;
-		}
-		if (command.name == "toggle-setting"){
-			dataPush(data);
-			data.push("\n**Settings:**");
-			toggles = config.toggles;
-			togglesKeys = Object.keys(toggles);
-			togglesDescriptions = configDescriptions.toggles;
-			var y = 0;
-			for(var x in toggles){
-				data.push(`\`${togglesKeys[y]}\` : \`${toggles[x]}\` ${togglesDescriptions[x]}`);
-				y++;
-			}
-			message.reply(data, { split: true });
-			return `, and it was successful.`;
-		}
 		try {
 			dataPush(data);
 			message.reply(data, { split: true });

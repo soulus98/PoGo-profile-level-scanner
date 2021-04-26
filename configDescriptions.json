@@ -1,16 +1,20 @@
 {
   "toggles":{
+    "self":"Toggled on-off using `{prefix}toggle [setting]`",
     "saveLocalCopy":"(Causes each image to be saved to the server storage)",
     "deleteScreens":"(Deletes the image from the channel after processing it)",
-    "welcomeMsg":"(Sends a welcome message tagging new members explaining the screenshot system.)"
+    "welcomeMsg":"(Sends a welcome message tagging new members explaining the screenshot system)"
   },
   "numbers":{
+    "self":"Changed using `{prefix}set [setting] [value]`. Must be a number",
     "timeDelay":"(How long to wait before processing the next posted image)"
   },
   "chars":{
+    "self":"Changed using `{prefix}set [setting] [value]`. Must be a string of characters",
     "prefix":"(Bot prefix for server commands)"
   },
   "ids":{
+    "self":"Changed using `{prefix}set [setting] [value]`. Must be a discord id",
     "screenshotChannel":"(The channel to scan for screenshots)",
     "level30Role":"(The role for successful scans. i.e. level 30+)",
     "level40Role":"(The role for level 40+ screenshots)",

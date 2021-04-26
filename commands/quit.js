@@ -10,7 +10,7 @@ module.exports = {
 	permissions: "ADMINISTRATOR",
 	execute(message, args) {
 		console.log(`${message.author.username}${message.author} force quit the server at ${message.createdAt.toLocaleString()}.`);
-		message.channel.send("Goodbye.").then( () => {
+		message.channel.send("👋").then( () => {
 			process.exit(0);
 		});
 	},
