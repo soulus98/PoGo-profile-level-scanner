@@ -289,17 +289,16 @@ Have fun raiding. :wave:
 				}
 				if (level>39 && level40Role){
 					message.member.roles.add(message.guild.roles.cache.get(level40Role)).catch(console.error);
-					msgtxt.push(`${(message.member.roles.cache.has(level30Role)) ? ", however,":"\nAlso, "} we congratulate you on achieving such a high level.\n
-For this you have been given the Level 40 role`);
+					msgtxt.push(`${(message.member.roles.cache.has(level30Role)) ? " however,":"\nAlso, "} we congratulate you on achieving such a high level.\nFor this you have been given the Level 40 role`);
 				}
 				if (level>49 && level50Role){
 					message.member.roles.add(message.guild.roles.cache.get(level50Role)).catch(console.error);
-					msgtxt.push(`, and the Level 50 role`);
+					msgtxt.push(` and the Level 50 role`);
 				}
 			} catch (e) {
 				console.log(`an error occured. Error: ${e}`);
 			}
-			message.author.send(msgtxt.toString(), {split:true});
+			message.author.send(msgtxt.toString(""), {split:true});
 		}
 	}
 
