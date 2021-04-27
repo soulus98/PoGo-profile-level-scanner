@@ -27,7 +27,7 @@ function crop(cropSize, file, img){
   .whiteThreshold("57001")
   .crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
   .flatten()
-  .write(`screens/Manual/jcropped/${file}`, (err) => {
+  .write(`screens/Manual/cropped/${file}`, (err) => {
     if (err){
       console.log(`An error occured: ${err}`);
       return;

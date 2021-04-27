@@ -1,4 +1,4 @@
-const { createWorker } = require('tesseract.js');
+const { createWorker , PSM } = require('tesseract.js');
 const gm = require("gm");
 const {token} = require("./keys/keys.json");
 const fs = require("fs");
@@ -189,10 +189,11 @@ client.on("message", message => {
 								console.log(`An error occured while buffering "img": ${err}`);
 								return;
 							}
-							console.log("Successfully buffered");
+							/*
+							//This is for seeing the cropped version
 							fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
-								console.log("Successfully written");
-							});
+								console.log("Written");
+							});*/
 							recog(imgBuff);
 						});
 					});
@@ -220,6 +221,9 @@ client.on("message", message => {
 					await worker.load();
 					await worker.loadLanguage('eng');
 					await worker.initialize('eng');
+					await worker.setParameters({
+						tessedit_pageseg_mode: PSM.AUTO,
+					});
 					const { data: { text } } = await worker.recognize(imgBuff);
 					console.log("Image recognised. Result:");
 					console.log(text);

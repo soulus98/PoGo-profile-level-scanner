@@ -2,7 +2,7 @@ const tesseract = require('tesseract.js');
 const gm = require('gm');
 const fs = require('fs');
 
-path = "screens/Manual/pngs";
+path = "screens/Manual";
 fs.readdir(path, (err, files) => {
   if (err) {
     console.log(`An error occured: ${err}`);
@@ -15,7 +15,7 @@ fs.readdir(path, (err, files) => {
     const name = fileName.join("");
     const img = gm(`${path}/${file}`);
     img.write(`${path}/jpgs/${name}.jpg`, err => {
-      if (err) return console.log("Something bronk");
+      if (err) return console.log(`Something bronk writing ${name}. Err: ${err}`);
       console.log(`Wrote ${name}.jpg`);
     });
   }
