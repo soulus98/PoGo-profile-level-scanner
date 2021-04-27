@@ -154,7 +154,6 @@ client.on("message", message => {
 				} else {
 					console.log(logString);
 				}
-				message.react("👀");
 			}catch (error){
 				logString = logString + `, but an error occured. Error code: ${error}`;
 				console.log(logString);
@@ -218,6 +217,7 @@ client.on("message", message => {
 			try{
 				const worker = createWorker();
 				(async () => {
+					console.log("Test");
 					await worker.load();
 					await worker.loadLanguage('eng');
 					await worker.initialize('eng');
@@ -236,6 +236,7 @@ client.on("message", message => {
 					}
 					if (isNaN(level) || level >50){
 						message.reply(`<@&${modRole}> There was an issue scanning this image. This image might: not be a Pokemon Go profile screenshot, have an obstruction near the level number, be too low quality, have an odd aspect ratio, or there may be an internal bot issue.`);
+						message.react("❌");
 					} else {
 						message.reply("Test. Your level was scanned at " + level);
 						roleGrant(level);

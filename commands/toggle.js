@@ -1,6 +1,7 @@
 config = require("../config.json");
 const prefix = config.chars.prefix;
 const fs = require("fs");
+const bot = require("../bot.js");
 
 module.exports = {
 	name: "toggle-setting",
@@ -12,7 +13,6 @@ module.exports = {
 	guildOnly:true,
   permissions: "ADMINISTRATOR",
 	execute(message, args) {
-    console.log(`args 0: ${args}`)
     if (args.length != 1){
       message.reply(`You must supply only one argument in the form \`${prefix}toggle [setting-name]\``);
       return `, but it failed, as there were no arguments provided`;
@@ -35,8 +35,9 @@ module.exports = {
             console.log(`But an unexpected write error occured. Error: ${err}`);
             return;
           } else {
-            message.channel.send(`"${args}" was successfully toggled from ${was} to ${toggles[args[0]]}.`);
+            message.channel.send(`"${args}" was successfully toggled from \`${was.toString().replace("true","ON").replace("false","OFF")}\` to \`${toggles[args[0]].toString().replace("true","ON").replace("false","OFF")}\`.`);
             console.log(`and successfully toggled "${args}" from ${was} to ${toggles[args[0]]}.`);
+						bot.loadConfigs();
             return;
           }
         })
