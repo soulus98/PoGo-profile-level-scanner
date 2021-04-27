@@ -13,6 +13,22 @@ Issue #1:
 (Only seen once, not sure the circumstances)
 -------------------------------
 Issue #2:
+C:\Users\user\Desktop\Soul Coding\Discord OCR bot\node_modules\tesseract.js\src\createWorker.js:173
+        throw Error(data);
+        ^
+
+Error: Error: UNKNOWN: unknown error, open 'C:\Users\user\Desktop\Soul Coding\Discord OCR bot\eng.traineddata'
+    at ChildProcess.<anonymous> (C:\Users\user\Desktop\Soul Coding\Discord OCR bot\node_modules\tesseract.js\src\createWorker.js:173:15)
+    at ChildProcess.emit (events.js:315:20)
+    at emit (internal/child_process.js:903:12)
+    at processTicksAndRejections (internal/process/task_queues.js:81:21)
+
+(This causes a total crash even if in a try/catch block.
+Happens after "progress: 0.5" of "loading language traineddata (from cache)"
+Happens local, url, or buffer. .png or .jpg
+Happens about 50% of the time.)
+-------------------------------
+Issue #3:
   C:\Users\user\Desktop\Soul Coding\Discord OCR bot\node_modules\tesseract.js\src\createWorker.js:173
         throw Error(data);
         ^
@@ -26,10 +42,9 @@ Issue #2:
 
 (This causes a total crash even if in a try/catch block.
 Happens after "progress: 0.5" of "loading language traineddata (from cache)"
-Happens local, url, or buffer. .png or .jpg
-Happens about 50% of the time.)
+Happens local, url, or buffer. .png or .jpg)
 -------------------------------
-Issue #3:
+Issue #4:
 events.js:292
       throw er; // Unhandled 'error' event
       ^

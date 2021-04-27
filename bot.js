@@ -137,7 +137,7 @@ client.on("message", message => {
 		function imageWrite(message){
 			imageLogCount++;
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
-			logString = `User ${message.author.username}${message.author} sent image#${imageLogCount} at ${postedTime.toLocaleString()}`;
+			logString = `User ${message.author.username}${message.author} sent image#${instance} at ${postedTime.toLocaleString()}`;
 			try{
 				if(saveLocalCopy){
 					image = message.attachments.first();
@@ -160,43 +160,42 @@ client.on("message", message => {
 				message.react("❌");
 			}
 		}
-
 		function crop(image){
+			https.get(image.url, function(response){
+				img = gm(response);
+				img
+			  .size((err,size) => {
+			    if (err){
+			      console.log(`An error occured while sizing "img": ${err}`);
+			      return;
+			    }
+					cropSize = rect(size);
+					cropper();
+				});
+			});
+			function cropper() {
 				https.get(image.url, function(response){
-					img = gm(response, "image.jpg");
-					img
-				  .size((err,size) => {
-				    if (err){
-				      console.log(`An error occured while sizing "img": ${err}`);
-				      return;
-				    }
-						cropSize = rect(size);
-						cropper();
+					const imageName = image.id + "crop." + image.url.split(".").pop();
+					imgTwo = gm(response);
+					imgTwo
+					.blackThreshold("57000")
+					.whiteThreshold("57001")
+					.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
+					.flatten()
+					.toBuffer((err, imgBuff) => {
+						if (err){
+							console.log(`An error occured while buffering "img": ${err}`);
+							return;
+						}
+						/*
+						//This is for seeing the cropped version
+						fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
+							console.log("Written");
+						});*/
+						recog(imgBuff);
 					});
 				});
-				function cropper() {
-					https.get(image.url, function(response){
-						const imageName = image.id + "crop." + image.url.split(".").pop();
-						imgTwo = gm(response);
-						imgTwo
-						.blackThreshold("57000")
-						.whiteThreshold("57001")
-						.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
-						.flatten()
-						.toBuffer((err, imgBuff) => {
-							if (err){
-								console.log(`An error occured while buffering "img": ${err}`);
-								return;
-							}
-							/*
-							//This is for seeing the cropped version
-							fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
-								console.log("Written");
-							});*/
-							recog(imgBuff);
-						});
-					});
-				}
+			}
 					/*
 						.write(`${screensFolder}/cropped${imageName}`, (err) => {
 							if (err){
@@ -214,13 +213,25 @@ client.on("message", message => {
 						});*/
 		}
 		async function recog(imgBuff){
-			try{
-				const worker = createWorker();
-				(async () => {
-					console.log("Test");
+			const worker = createWorker({
+				logger: m => console.log(m)
+			});
+			(async () => {
+				console.log("Test");
+				try{
 					await worker.load();
-					await worker.loadLanguage('eng');
-					await worker.initialize('eng');
+					try{
+						await worker.loadLanguage('eng');
+					} catch (err){
+						console.log(`An error occured while recognising. Error: ${err}
+Stack: ${err.stack}`);
+					}
+					try{
+						await worker.initialize('eng');
+					} catch (err){
+						console.log(`An error occured while recognising. Error: ${err}
+Stack: ${err.stack}`);
+					}
 					await worker.setParameters({
 						tessedit_pageseg_mode: PSM.AUTO,
 					});
@@ -238,17 +249,18 @@ client.on("message", message => {
 						message.reply(`<@&${modRole}> There was an issue scanning this image. This image might: not be a Pokemon Go profile screenshot, have an obstruction near the level number, be too low quality, have an odd aspect ratio, or there may be an internal bot issue.`);
 						message.react("❌");
 					} else {
-						message.reply("Test. Your level was scanned at " + level);
+						message.reply("This is a testing message. Your level was scanned at " + level);
 						roleGrant(level);
 						if (deleteScreens) {
 							message.delete();
 						}
 					}
-				})();
-			}catch (err){
-				console.log(`An error occured while recognising. Error: ${err}`);
-			}
-
+				}
+				catch (err){
+					console.log(`An error occured while recognising. Error: ${err}
+Stack: ${err.stack}`);
+				}
+			})();
 		}
 		function roleGrant(level){
 			const msgtxt = [];
