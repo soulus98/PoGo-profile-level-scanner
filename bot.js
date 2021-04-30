@@ -10,8 +10,8 @@ const cooldowns = new Discord.Collection();
 lastImageTimestamp = Date.now();
 imageAttempts = 0;
 imageLogCount = 0;
-postDate = new Date();
-var screensFolder = `./screens/Auto/${postDate.toDateString()}`;
+launchDate = new Date();
+screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 config = {};
 module.exports = {loadConfigs};
 
@@ -21,6 +21,7 @@ function loadConfigs(){
 	config = require("./config.json");
 	prefix = config.chars.prefix;
 	timeDelay = config.numbers.timeDelay;
+	threshold = config.numbers.threshold;
 	saveLocalCopy = config.toggles.saveLocalCopy;
 	deleteScreens = config.toggles.deleteScreens;
 	welcomeMsg = config.toggles.welcomeMsg;
@@ -33,11 +34,13 @@ function loadConfigs(){
 	console.log(config);
 }
 function checkDateFolder(checkDate){
-	fs.access(screensFolder, error => {
+	newFolder = `./screens/Auto/${checkDate.toDateString()}`
+	console.log(`Checking for ${newFolder}`);
+	fs.access(newFolder, error => {
 	    if (!error) {
 				console.log(`Folder ${checkDate.toDateString()} already existed.`);
 	    } else {
-				fs.mkdirSync(screensFolder);
+				fs.mkdirSync(newFolder);
 				console.log(`Folder ${checkDate.toDateString()} created.`);
 	    }
 	});
@@ -61,7 +64,7 @@ function loadCommands(){
 }
 function load(){
 		loadConfigs();
-		checkDateFolder(postDate);
+		checkDateFolder(launchDate);
 		loadCommands();
 }
 load();
@@ -137,7 +140,7 @@ client.on("message", message => {
 		function imageWrite(message){
 			imageLogCount++;
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
-			logString = `User ${message.author.username}${message.author} sent image#${instance} at ${postedTime.toLocaleString()}`;
+			logString = `User ${message.author.username}${message.author} sent image#${imageLogCount} at ${postedTime.toLocaleString()}`;
 			try{
 				if(saveLocalCopy){
 					image = message.attachments.first();
@@ -161,41 +164,41 @@ client.on("message", message => {
 			}
 		}
 		function crop(image){
-			https.get(image.url, function(response){
-				img = gm(response);
-				img
-			  .size((err,size) => {
-			    if (err){
-			      console.log(`An error occured while sizing "img": ${err}`);
-			      return;
-			    }
-					cropSize = rect(size);
-					cropper();
-				});
-			});
-			function cropper() {
 				https.get(image.url, function(response){
-					const imageName = image.id + "crop." + image.url.split(".").pop();
-					imgTwo = gm(response);
-					imgTwo
-					.blackThreshold("57000")
-					.whiteThreshold("57001")
-					.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
-					.flatten()
-					.toBuffer((err, imgBuff) => {
-						if (err){
-							console.log(`An error occured while buffering "img": ${err}`);
-							return;
-						}
-						/*
-						//This is for seeing the cropped version
-						fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
-							console.log("Written");
-						});*/
-						recog(imgBuff);
+					img = gm(response, "image.jpg");
+					img
+				  .size((err,size) => {
+				    if (err){
+				      console.log(`An error occured while sizing "img": ${err}`);
+				      return;
+				    }
+						cropSize = rect(size);
+						cropper();
 					});
 				});
-			}
+				function cropper() {
+					https.get(image.url, function(response){
+						const imageName = image.id + "crop." + image.url.split(".").pop();
+						imgTwo = gm(response);
+						imgTwo
+						.blackThreshold(threshold)
+						.whiteThreshold(threshold+1)
+						.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
+						.flatten()
+						.toBuffer((err, imgBuff) => {
+							if (err){
+								console.log(`An error occured while buffering "img": ${err}`);
+								return;
+							}
+
+							//This is for seeing the cropped version
+							fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
+								console.log("Written");
+							});
+							recog(imgBuff);
+						});
+					});
+				}
 					/*
 						.write(`${screensFolder}/cropped${imageName}`, (err) => {
 							if (err){
@@ -227,11 +230,12 @@ client.on("message", message => {
 Stack: ${err.stack}`);
 					}
 					try{
-						await worker.initialize('eng');
+
 					} catch (err){
 						console.log(`An error occured while recognising. Error: ${err}
-Stack: ${err.stack}`);
+	Stack: ${err.stack}`);
 					}
+					await worker.initialize('eng');
 					await worker.setParameters({
 						tessedit_pageseg_mode: PSM.AUTO,
 					});
@@ -249,7 +253,7 @@ Stack: ${err.stack}`);
 						message.reply(`<@&${modRole}> There was an issue scanning this image. This image might: not be a Pokemon Go profile screenshot, have an obstruction near the level number, be too low quality, have an odd aspect ratio, or there may be an internal bot issue.`);
 						message.react("❌");
 					} else {
-						message.reply("This is a testing message. Your level was scanned at " + level);
+						message.reply("Test. Your level was scanned at " + level);
 						roleGrant(level);
 						if (deleteScreens) {
 							message.delete();

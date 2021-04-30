@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { createWorker , PSM } = require('tesseract.js');
 //import { createWorker } from 'tesseract.js';
-const image = "image.jpg";
+const image = "image.jfif";
 recog(image);
 async function recog(image){
   const worker = createWorker({

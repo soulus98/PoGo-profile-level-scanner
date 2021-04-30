@@ -7,7 +7,8 @@
   },
   "numbers":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a number",
-    "timeDelay":"(How long to wait before processing the next posted image)"
+    "timeDelay":"(How long to wait before processing the next posted image)",
+    "threshold":"(The color level at which all values above will be white and all below with be black. Different for different servers for some reason.)"
   },
   "chars":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a string of characters",
