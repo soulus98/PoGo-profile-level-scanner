@@ -11,6 +11,7 @@ lastImageTimestamp = Date.now();
 imageAttempts = 0;
 imageLogCount = 0;
 launchDate = new Date();
+currentlyImage = 0;
 screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 config = {};
 module.exports = {loadConfigs};
@@ -91,6 +92,7 @@ Thankyou.`);
 });
 
 client.on("message", message => {
+
 	if (message.author.bot) return; // Bot? Cancel
 	wasDelayed = false;
 	postedTime = new Date();
@@ -115,31 +117,47 @@ client.on("message", message => {
 			return;
 		}
 		imageAttempts++;
+		currentlyImage++;
 		var instance = imageAttempts;
-		console.log(`inst: ${instance}. iLC: ${imageLogCount}. time difference: ${lastImageTimestamp+timeDelay-currentTime}`);
+		//console.log(`inst: ${instance}. iLC: ${imageLogCount}. time difference: ${currentTime-lastImageTimestamp-timeDelay}`);
 		//console.log("Compared seconds: " + (postedTime-lastImageTimestamp)/1000);
-		if (lastImageTimestamp+timeDelay<currentTime && instance-1==imageLogCount){
-			console.log(`test step A: i#${instance}`);
+		if (imageLogCount+1 == instance){
+			//console.log(`test step A: i#${instance}. iLC: ${imageLogCount}.`);
 			imageWrite();
 		} else {
-			console.log(`test step B: i#${instance}`);
 			wasDelayed = true;
-			function slowCheck(){
-				console.log(`test step C: i#${instance}`);
-				if (lastImageTimestamp+timeDelay>=currentTime){
+			const intervalID = setInterval(function () {
+				if(imageLogCount+1 == instance){
 					currentTime = Date.now();
-					if (lastImageTimestamp+timeDelay<currentTime && instance-1==imageLogCount){
-						console.log(`test step D: i#${instance}`);
-						imageWrite();
-						return;
-					}
-					console.log(`Loop i#${instance}`);
-					setTimeout(slowCheck, (timeDelay/2)+5);
-					return;
+					setTimeout(imageWrite,timeDelay*(4/5));
+					clearInterval(intervalID);
 				}
-			}
-			slowCheck();
+			}, 2000);
 		}
+
+
+		// if (lastImageTimestamp+timeDelay<currentTime && instance-1==imageLogCount){
+		// 	console.log(`test step A: i#${instance}`);
+		// 	imageWrite();
+		// } else {
+		// 	console.log(`test step B: i#${instance}`);
+		// 	wasDelayed = true;
+		// 	function slowCheck(){
+		// 		console.log(`test step C: i#${instance}`);
+		// 		if (lastImageTimestamp+timeDelay>=currentTime){
+		// 			currentTime = Date.now();
+		// 			if (lastImageTimestamp+timeDelay<currentTime && instance-1==imageLogCount){
+		// 				console.log(`test step D: i#${instance}`);
+		// 				imageWrite();
+		// 				return;
+		// 			}
+		// 			console.log(`Loop i#${instance}`);
+		// 			setTimeout(slowCheck, (timeDelay/2)+5);
+		// 			return;
+		// 		}
+		// 	}
+		// 	slowCheck();
+		// }
 		/*while(lastImageTimestamp+timeDelay>=currentTime){ //comparing lastImageTimestamp which is set either on server launch or on previous command execution
 			wasDelayed = true;
 			currentTime = Date.now(); //Keep updating the time while comparing... This is probably very laggy...
@@ -161,14 +179,13 @@ client.on("message", message => {
 				if (wasDelayed == true){
 					delayAmount = Math.round((currentTime - postedTime)/1000);
 					console.log(logString + `, and it was delayed for ${delayAmount}s`);
-				} else {
-					console.log(logString);
-				}
+				} else { console.log(logString); }
 			}catch (error){
 				logString = logString + `, but an error occured. Error code: ${error}`;
 				console.log(logString);
 				message.react("❌");
 				imageLogCount++;
+				currentlyImage--;
 				return;
 			}
 		}
@@ -209,10 +226,10 @@ client.on("message", message => {
 										console.log(`An error occured while writing "imgTwo": ${err}`);
 										return;
 									}
-									console.log("Written");
+									//console.log("Written"); //test ??
 								});
 							}
-							setTimeout(()=>{recog(imgBuff);},700);
+							setTimeout(()=>{recog(imgBuff);},timeDelay*(1/5));
 							//recog(imgBuff);
 						});
 					});
@@ -239,43 +256,42 @@ client.on("message", message => {
 				//logger: m => console.log(m)
 			});
 			(async () => {
+				await worker.load();
+				//console.log(`Recognising: i#${instance}. iLC: ${imageLogCount}.`); //test??
+				await worker.loadLanguage('eng');
+				await worker.initialize('eng');
+				await worker.setParameters({
+					tessedit_pageseg_mode: PSM.AUTO,
+				});
+				const { data: { text } } = await worker.recognize(imgBuff);
+				//console.log("Image recognised. Result:");
+				//console.log(text);
+				await worker.terminate();
 				try{
-					await worker.load();
-					console.log(`Recognising: image#${instance}`);
-					await worker.loadLanguage('eng');
-					await worker.initialize('eng');
-					await worker.setParameters({
-						tessedit_pageseg_mode: PSM.AUTO,
-					});
-					const { data: { text } } = await worker.recognize(imgBuff);
-					//console.log("Image recognised. Result:");
-					//console.log(text);
-					await worker.terminate();
-					try{
-						level = text.match(/(\d\d)/)[0];
-					} catch (err){
-						console.log(`Could not find a two digit number in ${text}`);
-						level = "Failure";
-					}
-					console.log(`Level: ${level}`);
-					if (isNaN(level) || level >50){
-						message.reply(`<@&${modRole}> There was an issue scanning this image. This image might: not be a Pokemon Go profile screenshot, have an obstruction near the level number, be too low quality, have an odd aspect ratio, or there may be an internal bot issue.`);
-						message.react("❌");
-						imageLogCount++;
-						return;
-					} else {
-						message.reply("Test. Your level was scanned at " + level);
-						roleGrant(level);
-						imageLogCount++;
-						message.react("👍");
-						if (deleteScreens) {
+					level = text.match(/(\d\d)/)[0];
+				} catch (err){
+					console.log(`Could not find a two digit number in ${text}`);
+					level = "Failure";
+				}
+				console.log(`Recognised image: #${instance}.
+Level: ${level}. `); //test ?????
+				if (isNaN(level) || level >50){
+					message.reply(`<@&${modRole}> There was an issue scanning this image. This image might: not be a Pokemon Go profile screenshot, have an obstruction near the level number, be too low quality, have an odd aspect ratio, or there may be an internal bot issue.`);
+					message.react("❌");
+					imageLogCount++;
+					currentlyImage--;
+					return;
+				} else {
+					//message.reply("Test. Your level was scanned at " + level);
+					roleGrant(level);
+					imageLogCount++;
+					currentlyImage--;
+					//console.log(`Remaining images: ${currentlyImage}`);//test
+					if (deleteScreens) {
+						if (message){
 							message.delete();
 						}
 					}
-				}
-				catch (err){
-					console.log(`An error occured while recognising. Error: ${err}`);
-					throw err;
 				}
 			})();
 		}
@@ -315,14 +331,17 @@ Feel free to ask any questions you have over in <#733706705560666275>.
 Have fun raiding. :wave:
 	`);
 					message.member.roles.add(message.guild.roles.cache.get(level30Role)).catch(console.error);
+					message.react("👍");
 				}
 				if (level>39 && level40Role){
 					message.member.roles.add(message.guild.roles.cache.get(level40Role)).catch(console.error);
 					msgtxt.push(`${(message.member.roles.cache.has(level30Role)) ? " however,":"\nAlso, "} we congratulate you on achieving such a high level.\nFor this you have been given the Level 40 role`);
+					message.react("👍");
 				}
 				if (level>49 && level50Role){
 					message.member.roles.add(message.guild.roles.cache.get(level50Role)).catch(console.error);
 					msgtxt.push(` and the Level 50 role`);
+					message.react("👍");
 				}
 			} catch (e) {
 				console.log(`an error occured. Error: ${e}`);
@@ -399,15 +418,21 @@ Have fun raiding. :wave:
 
 client.login(token);
 
- process.on('uncaughtException', err => {
-   console.log(`Uncaught Exception: ${err.message}`);
-	 imageLogCount++;
-	 errorMessage = channel.send("An internal error occured. Please retry sending the screenshot(s) that failed.");
-   console.log(errorMessage);
+ process.on('uncaughtException', (err) => {
+   console.log(`Uncaught Exception: ${err}`);
+	 if (currentlyImage > 0){
+		 imageLogCount++;
+		 currentlyImage--;
+	 }
+	 errorMessage = channel.send(`<@&${modRole}> An internal error occured. Please retry sending the screenshot(s) that failed.`);
+  //  errorMessage.then((errorMessage)=>{setTimeout(()=>{
+	// 	 if (errorMessage){
+	// 	 	errorMessage.delete();
+	// 	}
+	// },20000);});
 	 //errorMessage.delete();
-	 //setTimeout(()=>{errorMessage.delete();},20000);
  });
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (err, promise) => {
   console.log('Unhandled rejection at ', promise, `reason: ${err.message}`);
 });
