@@ -3,12 +3,15 @@
     "self":"Toggled on-off using `{prefix}toggle [setting]`",
     "saveLocalCopy":"(Causes each image to be saved to the server storage)",
     "deleteScreens":"(Deletes the image from the channel after processing it)",
-    "welcomeMsg":"(Sends a welcome message tagging new members explaining the screenshot system)"
+    "welcomeMsg":"(Sends a welcome message tagging new members explaining the screenshot system)",
+    "testMode":"(Provides more information about what is scanned and whatnot)"
   },
   "numbers":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a number",
     "timeDelay":"(How long to wait before processing the next posted image)",
-    "threshold":"(The color level at which all values above will be white and all below with be black. Different for different servers for some reason.)"
+    "threshold":"(The color level at which all values above will be white and all below with be black. Different for different servers for some reason.)",
+    "msgDeleteTime":"(How long error/help messages stick around before self destructing. Set to 0 to disable.)",
+    "blacklistTime":"(How long (in milliseconds...) to prevent someone from posting a screenshot after being scanned at under 30.)"
   },
   "chars":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a string of characters",

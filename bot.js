@@ -7,6 +7,7 @@ const Discord = require("discord.js");
 const {rect} = require("./rect.js");
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
+blacklist = new Discord.Collection();
 lastImageTimestamp = Date.now();
 imageAttempts = 0;
 imageLogCount = 0;
@@ -14,8 +15,35 @@ launchDate = new Date();
 currentlyImage = 0;
 screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 config = {};
-module.exports = {loadConfigs};
+module.exports = {loadConfigs, clearBlacklist};
 
+function saveBlacklist(){
+	console.log(blacklist);
+	blackJson = JSON.stringify(blacklist);
+	console.log(blackJson);
+	fs.writeFile("../blacklist.json",blackJson,()=>{
+		console.log("wrote"); //test
+	});
+}
+function loadBlacklist(){
+
+}
+function clearBlacklist(message, idToDelete){
+	if (idToDelete[0]){
+		blacklist.delete(idToDelete[0]);
+		channel.send(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`);
+		console.log(`Deleted ${idToDelete[0]} from the blacklist.`);
+		saveBlacklist();
+	} else {
+		for (const userid of blacklist.keys()){
+			blacklist.delete(userid);
+			channel.send("Blacklist cleared.");
+			console.log(`Cleared the blacklist.`);
+			saveBlacklist();
+		}
+	}
+	return;
+}
 function loadConfigs(){
 	config = {};
 	delete require.cache[require.resolve("./config.json")];
@@ -23,9 +51,12 @@ function loadConfigs(){
 	prefix = config.chars.prefix;
 	timeDelay = config.numbers.timeDelay;
 	threshold = config.numbers.threshold;
+	blacklistTime = config.numbers.blacklistTime;
+	msgDeleteTime = config.numbers.msgDeleteTime;
 	saveLocalCopy = config.toggles.saveLocalCopy;
 	deleteScreens = config.toggles.deleteScreens;
 	welcomeMsg = config.toggles.welcomeMsg;
+	testMode = config.toggles.testMode;
 	screenshotChannel = config.ids.screenshotChannel;
 	level30Role = config.ids.level30Role;
 	level40Role = config.ids.level40Role;
@@ -67,11 +98,12 @@ function load(){
 		loadConfigs();
 		checkDateFolder(launchDate);
 		loadCommands();
+		loadBlacklist();
 }
 load();
 client.once("ready", () => {
 	channel = client.channels.cache.get(screenshotChannel);
-	client.user.setActivity(`Use ${prefix}help for commands.`);
+	client.user.setActivity(`Use ${prefix}help for help.`);
 	if (channel == undefined){
 		console.log("Oops the screenshot channel is broken.");
 	};
@@ -85,10 +117,13 @@ client.on("guildMemberAdd", member => {
 	joinTime = new Date();
 	console.log(`New member ${member.user.username}${member} joined the server at ${joinTime.toLocaleString()}`);
   if (!channel || !welcomeMsg) return;
-  channel.send(`Hey, ${member}.
-To confirm that you are at least level 30, we need you to send a screenshot of your Pokemon Go profile.
+  channel.send(`Hey ${member},
+
+Welcome to the server!
+To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
 Please do so in this channel.
-Thankyou.`);
+
+Thank you. `);
 });
 
 client.on("message", message => {
@@ -113,8 +148,23 @@ client.on("message", message => {
 		}
 		if (message.channel != channel) {
 			message.reply(`I cannot scan an image in this channel. Please send it in ${channel}.
-<@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels bar ${channel}.`);
+<@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`);
 			return;
+		}
+		if (blacklistTime>0){
+			if (blacklist.has(message.author.id)){
+				if (currentTime-blacklist.get(message.author.id)<blacklistTime){
+					message.author.send(`We are sorry, but you are currently prohibited from using the automated system due to a recent screenshot that was scanned under level 30.
+If you have surpassed level 30, tag @moderator and someone will let you in manually.
+Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
+						message.delete();
+						console.log(`User ${message.author.username}${message.author} sent an image, but it was declined, due to the blacklist`);
+						return;
+				} else {
+					blacklist.delete(message.author.id);
+					console.log(`Removed ${message.author.username}${message.author} from the blacklist.`);
+				}
+			}
 		}
 		imageAttempts++;
 		currentlyImage++;
@@ -129,7 +179,7 @@ client.on("message", message => {
 			const intervalID = setInterval(function () {
 				if(imageLogCount+1 == instance){
 					currentTime = Date.now();
-					setTimeout(imageWrite,timeDelay*(4/5));
+					setTimeout(imageWrite,timeDelay*(1/5));
 					clearInterval(intervalID);
 				}
 			}, 2000);
@@ -229,7 +279,11 @@ client.on("message", message => {
 									//console.log("Written"); //test ??
 								});
 							}
-							setTimeout(()=>{recog(imgBuff);},timeDelay*(1/5));
+							if (testMode){
+								const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
+				  			message.channel.send("Test mode. This is the image fed to the OCR system:", imgAttach);
+							}
+							setTimeout(()=>{recog(imgBuff);},timeDelay*(4/5));
 							//recog(imgBuff);
 						});
 					});
@@ -264,8 +318,7 @@ client.on("message", message => {
 					tessedit_pageseg_mode: PSM.AUTO,
 				});
 				const { data: { text } } = await worker.recognize(imgBuff);
-				//console.log("Image recognised. Result:");
-				//console.log(text);
+				//console.log("Image recognised. Result:" + text);
 				await worker.terminate();
 				try{
 					level = text.match(/(\d\d)/)[0];
@@ -273,11 +326,16 @@ client.on("message", message => {
 					console.log(`Could not find a two digit number in ${text}`);
 					level = "Failure";
 				}
-				console.log(`Recognised image: #${instance}.
-Level: ${level}. `); //test ?????
+				//console.log(`Recognised image: #${instance}. Level: ${level}. `); //test
+				if (testMode){
+					message.reply(`Test mode. This image ${isNaN(level) ? "failed.":`was scanned at level: ${level}.`} `);
+				}
 				if (isNaN(level) || level >50){
-					message.reply(`<@&${modRole}> There was an issue scanning this image. This image might: not be a Pokemon Go profile screenshot, have an obstruction near the level number, be too low quality, have an odd aspect ratio, or there may be an internal bot issue.`);
+					message.channel.send(`<@&${modRole}> There was an issue scanning this image.`);
 					message.react("❌");
+					message.author.send(`Hold on there trainer, there was an issue scanning your profile screenshot.
+Make sure you follow the example at the top of <#740670778516963339>.
+If there was a different cause, a moderator will be able to help manually approve you.`);
 					imageLogCount++;
 					currentlyImage--;
 					return;
@@ -302,15 +360,16 @@ Level: ${level}. `); //test ?????
 				role40 = message.guild.roles.cache.get(level40Role);
 				role50 = message.guild.roles.cache.get(level50Role);
 				if (message.member.roles.cache.has(level50Role) && message.member.roles.cache.has(level40Role) && message.member.roles.cache.has(level30Role)){
-					message.author.send("You already have all available roles from screenshot scanning.\nThere is no need to post your screenshot.");
+					message.author.send("You already have all available roles.");
 					return;
 				}
 				if(message.member.roles.cache.has(level30Role)){
-					msgtxt.push("You already have the Level 30 role, so there is no need to post your screenshot");
+					msgtxt.push("You already have the Remote Raids role");
 				}
 				else if (level<30 && message.author){
+					message.react("👎");
 					message.author.send(`Hey trainer!
-Thanks so much for your interest in joining our raid server.
+Thank you so much for your interest in joining our raid server.
 Unfortunately we have a level requirement of 30 to gain full access, and your screenshot was scanned at ${level}.
 Gaining xp is very easy to do now with friendships, events, lucky eggs and so much more! Please stay and hang out with us here.
 You can use <#733418314222534826> to connect with other trainers and get the xp you need to hit level 30!
@@ -319,29 +378,30 @@ Once you've reached that point, please repost your screenshot.
 In the meantime please join our sister server with this link.
 Hope to raid with you soon! :slight_smile:
 https://discord.gg/tNUXgXC`);
-					message.react("👎");
+				blacklist.set(message.author.id,currentTime);
+				saveBlacklist();
+				console.log(`User ${message.author.username}${message.author} was scanned at level${level} and was added to the blacklist`);
 					//TODO: blacklist & mention server staff DM
 					return;
 				}
 				else if (level>29){
-					msgtxt.push(`Hey, welcome to the server. :partying_face:
-To get started type \`$verify\` in <#740262255584739391> to start setting up your profile. Extra commands are pinned in said channel.
-Instructions for joining and hosting raids are over at <#733418554283655250>.
-Feel free to ask any questions you have over in <#733706705560666275>.
-Have fun raiding. :wave:
-	`);
 					message.member.roles.add(message.guild.roles.cache.get(level30Role)).catch(console.error);
 					message.react("👍");
+					msgtxt.push(`Hey trainer, welcome to the server. :partying_face:
+To get started type \`$verify\` in <#740262255584739391> to start setting up your profile. Extra commands are pinned in that channel.
+Instructions for joining and hosting raids are over at <#733418554283655250>.
+Feel free to ask any questions you have over in <#733706705560666275>.
+Have fun raiding. :wave:`);
 				}
 				if (level>39 && level40Role){
 					message.member.roles.add(message.guild.roles.cache.get(level40Role)).catch(console.error);
-					msgtxt.push(`${(message.member.roles.cache.has(level30Role)) ? " however,":"\nAlso, "} we congratulate you on achieving such a high level.\nFor this you have been given the Level 40 role`);
 					message.react("👍");
+					msgtxt.push(`${(message.member.roles.cache.has(level30Role)) ? " however,":"\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the Level 40 role`);
 				}
 				if (level>49 && level50Role){
 					message.member.roles.add(message.guild.roles.cache.get(level50Role)).catch(console.error);
-					msgtxt.push(` and the Level 50 role`);
 					message.react("👍");
+					msgtxt.push(` and the Level 50 role`);
 				}
 			} catch (e) {
 				console.log(`an error occured. Error: ${e}`);
@@ -363,7 +423,6 @@ Have fun raiding. :wave:
 	if (command.guildOnly && message.channel.type === 'dm') { 				//dm checking
 		logString = logString + `, but it failed, as ${prefix}${commandName} cannot be used in a DM`;
 		console.log(logString);
-
 		return message.reply("This command cannot be used in a DM");
 	}
 	if (command.permissions) {																				//Permission checking
@@ -371,7 +430,6 @@ Have fun raiding. :wave:
 		if (!authorPerms || !authorPerms.has(command.permissions)) {
 			logString = logString + `, but it failed, as ${prefix}${commandName} requires ${command.permissions}, and the user does not possess it.`;
 			console.log(logString);
-
 			return message.reply(`You must possess the ${command.permissions} permission to execute \`${prefix}${commandName}\``);
 		}
 	}
@@ -425,12 +483,11 @@ client.login(token);
 		 currentlyImage--;
 	 }
 	 errorMessage = channel.send(`<@&${modRole}> An internal error occured. Please retry sending the screenshot(s) that failed.`);
-  //  errorMessage.then((errorMessage)=>{setTimeout(()=>{
-	// 	 if (errorMessage){
-	// 	 	errorMessage.delete();
-	// 	}
-	// },20000);});
-	 //errorMessage.delete();
+	  errorMessage.then((errorMessage)=>{setTimeout(()=>{
+		 	 if (errorMessage && msgDeleteTime>0){
+			 	 	errorMessage.delete();
+			 }
+		},msgDeleteTime);});
  });
 
 process.on('unhandledRejection', (err, promise) => {
