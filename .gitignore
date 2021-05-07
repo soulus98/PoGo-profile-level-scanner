@@ -1,4 +1,4 @@
-config.*
+config.json
 **/keys
 **/screens
 **/node_modules
