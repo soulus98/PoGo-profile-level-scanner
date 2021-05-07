@@ -22,6 +22,22 @@ function saveBlacklist() {
 		// console.log(JSON.stringify(Array.from(blacklist))); //test
 	});
 }
+function loadBlacklist(){
+	const blackJson = require("./blacklist.json");
+	if (!blackJson[0]) return;
+	let x;
+	for (item of blackJson){
+		if (lastImageTimestamp-item[1]<blacklistTime){
+			let x = x+1 || 0;
+		}
+		blacklist.set(item[0],item[1]);
+	}
+	if (x){
+		console.log(`Blacklist loaded, and removed ${x} users from it due to time expiration.`);
+	} else {
+		console.log(`Blacklist loaded from file.`); //test ??
+	}
+}
 function clearBlacklist(message, idToDelete){
 	if (idToDelete){
 		blacklist.delete(idToDelete[0]);
@@ -41,7 +57,6 @@ function clearBlacklist(message, idToDelete){
 	return;
 }
 function loadConfigs(){
-	console.log("\nLoading configs...");
 	config = {};
 	delete require.cache[require.resolve("./config.json")];
 	config = require("./config.json");
@@ -59,24 +74,26 @@ function loadConfigs(){
 	level40Role = config.ids.level40Role;
 	level50Role = config.ids.level50Role;
 	modRole = config.ids.modRole;
-	console.log("\nConfigs:",config);
+	console.log("Loading configs...");
+	console.log(config);
 }
 function checkDateFolder(checkDate){
 	newFolder = `./screens/Auto/${checkDate.toDateString()}`
-	console.log(`\nChecking for ${newFolder}...`);
+	console.log(`Checking for ${newFolder}`);
 	fs.access(newFolder, error => {
 	    if (!error) {
-				console.log(`\nFolder ${checkDate.toDateString()} already existed.`);
+				console.log(`Folder ${checkDate.toDateString()} already existed.`);
 	    } else {
 				fs.mkdirSync(newFolder);
-				console.log(`\nFolder ${checkDate.toDateString()} created.`);
+				console.log(`Folder ${checkDate.toDateString()} created.`);
 	    }
 	});
 }
 function loadCommands(){
 	client.commands = new Discord.Collection();
 	const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
-	commandFilesNames = "\nThe currently loaded commands and cooldowns are: \n";
+	console.log(commandFiles);
+	commandFilesNames = "The currently loaded commands and cooldowns are: \n";
 	for (const file of commandFiles) {		//Loads commands
 		const command = require(`./commands/${file}`);
 		commandFilesNames = commandFilesNames + prefix + command.name;
@@ -88,23 +105,6 @@ function loadCommands(){
 		client.commands.set(command.name, command);
 	}
 	console.log(commandFilesNames);
-}
-function loadBlacklist(){
-	const blackJson = require("./blacklist.json");
-	if (!blackJson[0]) return;
-	let x = 0;
-	for (item of blackJson){
-		if (lastImageTimestamp-item[1]>blacklistTime){
-			x = x+1;
-		} else {
-			blacklist.set(item[0],item[1]);
-		}
-	}
-	if (x){
-		console.log(`Blacklist loaded, and removed ${x} users from it due to time expiration.`);
-	} else {
-		console.log(`Blacklist loaded from file.`); //test ??
-	}
 }
 function load(){
 		loadConfigs();
@@ -118,11 +118,11 @@ client.once("ready", () => {
 	channel = client.channels.cache.get(screenshotChannel);
 	client.user.setActivity(`Use ${prefix}help for help.`);
 	if (channel == undefined){
-		console.log("\nOops the screenshot channel is broken.");
+		console.log("Oops the screenshot channel is broken.");
 	};
 	setTimeout(() => {
 		channel.send("Loaded!");
-		console.log(`\nReady! Loaded in channel #${channel.id} aka "${channel.name}"`);
+		console.log(`Ready! Loaded in channel #${channel.id} aka "${channel.name}"`);
 	},timeDelay);
 });
 
@@ -198,6 +198,34 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 			}, 2000);
 		}
 
+
+		// if (lastImageTimestamp+timeDelay<currentTime && instance-1==imageLogCount){
+		// 	console.log(`test step A: i#${instance}`);
+		// 	imageWrite();
+		// } else {
+		// 	console.log(`test step B: i#${instance}`);
+		// 	wasDelayed = true;
+		// 	function slowCheck(){
+		// 		console.log(`test step C: i#${instance}`);
+		// 		if (lastImageTimestamp+timeDelay>=currentTime){
+		// 			currentTime = Date.now();
+		// 			if (lastImageTimestamp+timeDelay<currentTime && instance-1==imageLogCount){
+		// 				console.log(`test step D: i#${instance}`);
+		// 				imageWrite();
+		// 				return;
+		// 			}
+		// 			console.log(`Loop i#${instance}`);
+		// 			setTimeout(slowCheck, (timeDelay/2)+5);
+		// 			return;
+		// 		}
+		// 	}
+		// 	slowCheck();
+		// }
+		/*while(lastImageTimestamp+timeDelay>=currentTime){ //comparing lastImageTimestamp which is set either on server launch or on previous command execution
+			wasDelayed = true;
+			currentTime = Date.now(); //Keep updating the time while comparing... This is probably very laggy...
+		}														//I'd rather compare every second or so. I'll figure that later
+		*/
 		function imageWrite(){
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
 			logString = `User ${message.author.username}${message.author} sent image#${instance} at ${postedTime.toLocaleString()}`;
@@ -225,54 +253,69 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 			}
 		}
 		function crop(image){
-			https.get(image.url, function(response){
-				img = gm(response);
-				img
-			  .size((err,size) => {
-			    if (err){
-			      console.log(`An error occured while sizing "img": ${err}`);
-						throw err;
-						return;
-			    }
-					cropSize = rect(size);
-					cropper();
-				});
-			});
-			function cropper() {
 				https.get(image.url, function(response){
-					const imageName = image.id + "crop." + image.url.split(".").pop();
-					imgTwo = gm(response);
-					imgTwo
-					.blackThreshold(threshold)
-					.whiteThreshold(threshold+1)
-					.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
-					.flatten()
-					.toBuffer((err, imgBuff) => {
-						if (err){
-							console.log(`An error occured while buffering "imgTwo": ${err}`);
+					img = gm(response);
+					img
+				  .size((err,size) => {
+				    if (err){
+				      console.log(`An error occured while sizing "img": ${err}`);
 							throw err;
 							return;
-						}
-
-						//This is for seeing the cropped version
-						if (saveLocalCopy) {
-							fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
-								if (err){
-									console.log(`An error occured while writing "imgTwo": ${err}`);
-									return;
-								}
-								//console.log("Written"); //test ??
-							});
-						}
-						if (testMode){
-							const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
-			  			message.channel.send("Test mode. This is the image fed to the OCR system:", imgAttach);
-						}
-						setTimeout(()=>{recog(imgBuff);},timeDelay*(4/5));
-						//recog(imgBuff);
+				    }
+						cropSize = rect(size);
+						cropper();
 					});
 				});
-			}
+				function cropper() {
+					https.get(image.url, function(response){
+						const imageName = image.id + "crop." + image.url.split(".").pop();
+						imgTwo = gm(response);
+						imgTwo
+						.blackThreshold(threshold)
+						.whiteThreshold(threshold+1)
+						.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
+						.flatten()
+						.toBuffer((err, imgBuff) => {
+							if (err){
+								console.log(`An error occured while buffering "imgTwo": ${err}`);
+								throw err;
+								return;
+							}
+
+							//This is for seeing the cropped version
+							if (saveLocalCopy) {
+								fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
+									if (err){
+										console.log(`An error occured while writing "imgTwo": ${err}`);
+										return;
+									}
+									//console.log("Written"); //test ??
+								});
+							}
+							if (testMode){
+								const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
+				  			message.channel.send("Test mode. This is the image fed to the OCR system:", imgAttach);
+							}
+							setTimeout(()=>{recog(imgBuff);},timeDelay*(4/5));
+							//recog(imgBuff);
+						});
+					});
+				}
+					/*
+						.write(`${screensFolder}/cropped${imageName}`, (err) => {
+							if (err){
+								console.log(`An error occured while writing "img": ${err}`);
+								return;
+							}
+							console.log("Successfully written");
+						});
+						/*.toBuffer((err, imgBuff) => {
+							if (err){
+								console.log(`An error occured while buffering "img": ${err}`);
+								return;
+							}
+							recog(imgBuff);
+						});*/
 		}
 		async function recog(imgBuff){
 			message.react("👀"); //test
@@ -366,18 +409,20 @@ Have fun raiding. :wave:`);
 				if (level>39 && level40Role){
 					message.member.roles.add(message.guild.roles.cache.get(level40Role)).catch(console.error);
 					message.react("👍");
-					msgtxt.push(`${(message.member.roles.cache.has(level30Role)) ? ", however,":"\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the Level 40`);
+					msgtxt.push(`${(message.member.roles.cache.has(level30Role)) ? " however,":"\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the Level 40`);
 					if (level>49 && level50Role){
 						message.member.roles.add(message.guild.roles.cache.get(level50Role)).catch(console.error);
 						message.react("👍");
-						msgtxt.push(` and the Level 50`);
+						msgtxt.push(`and the Level 50`);
 					}
-					msgtxt.push(` vanity role${(level>49) ? "s":""}.`);
+					msgtxt.push(`vanity role${(message.member.roles.cache.has(level50Role)) ? "s":""}.`);
 				}
 			} catch (e) {
 				console.log(`an error occured. Error: ${e}`);
 			}
-			message.author.send(msgtxt.join(""), {split:true});
+			console.log(msgtxt);
+			console.log(msgtxt.toString());
+			message.author.send(msgtxt.toString(" "), {split:true});
 		}
 	}
 
@@ -465,7 +510,7 @@ process.on("unhandledRejection", (err, promise) => {
 
 process.on("SIGINT", signal => {
   console.log(`Process ${process.pid} has been interrupted`);
-	channel.send("Bot server forcibly closed. Goodbye :wave:").then(()=>{
+	channel.send("Server forcibly closed. Goodbye :wave:").then(()=>{
 		process.exit(0);
 	});
 });

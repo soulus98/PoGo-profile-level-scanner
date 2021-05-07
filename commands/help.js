@@ -37,17 +37,18 @@ Thank you. `);
 				message.reply(data, { split: true });
 				return `, and it was successful.`;
 			} catch(err){
-				return `, but it failed, due to an unexpected error. Error: ${err}`;
+				return `, but it failed, due to an unexpected error. Error: ${err}
+Stack: ${err.stack}`;
+			}
+			function dataPush(data){
+				data.push(`\n**Name:** ${command.name}`);
+				if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(', ')}`);
+				if (command.description) data.push(`**Description:** ${command.description}`);
+				if (command.usage) data.push(`**Usage:** ${command.usage}`);
+				if (command.cooldown) data.push(`**Cooldown:** ${command.cooldown} second(s)`);
+				return data;
 			}
 		}
 
-		function dataPush(data){
-			data.push(`\n**Name:** ${command.name}`);
-			if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(', ')}`);
-			if (command.description) data.push(`**Description:** ${command.description}`);
-			if (command.usage) data.push(`**Usage:** ${command.usage}`);
-			if (command.usage) data.push(`**Cooldown:** ${command.cooldown} second(s)`);
-			return data;
-		}
 	},
 };

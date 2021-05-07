@@ -7,7 +7,7 @@ module.exports = {
 	name: "toggle-setting",
 	description: `Used to toggle bot settings. Currently toggles settings for all instances of the bot, as there is only one intended instance. Use \`${prefix}show-options\` to see all current settings.`,
   aliases: ["toggle", "tog"],
-  usage: `\`${prefix}toggle [setting]\``,
+  usage: `\`${prefix}toggle <setting>\``,
   args: true,
   cooldown: 5,
 	guildOnly:true,
