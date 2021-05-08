@@ -8,10 +8,10 @@
   },
   "numbers":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a number",
-    "timeDelay":"(How long to wait before processing the next posted image)",
+    "timeDelay":"(How long (in seconds) it takes to process an image. Recommended higher than 5s)",
     "threshold":"(The color level at which all values above will be white and all below with be black. Different for different servers for some reason.)",
-    "msgDeleteTime":"(How long error/help messages stick around before self destructing. Set to 0 to disable.)",
-    "blacklistTime":"(How long (in milliseconds...) to prevent someone from posting a screenshot after being scanned at under 30.)"
+    "msgDeleteTime":"(How long (in seconds) error/help messages stick around before self destructing. Set to 0 to disable.)",
+    "blacklistTime":"(How long (in days) to prevent someone from posting a screenshot after being scanned at under 30.)"
   },
   "chars":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a string of characters",
@@ -23,6 +23,7 @@
     "level30Role":"(The role for successful scans. i.e. level 30+)",
     "level40Role":"(The role for level 40+ screenshots)",
     "level50Role":"(The role for level 50+ screenshots)",
-    "modRole":"(The mod role intended to be notified when an issue occurs)"
+    "modRole":"(The mod role intended to be notified when an issue occurs)",
+    "serverID":"(The server intended to be used in)"
   }
 }
