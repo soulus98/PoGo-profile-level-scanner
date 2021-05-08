@@ -139,8 +139,13 @@ client.once("ready", () => {
 	channel = client.channels.cache.get(screenshotChannel);
 	server = client.guilds.cache.get(serverID);
 	client.user.setActivity(`Use ${prefix}help for help.`);
+	if (server == undefined){
+		console.log("\nOops the screenshot server is broken.");
+		return;
+	};
 	if (channel == undefined){
 		console.log("\nOops the screenshot channel is broken.");
+		return;
 	};
 	setTimeout(() => {
 		channel.send("Loaded!");
