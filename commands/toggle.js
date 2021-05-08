@@ -22,6 +22,7 @@ module.exports = {
         configs =JSON.parse(raw);
         toggles = configs.toggles;
         if (toggles[args[0]] === undefined){
+					message.reply(`Sorry, but ${args[0]} is not a valid setting. Use \`${prefix}show\` to see a list of all settings.`);
           console.log(`But it failed, as ${args} is not a valid setting.`);
           return;
         }

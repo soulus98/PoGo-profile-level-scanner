@@ -5,6 +5,7 @@ const fs = require("fs");
 const https = require("https");
 const Discord = require("discord.js");
 const {rect} = require("./rect.js");
+
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
 blacklist = new Discord.Collection();
@@ -12,6 +13,7 @@ lastImageTimestamp = Date.now();
 imageAttempts = 0;
 imageLogCount = 0;
 launchDate = new Date();
+loaded = false;
 currentlyImage = 0;
 screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 config = {};
@@ -19,7 +21,8 @@ module.exports = {loadConfigs, clearBlacklist};
 
 function saveBlacklist() {
 	fs.writeFile("./blacklist.json",JSON.stringify(Array.from(blacklist)),()=>{
-		// console.log(JSON.stringify(Array.from(blacklist))); //test
+		let x = blacklist.size;
+		console.log(`Updated blacklist. There ${(x!=1)?"are":"is"} now ${x} user${(x!=1)?"s":""} blacklisted.`); //test
 	});
 }
 function clearBlacklist(message, idToDelete){
@@ -40,16 +43,22 @@ function clearBlacklist(message, idToDelete){
 	}
 	return;
 }
+function load(){
+		loadConfigs();
+		checkDateFolder(launchDate);
+		loadCommands();
+		loadBlacklist();
+		client.login(token);
+}
 function loadConfigs(){
-	console.log("\nLoading configs...");
 	config = {};
 	delete require.cache[require.resolve("./config.json")];
 	config = require("./config.json");
 	prefix = config.chars.prefix;
-	timeDelay = config.numbers.timeDelay;
+	timeDelay = config.numbers.timeDelay*1000;
 	threshold = config.numbers.threshold;
-	blacklistTime = config.numbers.blacklistTime;
-	msgDeleteTime = config.numbers.msgDeleteTime;
+	blacklistTime = config.numbers.blacklistTime*3600000;
+	msgDeleteTime = config.numbers.msgDeleteTime*1000;
 	saveLocalCopy = config.toggles.saveLocalCopy;
 	deleteScreens = config.toggles.deleteScreens;
 	welcomeMsg = config.toggles.welcomeMsg;
@@ -59,7 +68,14 @@ function loadConfigs(){
 	level40Role = config.ids.level40Role;
 	level50Role = config.ids.level50Role;
 	modRole = config.ids.modRole;
-	console.log("\nConfigs:",config);
+	serverID = config.ids.serverID;
+	if (!loaded){
+		console.log("\nLoading configs...");
+		console.log("\nConfigs:",config);
+		loaded = true;
+	} else {
+		console.log("\nReloading configs...\n");
+	}
 }
 function checkDateFolder(checkDate){
 	newFolder = `./screens/Auto/${checkDate.toDateString()}`
@@ -102,27 +118,33 @@ function loadBlacklist(){
 	}
 	if (x){
 		console.log(`Blacklist loaded, and removed ${x} users from it due to time expiration.`);
+		saveBlacklist();
 	} else {
 		console.log(`Blacklist loaded from file.`); //test ??
 	}
 }
-function load(){
-		loadConfigs();
-		checkDateFolder(launchDate);
-		loadCommands();
-		loadBlacklist();
-		client.login(token);
+function checkServer(){
+	// 216412752120381441
+	activeServers = client.guilds.cache;
+	activeServers.each(serv => {
+		if(serv.id != serverID){
+			serv.leave().then(s => console.log(`Left: ${s}, as it is not the intended server.`)).catch(console.error);
+		}
+	});
+
 }
 load();
 client.once("ready", () => {
+	checkServer();
 	channel = client.channels.cache.get(screenshotChannel);
+	server = client.guilds.cache.get(serverID);
 	client.user.setActivity(`Use ${prefix}help for help.`);
 	if (channel == undefined){
 		console.log("\nOops the screenshot channel is broken.");
 	};
 	setTimeout(() => {
 		channel.send("Loaded!");
-		console.log(`\nReady! Loaded in channel #${channel.id} aka "${channel.name}"`);
+		console.log(`\nReady! Loaded in server "${server.name}"#${server.id} in channel "${channel.name}"#${channel.id}`);
 	},timeDelay);
 });
 
@@ -140,8 +162,15 @@ Thank you. `);
 });
 
 client.on("message", message => {
-
 	if (message.author.bot) return; // Bot? Cancel
+	if(message.guild.id != serverID){
+		message.reply("This is not the intended server. Goodbye forever :wave:").then(()=>{
+			message.guild.leave().then(s => {
+				console.log(`Left: ${s}, as it is not the intended server.`);
+			}).catch(console.error);
+		}).catch(console.error);
+		return;
+	}
 	wasDelayed = false;
 	postedTime = new Date();
 	currentTime = Date.now();
@@ -151,7 +180,6 @@ client.on("message", message => {
 	}
 	//image handler
 	if (message.attachments.size > 0) { //checks for an attachment TODO: Check that the attachment is actually an image... how...? idk lol
-		//
 		if (channel == undefined){
 			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix}set screenshotChannel <id>\``);
 		};
@@ -380,68 +408,69 @@ Have fun raiding. :wave:`);
 			message.author.send(msgtxt.join(""), {split:true});
 		}
 	}
-
 	//command handler
-  if (!message.content.startsWith(prefix) || message.author.bot) return; //No prefix? Bot? Cancel
-	//finangling the command and argument vars
-	const args = message.content.slice(prefix.length).trim().split(" ");
-  const commandName = args.shift().toLowerCase();
-	const command = client.commands.get(commandName)
-		|| client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName)); //this searches aliases
-	//a bunch of checking
-	if (!command) return; 																						//is it a command
-	logString = `User: ${message.author.username}${message.author} used ${prefix}${commandName} at ${postedTime.toLocaleString()}`;
-	if (command.guildOnly && message.channel.type === "dm") { 				//dm checking
-		logString = logString + `, but it failed, as ${prefix}${commandName} cannot be used in a DM`;
-		console.log(logString);
-		return message.reply("This command cannot be used in a DM");
-	}
-	if (command.permissions) {																				//Permission checking
-		const authorPerms = message.channel.permissionsFor(message.author);
-		if (!authorPerms || !authorPerms.has(command.permissions)) {
-			logString = logString + `, but it failed, as ${prefix}${commandName} requires ${command.permissions}, and the user does not possess it.`;
+	else {
+		if (!message.content.startsWith(prefix) || message.author.bot) return; //No prefix? Bot? Cancel
+		//finangling the command and argument vars
+		const args = message.content.slice(prefix.length).trim().split(" ");
+		const commandName = args.shift().toLowerCase();
+		const command = client.commands.get(commandName)
+			|| client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName)); //this searches aliases
+		//a bunch of checking
+		if (!command) return; 																						//is it a command
+		logString = `User: ${message.author.username}${message.author} used ${prefix}${commandName} at ${postedTime.toLocaleString()}`;
+		if (command.guildOnly && message.channel.type === "dm") { 				//dm checking
+			logString = logString + `, but it failed, as ${prefix}${commandName} cannot be used in a DM`;
 			console.log(logString);
-			return message.reply(`You must possess the ${command.permissions} permission to execute \`${prefix}${commandName}\``);
+			return message.reply("This command cannot be used in a DM");
 		}
-	}
-	if (command.args && !args.length) {																//Checking for arguments if an argument is required
-		let reply = `You didn't provide any arguments, ${message.author}!`;
-		if (command.usage) {
-			reply += `\nThe proper usage would be: ${command.usage}`;
-		}
-		logString = logString + `, but it failed, as it requires arguments, and none were provided.`;
-		console.log(logString);
-		return message.channel.send(reply);
-	}
-	if(command.cooldown){																							//per-author cooldown checking
-		if (!cooldowns.has(command.name)) {
-			cooldowns.set(command.name, new Discord.Collection());
-		}
-		const timestamps = cooldowns.get(command.name);
-		const cooldownAmount = (command.cooldown || 3) * 1000;
-		if (timestamps.has(message.author.id)) {
-			const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-			if (currentTime < expirationTime) {
-				const timeLeft = (expirationTime - currentTime) / 1000;
-				logString = logString + `, but it failed, as ${prefix}${commandName} was on cooldown from this user at the time.`;
+		if (command.permissions) {																				//Permission checking
+			const authorPerms = message.channel.permissionsFor(message.author);
+			if (!authorPerms || !authorPerms.has(command.permissions)) {
+				logString = logString + `, but it failed, as ${prefix}${commandName} requires ${command.permissions}, and the user does not possess it.`;
 				console.log(logString);
-				return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${prefix}${command.name}\` command.`);
+				return message.reply(`You must possess the ${command.permissions} permission to execute \`${prefix}${commandName}\``);
 			}
 		}
-		timestamps.set(message.author.id, currentTime);
-		setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
-	}
-	//command execution
-	try {
-		addToLogString = command.execute(message, args);
-		if (addToLogString == undefined) {
+		if (command.args && !args.length) {																//Checking for arguments if an argument is required
+			let reply = `You didn't provide any arguments, ${message.author}!`;
+			if (command.usage) {
+				reply += `\nThe proper usage would be: ${command.usage}`;
+			}
+			logString = logString + `, but it failed, as it requires arguments, and none were provided.`;
 			console.log(logString);
-		} else {
-			console.log(logString + addToLogString);
+			return message.channel.send(reply);
 		}
-	} catch (error) {
-		console.error(error);
-		message.reply("An error occured while trying to run that command");
+		if(command.cooldown){																							//per-author cooldown checking
+			if (!cooldowns.has(command.name)) {
+				cooldowns.set(command.name, new Discord.Collection());
+			}
+			const timestamps = cooldowns.get(command.name);
+			const cooldownAmount = (command.cooldown || 3) * 1000;
+			if (timestamps.has(message.author.id)) {
+				const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+				if (currentTime < expirationTime) {
+					const timeLeft = (expirationTime - currentTime) / 1000;
+					logString = logString + `, but it failed, as ${prefix}${commandName} was on cooldown from this user at the time.`;
+					console.log(logString);
+					return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${prefix}${command.name}\` command.`);
+				}
+			}
+			timestamps.set(message.author.id, currentTime);
+			setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+		}
+		//command execution
+		try {
+			addToLogString = command.execute(message, args);
+			if (addToLogString == undefined) {
+				console.log(logString);
+			} else {
+				console.log(logString + addToLogString);
+			}
+		} catch (error) {
+			console.error(error);
+			message.reply("An error occured while trying to run that command");
+		}
 	}
 });
 
