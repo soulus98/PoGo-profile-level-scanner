@@ -6,10 +6,10 @@
     "testMode":false
   },
   "numbers":{
-    "timeDelay":5002,
+    "timeDelay":5,
     "threshold":228,
-    "msgDeleteTime":30000,
-    "blacklistTime":86400000
+    "msgDeleteTime":30,
+    "blacklistTime":24
   },
   "chars":{
     "prefix":"]"
