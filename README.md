@@ -11,7 +11,7 @@ If it is over 40 or 50, they are given respective roles (That are intended to be
 
 ## Setup
 To add the bot to your own server, you will need to make a bot user and aquire its "Token".
-* Go here (https://discord.com/developers) to do that (use this (https://discordjs.guide/preparations/setting-up-a-bot-application.html) guide if you need help).
+* Go [here](https://discord.com/developers) to do that (use [this guide](https://discordjs.guide/preparations/setting-up-a-bot-application.html) if you need help).
 * Download or clone the files in this repo.
 * setup.bat should be run to create some files that are not included in the Github repo
 * config.json should be created and formatted correctly (you can use configTemplate.json to see how it should be formatted. Change the server, channel, and role ids to match those on your server.)
