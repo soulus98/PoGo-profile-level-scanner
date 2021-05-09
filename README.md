@@ -18,6 +18,17 @@ To add the bot to your own server, you will need to make a bot user and aquire i
 * your bot Token (from earlier) should be added to keys/keys.json. 
 * run start_bot.bat to start the bot server
 
+This bot needs certain permissions to run properly, and something called "SERVER MEMBERS INTENT" to be able to welcome people.  
+Here are the permissions required for the bot:  
+* View (only applies to channels you intend to use it in)
+* Manage Roles (Keep it above the level 30,40,50 roles, and under everything else, for security reasons)
+* Add reactions (Used as feedback that things either worked or didn't)
+* Send Messages
+* Embed links (This isn't actually used yet, but it is a very tame perm and might be useful in the future)
+* Attach files (Only necessary for testMode)
+* Manage messages (For ]prune)
+* Read Message History
+
 ## Commands
 This bot has some commands intended to be used to change settings or to streamline the process of using the bot.
 Command|Usage|Permitions
@@ -71,10 +82,15 @@ screenshotChannel|The ID for the channel to be scanned for screenshots
 
 serverID and screenshotChannel should probably be set before launching the bot. It might freak out otherwise.
 
+## Licence
+Copyleft all wrongs reserved
+You can copy, host, modify and redistribute this freely, but you can not use the result for commercial purposes, and must also distribute all derivatives with the same licence.  
+You might recognise this as similar to Creative Commons CC-SA-NC.  
+Attribution is not required.
+
 ## Final words
 I am an amateur developer. I am also stupid.  
 If I've made any mistakes or if you encounter an error, feel free to correct me, yell at me, or make an issue in the issues tab. 
 You can find me on discord at soulus98#3935.  
 However, there is a known error called "Error: Error: UNKNOWN: unknown error, open ./eng.traineddata". I have no idea what causes this but I am looking into it.
-
 
