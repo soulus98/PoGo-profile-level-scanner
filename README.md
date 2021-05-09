@@ -36,11 +36,11 @@ Command|Usage|Permitions
 ]clear-blacklist [user-id]|Clears one or all users who are currently in the blacklist|Administrator
 ]help [command name]|Shows a list of all commands/Shows a welcome message explaining the system|Administrator/Other
 ]ping|Shows the latency of the bot server|Everyone
-]prune <number>|Deletes a number of messages up to 99|Manage_Messages
+]prune \<number\>|Deletes a number of messages up to 99|Manage_Messages
 ]quit|Force closes the server|Administrator
-]set <setting> <value>|Changes a setting|Administrator
+]set \<setting\> \<value\>|Changes a setting|Administrator
 ]show-settings|Shows all current settings|Administrator
-]toggle <setting>|Toggles a toggleable setting|Administrator
+]toggle \<setting\>|Toggles a toggleable setting|Administrator
 
 ## Settings
 Here are the settings that you can change. There are some different categories based on what type of data must be entered. The bot has no actual value checking so please be careful when changing these.
@@ -83,7 +83,7 @@ screenshotChannel|The ID for the channel to be scanned for screenshots
 serverID and screenshotChannel should probably be set before launching the bot. It might freak out otherwise.
 
 ## Licence
-Copyleft all wrongs reserved
+Copyleft all wrongs reserved.  
 You can copy, host, modify and redistribute this freely, but you can not use the result for commercial purposes, and must also distribute all derivatives with the same licence.  
 You might recognise this as similar to Creative Commons CC-SA-NC.  
 Attribution is not required.
