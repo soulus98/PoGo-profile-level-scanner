@@ -1,13 +1,13 @@
 # ocrbot
-My first attempt at making a Discord bot. It scans a Pokemon GO profile screenshot and adds a role based on the level.
-It functions by listening to a certain channel in a certain server and waiting for an image.
-Once it receives an image, using node-gm, it monochromes it based on a certain threshold, then crops it according to its ratio of its height to its width.
-The crop just grabs the left side of the image, near the middle. (The exact crop values and different cases can be found in rect.js)
+My first attempt at making a Discord bot. It scans a Pokemon GO profile screenshot and adds a role based on the level.  
+It functions by listening to a certain channel in a certain server and waiting for an image.  
+Once it receives an image, using node-gm, it monochromes it based on a certain threshold, then crops it according to its ratio of its height to its width.  
+The crop just grabs the left side of the image, near the middle. (The exact crop values and different cases can be found in [rect.js](rect.js))  
 It passes that image to tesseract.js, which recognises the text as "XX Level.
-The XX is parsed out, and is checked.
-If it is under 30, the user is dmed a message explaining that there is a level limit. They are also added to a blacklist which expires in a certain variable time.
-If it is over 30, they are given a role (Which is inteded to be the gate to the rest of the server).
-If it is over 40 or 50, they are given respective roles (That are intended to be vanity roles).
+The XX is parsed out, and is checked.  
+If it is under 30, the user is dmed a message explaining that there is a level limit. They are also added to a blacklist which expires in a certain variable time.  
+If it is over 30, they are given a role (Which is inteded to be the gate to the rest of the server).  
+If it is over 40 or 50, they are given respective roles (That are intended to be vanity roles).  
 
 ## Setup
 To add the bot to your own server, you will need to make a bot user and aquire its "Token".
@@ -72,8 +72,9 @@ screenshotChannel|The ID for the channel to be scanned for screenshots
 serverID and screenshotChannel should probably be set before launching the bot. It might freak out otherwise.
 
 ## Final words
-I am an amateur developer. I am also stupid.
-If I've made any mistakes or if you encounter an error, feel free to correct me, yell at me, or make an issue in the issues tab.
-However, there is a known error called "Error: Error: UNKNOWN: unknown error, open ./eng.traineddata". I have no idea what causes this but I am looking into it
+I am an amateur developer. I am also stupid.  
+If I've made any mistakes or if you encounter an error, feel free to correct me, yell at me, or make an issue in the issues tab. 
+You can find me on discord at soulus98#3935.  
+However, there is a known error called "Error: Error: UNKNOWN: unknown error, open ./eng.traineddata". I have no idea what causes this but I am looking into it.
 
 
