@@ -236,40 +236,43 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 				}
 			}
 		}
-		imageAttempts++;															// This checks whether a new image can be processed every second
-		currentlyImage++;															// It checks the current instance against the total amount of images completed so far
-		var instance = imageAttempts;									// That way, only the next image in row can be processed
-		if (imageLogCount+1 == instance){							// It is probably the most janky part of the bot
-			imageWrite();																// If the instance and the imageLogCount fall out of sync somehow, It breaks
-		} else {																			// an error should be handled properly (as uncaughtException iterates imageLogCount)
-			wasDelayed = true;													// but would break if for example, 2 errors are caused by the same image
+		imageAttempts++;
+		currentlyImage++;
+		var instance = imageAttempts;
+		//console.log(`inst: ${instance}. iLC: ${imageLogCount}. time difference: ${currentTime-lastImageTimestamp-timeDelay}`);
+		//console.log("Compared seconds: " + (postedTime-lastImageTimestamp)/1000);
+		if (imageLogCount+1 == instance){
+			//console.log(`test step A: i#${instance}. iLC: ${imageLogCount}.`);
+			imageWrite();
+		} else {
+			wasDelayed = true;
 			const intervalID = setInterval(function () {
-				if(imageLogCount+1 == instance){					// a better queue system might involve adding the image to a collection. not sure how I would do that
-					currentTime = Date.now();								// anyway, this definitely caused half of my issues when developing
-					setTimeout(imageWrite,timeDelay*(1/5));	// hopefully it is bodged well enough to be stable
+				if(imageLogCount+1 == instance){
+					currentTime = Date.now();
+					setTimeout(imageWrite,timeDelay*(1/5));
 					clearInterval(intervalID);
 				}
-			}, 1000);
+			}, 2000);
 		}
 
-		function imageWrite(){ // this is just the next step in processing. I should make the write stream - and most of these functions - different modules
+		function imageWrite(){
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
 			logString = `User ${message.author.username}${message.author} sent image#${instance} at ${postedTime.toLocaleString()}`;
 			try{
 				image = message.attachments.first();
-				if(saveLocalCopy){ 																				// this seems to be the cause of the unknown error
-					const imageName = image.id + "." + image.url.split(".").pop();	// if saveLocalCopy is off, the error is very rare
-					const imageDL = fs.createWriteStream(screensFolder + "/" + imageName); // it must be tesseract not being able to deal
-					const request = https.get(image.url, function(response) {							 // with muliple things happening at once
+				if(saveLocalCopy){
+					const imageName = image.id + "." + image.url.split(".").pop();
+					const imageDL = fs.createWriteStream(screensFolder + "/" + imageName);
+					const request = https.get(image.url, function(response) {
 						response.pipe(imageDL);
 					});
 				}
 				crop(image);
-				if (wasDelayed == true){ // this fails often and I don't know why. it seems simple // TODO: investigate that
+				if (wasDelayed == true){
 					delayAmount = Math.round((currentTime - postedTime)/1000);
 					console.log(logString + `, and it was delayed for ${delayAmount}s`);
 				} else { console.log(logString); }
-			}catch (error){ // this catch block rarely fires, as there are tonnes more catch cases under crop();
+			}catch (error){
 				logString = logString + `, but an error occured. Error code: ${error}`;
 				console.log(logString);
 				message.react("❌");
@@ -278,21 +281,21 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 				return;
 			}
 		}
-		function crop(image){ // this is another badly named function which should be a seperate module // TODO: Make all these functions modules
+		function crop(image){
 			https.get(image.url, function(response){
 				img = gm(response);
 				img
 			  .size((err,size) => {
-			    if (err){ // this error has only ever fired once, not sure why
+			    if (err){
 			      console.log(`An error occured while sizing "img": ${err}`);
 						throw err;
 						return;
 			    }
-					cropSize = rect(size); // a module that returns a crop size case.
-					cropper();						 //250 random images were supported so hopefuly that covers most common phone resolutions
+					cropSize = rect(size);
+					cropper();
 				});
 			});
-			function cropper() { // I don't know why, but I can't use img twice. I have to call https.get each time. annoying
+			function cropper() {
 				https.get(image.url, function(response){
 					const imageName = image.id + "crop." + image.url.split(".").pop();
 					imgTwo = gm(response);
@@ -355,7 +358,7 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 					message.reply(`Test mode. This image ${isNaN(level) ? "failed.":`was scanned at level: ${level}.`} `);
 				}
 				if (isNaN(level) || level >50){
-					message.reply(`<@&${modRole}> There was an issue scanning this image.`);
+					message.channel.send(`<@&${modRole}> There was an issue scanning this image.`);
 					message.react("❌");
 					message.author.send(`Hold on there trainer, there was an issue scanning your profile screenshot.
 Make sure you follow the example at the top of <#740670778516963339>.
