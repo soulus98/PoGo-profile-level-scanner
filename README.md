@@ -1,4 +1,4 @@
-# ocrbot
+# POGOcr bot
 My first attempt at making a Discord bot. It scans a Pokemon GO profile screenshot and adds a role based on the level.  
 It functions by listening to a certain channel in a certain server and waiting for an image.  
 Once it receives an image, using node-gm, it monochromes it based on a certain threshold, then crops it according to its ratio of its height to its width.  
