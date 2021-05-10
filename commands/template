@@ -9,7 +9,7 @@ module.exports = {
 	name: "",
 	description: "",
   aliases: [""],
-  usage: `${prefix}`,
+  usage: `\`${prefix}\``,
   cooldown: 5,
 	guildOnly:true,
 	permissions: "ADMINISTRATOR",
