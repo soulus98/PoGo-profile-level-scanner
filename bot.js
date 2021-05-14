@@ -81,7 +81,7 @@ function loadConfigs(){
 		console.log("\nConfigs:",config);
 		loaded = true;
 	} else { // This saves some console spam when reloading
-		console.log("\nReloading configs...\n");
+		console.log("\nReloaded configs\n");
 	}
 }
 
@@ -270,7 +270,7 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 					console.log(logString + `, and it was delayed for ${delayAmount}s`);
 				} else { console.log(logString); }
 			}catch (error){ // this catch block rarely fires, as there are tonnes more catch cases under crop();
-				logString = logString + `, but an error occured. Error code: ${error}`;
+				logString = logString + `, but an error occured. Error: ${error}`;
 				console.log(logString);
 				message.react("❌");
 				imageLogCount++;
@@ -307,6 +307,10 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 							throw err;
 							return;
 						}
+						if (testMode){
+							const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
+							message.channel.send("Test mode. This is the image fed to the OCR system:", imgAttach);
+						}
 
 						//This is for seeing the cropped version
 						if (saveLocalCopy) {
@@ -317,10 +321,6 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 								}
 								//console.log("Written"); //test ??
 							});
-						}
-						if (testMode){
-							const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
-			  			message.channel.send("Test mode. This is the image fed to the OCR system:", imgAttach);
 						}
 						setTimeout(()=>{recog(imgBuff);},timeDelay*(4/5));
 						//recog(imgBuff);
@@ -342,17 +342,18 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 					tessedit_pageseg_mode: PSM.AUTO,
 				});
 				const { data: { text } } = await worker.recognize(imgBuff);
-				//console.log("Image recognised. Result:" + text);
 				await worker.terminate();
+				//console.log("Image recognised. Result:" + text);
+				let failed = false;
 				try{
 					level = text.match(/(\d\d)/)[0];
 				} catch (err){
-					console.log(`Could not find a two digit number in ${text}`);
+					failed = true;
 					level = "Failure";
 				}
-				//console.log(`Recognised image: #${instance}. Level: ${level}. `); //test
+				console.log(`Image#${instance} ${(failed) ? `failed. Scanned text: ${text}` : `was scanned at level: ${level}.`}`);
 				if (testMode){
-					message.reply(`Test mode. This image ${isNaN(level) ? "failed.":`was scanned at level: ${level}.`} `);
+					message.reply(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
 				}
 				if (isNaN(level) || level >50){
 					message.reply(`<@&${modRole}> There was an issue scanning this image.`);
@@ -501,21 +502,30 @@ Have fun raiding. :wave:`);
 });
 
  process.on("uncaughtException", (err) => {
-   console.log(`Uncaught Exception: ${err}`);
-	 if (currentlyImage > 0){
-		 imageLogCount++;
-		 currentlyImage--;
-	 }
-	 errorMessage = channel.send(`<@&${modRole}> An internal error occured. Please retry sending the screenshot(s) that failed.`);
-	  errorMessage.then((errorMessage)=>{setTimeout(()=>{
-		 	 if (errorMessage && msgDeleteTime>0){
-			 	 	errorMessage.delete();
+	 if (err.message.substr(0,35) == "Error: UNKNOWN: unknown error, open"){
+		 console.error("\nKnown imageWrite crash. Consider turning off saveLocalCopy.\nThis error should be handled correctly.\n");
+		 if (currentlyImage > 0){
+			 imageLogCount++;
+			 currentlyImage--;
+		 }
+		 const errorMessage = channel.send(`An internal error occured. Please retry sending the screenshot(s) that failed.`);
+		 errorMessage.then((errorMessage)=>{setTimeout(()=>{
+			 if (errorMessage && msgDeleteTime>0){
+				 errorMessage.delete();
 			 }
-		},msgDeleteTime);});
+		 },msgDeleteTime);});
+	 } else {
+		 console.log(`Uncaught Exception: ${err}${err.stack}`);
+		 channel.send(`<@&${modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
+	 }
  });
 
 process.on("unhandledRejection", (err, promise) => {
-  console.log("Unhandled rejection at ", promise, `reason: ${err.message}`);
+	if (err.substr(0,35) == "Error: UNKNOWN: unknown error, open"){
+		// do nothing
+	} else {
+		console.log("Unhandled rejection at ", promise, `reason: ${err}`);
+	}
 });
 
 process.on("SIGINT", signal => {
