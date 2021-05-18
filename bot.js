@@ -289,6 +289,7 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 						return;
 			    }
 					cropSize = rect(size); // a module that returns a crop size case.
+					console.log(cropSize.wid,cropSize.hei);
 					cropper();						 //250 random images were supported so hopefuly that covers most common phone resolutions
 				});
 			});
@@ -299,7 +300,8 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 					imgTwo
 					.blackThreshold(threshold)
 					.whiteThreshold(threshold+1)
-					.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
+					.crop(154.28571428571428,634.2857142857143,cropSize.x,cropSize.y)
+					.out("+repage")
 					.flatten()
 					.toBuffer((err, imgBuff) => {
 						if (err){
