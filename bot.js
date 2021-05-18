@@ -300,7 +300,7 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 					imgTwo
 					.blackThreshold(threshold)
 					.whiteThreshold(threshold+1)
-					.crop(154.28571428571428,634.2857142857143,cropSize.x,cropSize.y)
+					.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
 					.out("+repage")
 					.flatten()
 					.toBuffer((err, imgBuff) => {
@@ -518,7 +518,7 @@ Have fun raiding. :wave:`);
 		 },msgDeleteTime);});
 	 } else {
 		 console.log(`Uncaught Exception: ${err}${err.stack}`);
-		 // test channel.send(`<@&${modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
+		 channel.send(`<@&${modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
 	 }
  });
 
