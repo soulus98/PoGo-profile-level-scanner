@@ -289,7 +289,6 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 						return;
 			    }
 					cropSize = rect(size); // a module that returns a crop size case.
-					console.log(cropSize.wid,cropSize.hei);
 					cropper();						 //250 random images were supported so hopefuly that covers most common phone resolutions
 				});
 			});
