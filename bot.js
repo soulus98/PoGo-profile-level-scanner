@@ -1,5 +1,5 @@
 const { createWorker , PSM } = require("tesseract.js");
-const gm = require("gm");
+const gm = require("gm").subClass({imageMagick: true});
 const {token} = require("./keys/keys.json");
 const fs = require("fs");
 const https = require("https");
@@ -284,7 +284,7 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 				img
 			  .size((err,size) => {
 			    if (err){ // this error has only ever fired once, not sure why
-			      console.log(`An error occured while sizing "img": ${err}`);
+			      console.log(`An error occured while sizing "img".`);
 						throw err;
 						return;
 			    }
@@ -502,12 +502,12 @@ Have fun raiding. :wave:`);
 });
 
  process.on("uncaughtException", (err) => {
+	 if (currentlyImage > 0){
+		 imageLogCount++;
+		 currentlyImage--;
+	 }
 	 if (err.message.substr(0,35) == "Error: UNKNOWN: unknown error, open"){
 		 console.error("\nKnown imageWrite crash. Consider turning off saveLocalCopy.\nThis error should be handled correctly.\n");
-		 if (currentlyImage > 0){
-			 imageLogCount++;
-			 currentlyImage--;
-		 }
 		 const errorMessage = channel.send(`An internal error occured. Please retry sending the screenshot(s) that failed.`);
 		 errorMessage.then((errorMessage)=>{setTimeout(()=>{
 			 if (errorMessage && msgDeleteTime>0){
@@ -516,7 +516,7 @@ Have fun raiding. :wave:`);
 		 },msgDeleteTime);});
 	 } else {
 		 console.log(`Uncaught Exception: ${err}${err.stack}`);
-		 channel.send(`<@&${modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
+		 // test channel.send(`<@&${modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
 	 }
  });
 
