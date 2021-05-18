@@ -1,6 +1,6 @@
 const tesseract = require('tesseract.js');
 const https = require('https');
-const gm = require('gm');
+const gm = require('imagemagick');
 image = "converted.jpg";
 img = gm(image);
 img

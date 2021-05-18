@@ -1,6 +1,6 @@
 const tesseract = require('tesseract.js');
 const https = require('https');
-const gm = require('gm');
+const gm = require('imagemagick');
 const fs = require('fs');
 
 path = "screens/Manual/jpgs";
