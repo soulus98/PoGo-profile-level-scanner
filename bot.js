@@ -1,5 +1,5 @@
 const { createWorker , PSM } = require("tesseract.js");
-const gm = require("gm").subClass({imageMagick: true});
+const gm = require("gm");
 const {token} = require("./keys/keys.json");
 const fs = require("fs");
 const https = require("https");
@@ -300,7 +300,6 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 					.blackThreshold(threshold)
 					.whiteThreshold(threshold+1)
 					.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
-					.out("+repage")
 					.flatten()
 					.toBuffer((err, imgBuff) => {
 						if (err){
