@@ -76,6 +76,7 @@ function loadConfigs(){
 	level50Role = config.ids.level50Role;
 	modRole = config.ids.modRole;
 	serverID = config.ids.serverID;
+	blacklistRole = config.ids.blacklistRole;
 	if (!loaded){
 		console.log("\nLoading configs...");
 		console.log("\nConfigs:",config);
@@ -209,6 +210,10 @@ client.on("message", message => {
 	}
 	//image handler
 	if (message.attachments.size > 0) { //checks for an attachment TODO: Check that the attachment is actually an image... how...? idk lol
+		if (message.member.roles.cache.has(blacklistRole) && blacklistRole){
+			message.reply(`<@&${modRole}> This message was not scanned due to the manual blacklist.`);
+			return;
+		}
 		if (channel == undefined){
 			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix}set screenshotChannel <id>\``);
 		};
