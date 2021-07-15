@@ -24,6 +24,7 @@
     "level40Role":"(The role for level 40+ screenshots)",
     "level50Role":"(The role for level 50+ screenshots)",
     "modRole":"(The mod role intended to be notified when an issue occurs)",
-    "serverID":"(The server intended to be used in)"
+    "serverID":"(The server that the bot is intended to be used in)",
+    "blacklistRole":"(The role used to force the bot to ignore certain members. Leave blank to stop the bot from checking.)"
   }
 }
