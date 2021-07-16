@@ -149,24 +149,30 @@ function checkServer(message){
 	if (message){
 		message.reply("This is not the intended server. Goodbye forever :wave:").then(()=>{
 			message.guild.leave().then(s => {
-				console.log(`Left: ${s}, as it is not the intended server.`);
+				console.log(`Left: ${s}#${s.id}, as it is not the intended server.`);
+				dev.send(`Left: ${s}#${s.id}`);
 			}).catch(console.error);
 		}).catch(console.error);
+		return;
 	}
 	activeServers = client.guilds.cache;
 	activeServers.each(serv => {
 		if(serv.id != serverID){
-			serv.leave().then(s => console.log(`Left: ${s}, as it is not the intended server.`)).catch(console.error);
+			serv.leave().then(s => {
+				console.log(`Left: ${s}, as it is not the intended server.`);
+				dev.send(`Left: ${s}`);
+			}).catch(console.error);
 		}
 	});
 }
 
 load();
 
-client.once("ready", () => {
+client.once("ready", async () => {
+	channel = await client.channels.cache.get(screenshotChannel);
+	server = await client.guilds.cache.get(serverID);
+	dev = await client.users.fetch("146186496448135168",false,true);
 	checkServer();
-	channel = client.channels.cache.get(screenshotChannel);
-	server = client.guilds.cache.get(serverID);
 	client.user.setActivity(`Use ${prefix}help for help.`);
 	if (server == undefined){
 		console.log("\nOops the screenshot server is broken.");
@@ -178,6 +184,7 @@ client.once("ready", () => {
 	};
 	setTimeout(() => {
 		channel.send("Loaded!");
+		dev.send(`Loaded in server "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
 		console.log(`\nReady! Loaded in server "${server.name}"#${server.id} in channel "${channel.name}"#${channel.id}`);
 	},timeDelay);
 });
@@ -210,13 +217,13 @@ client.on("message", message => {
 	}
 	//image handler
 	if (message.attachments.size > 0) { //checks for an attachment TODO: Check that the attachment is actually an image... how...? idk lol
+		if (channel == undefined){
+			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix}set screenshotChannel <id>\``);
+		};
 		if (message.member.roles.cache.has(blacklistRole) && blacklistRole){
 			message.reply(`<@&${modRole}> This message was not scanned due to the manual blacklist.`);
 			return;
 		}
-		if (channel == undefined){
-			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix}set screenshotChannel <id>\``);
-		};
 		if (message.channel.type === "dm") {
 			message.reply(`I cannot scan an image in a dm. Please send it in ${channel}`);
 			return;
@@ -526,11 +533,11 @@ Have fun raiding. :wave:`);
  });
 
 process.on("unhandledRejection", (err, promise) => {
-	if (err.substr(0,35) == "Error: UNKNOWN: unknown error, open"){
-		// do nothing
-	} else {
-		console.log("Unhandled rejection at ", promise, `reason: ${err}`);
-	}
+	console.log("Unhandled rejection at ", promise, `reason: ${err}`);
+	// if (err.substr(0,35) == "Error: UNKNOWN: unknown error, open"){
+	// 	// do nothing
+	// } else {
+	// }
 });
 
 process.on("SIGINT", signal => {
