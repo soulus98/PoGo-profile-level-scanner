@@ -9,7 +9,7 @@ module.exports = {
 	guildOnly: true,
 	execute(message, args) {
     if (!message.mentions.users.size) {
-			message.reply("you must tag at least one user.");
+			message.lineReply("you must tag at least one user.");
 			return `, but it failed, as a user was not mentioned.`;
 		}
 		const taggedUsers = message.mentions.users.map(user => {
@@ -17,7 +17,7 @@ module.exports = {
 		});
 		loggString = `, tagging ${taggedUsers}`;
 		try {
-			message.channel.send("You wanted to revert: " + taggedUsers + "\n Todo: make this work");
+			message.lineReplyNoMention("You wanted to revert: " + taggedUsers + "\n Todo: make this work");
 			return `${loggString}, and it was successful.`;
 		} catch(err){
 			return `, but it failed, due to an unexpected error. Error: ${err}`;

@@ -10,7 +10,7 @@ module.exports = {
     const data = [];
     const { commands } = message.client;
 		if (!message.channel.permissionsFor(message.author).has("ADMINISTRATOR")){
-			message.reply(`Hey trainer,
+			message.lineReplyNoMention(`Hey trainer,
 
 Welcome to the server!
 To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
@@ -23,18 +23,18 @@ Thank you. `);
 				data.push("Here's a list of all my commands:");
 				data.push(commands.map(command => "\`" + prefix + command.name).join("\`\n"));
 				data.push(`\`\nYou can use \`${prefix}help [command name]\` for information on a specific command.`);
-				message.reply(data, { split: true });
+				message.lineReplyNoMention(data, { split: true });
 				return `, and it was successful.`;
 			}
 			const name = args[0].toLowerCase();
 			const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
 			if (!command) {
-				message.reply(`\`${prefix}${name}\` is not a valid command.`);
+				message.lineReply(`\`${prefix}${name}\` is not a valid command.`);
 				return `, but it failed, as ${prefix}${name} not a valid command.`;
 			}
 			try {
 				dataPush(data);
-				message.reply(data, { split: true });
+				message.lineReplyNoMention(data, { split: true });
 				return `, and it was successful.`;
 			} catch(err){
 				return `, but it failed, due to an unexpected error. Error: ${err}

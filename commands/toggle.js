@@ -14,7 +14,7 @@ module.exports = {
   permissions: "ADMINISTRATOR",
 	execute(message, args) {
     if (args.length != 1){
-      message.reply(`You must supply only one argument in the form \`${prefix}toggle [setting-name]\``);
+      message.lineReply(`You must supply only one argument in the form \`${prefix}toggle [setting-name]\``);
       return `, but it failed, as there were no arguments provided`;
     }
     try{
@@ -22,7 +22,7 @@ module.exports = {
         configs =JSON.parse(raw);
         toggles = configs.toggles;
         if (toggles[args[0]] === undefined){
-					message.reply(`Sorry, but ${args[0]} is not a valid setting. Use \`${prefix}show\` to see a list of all settings.`);
+					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${prefix}show\` to see a list of all settings.`);
           console.log(`But it failed, as ${args} is not a valid setting.`);
           return;
         }
@@ -32,11 +32,11 @@ module.exports = {
         const jsonString = JSON.stringify(configs);
         fs.writeFile("./config.json",jsonString, err => {
           if (err) {
-            message.reply(`An unexpected error occured when editing the config file.`);
+            message.lineReply(`An unexpected error occured when editing the config file.`);
             console.log(`But an unexpected write error occured. Error: ${err}`);
             return;
           } else {
-            message.channel.send(`"${args}" was successfully toggled from \`${was.toString().replace("true","ON").replace("false","OFF")}\` to \`${toggles[args[0]].toString().replace("true","ON").replace("false","OFF")}\`.`);
+            message.lineReplyNoMention(`"${args}" was successfully toggled from \`${was.toString().replace("true","ON").replace("false","OFF")}\` to \`${toggles[args[0]].toString().replace("true","ON").replace("false","OFF")}\`.`);
             console.log(`and successfully toggled "${args}" from ${was} to ${toggles[args[0]]}.`);
 						bot.loadConfigs();
             return;
@@ -44,7 +44,7 @@ module.exports = {
         })
       })
     } catch (err){
-      message.reply(`An unexpected error occured.`);
+      message.lineReply(`An unexpected error occured.`);
       return `, but an unexpected error occured. Error: ${err}`;
     }
   },

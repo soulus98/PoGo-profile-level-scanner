@@ -4,7 +4,7 @@
   "description": "",
   "main": "bot.js",
   "scripts": {
-    "start" : "nodemon ./bin/www --ignore config.json",
+    "start": "nodemon ./bin/www --ignore *.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,6 +20,7 @@
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.0.1",
     "canvas": "^2.7.0",
+    "discord-reply": "^0.1.2",
     "discord.js": "^12.5.1",
     "gm": "^1.23.1",
     "imagemagick": "^0.1.3",

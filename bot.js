@@ -6,6 +6,7 @@ const https = require("https");
 const Discord = require("discord.js");
 const {rect} = require("./rect.js");
 
+require('discord-reply');
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
 blacklist = new Discord.Collection();
@@ -31,7 +32,7 @@ function saveBlacklist() {
 function clearBlacklist(message, idToDelete){
 	if (idToDelete){
 		blacklist.delete(idToDelete[0]);
-		message.reply(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`);
+		message.lineReplyNoMention(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`);
 		console.log(`Deleted ${idToDelete[0]} from the blacklist.`);
 		saveBlacklist();
 	} else {
@@ -39,7 +40,7 @@ function clearBlacklist(message, idToDelete){
 		});
 		for (const userid of blacklist.keys()){
 			blacklist.delete(userid);
-			message.reply("Blacklist cleared.");
+			message.lineReplyNoMention("Blacklist cleared.");
 			console.log(`Cleared the blacklist.`);
 			saveBlacklist();
 		}
@@ -64,7 +65,7 @@ function loadConfigs(){
 	prefix = config.chars.prefix;
 	timeDelay = config.numbers.timeDelay*1000;
 	threshold = config.numbers.threshold;
-	blacklistTime = config.numbers.blacklistTime*3600000;
+	blacklistTime = config.numbers.blacklistTime*86400000;
 	msgDeleteTime = config.numbers.msgDeleteTime*1000;
 	saveLocalCopy = config.toggles.saveLocalCopy;
 	deleteScreens = config.toggles.deleteScreens;
@@ -147,10 +148,10 @@ function checkServer(message){
 	// 216412752120381441
 	if (serverID === undefined) return;
 	if (message){
-		message.reply("This is not the intended server. Goodbye forever :wave:").then(()=>{
+		message.lineReply("This is not the intended server. Goodbye forever :wave:").then(()=>{
 			message.guild.leave().then(s => {
 				console.log(`Left: ${s}#${s.id}, as it is not the intended server.`);
-				dev.send(`Left: ${s}#${s.id}`);
+				dev.send(`**Dev message: **Left: ${s}#${s.id}`);
 			}).catch(console.error);
 		}).catch(console.error);
 		return;
@@ -160,7 +161,7 @@ function checkServer(message){
 		if(serv.id != serverID){
 			serv.leave().then(s => {
 				console.log(`Left: ${s}, as it is not the intended server.`);
-				dev.send(`Left: ${s}`);
+				dev.send(`**Dev message: **Left: ${s}`);
 			}).catch(console.error);
 		}
 	});
@@ -184,7 +185,7 @@ client.once("ready", async () => {
 	};
 	setTimeout(() => {
 		channel.send("Loaded!");
-		dev.send(`Loaded in server "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
+		dev.send(`**Dev message: **Loaded in server "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
 		console.log(`\nReady! Loaded in server "${server.name}"#${server.id} in channel "${channel.name}"#${channel.id}`);
 	},timeDelay);
 });
@@ -221,15 +222,15 @@ client.on("message", message => {
 			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix}set screenshotChannel <id>\``);
 		};
 		if (message.member.roles.cache.has(blacklistRole) && blacklistRole){
-			message.reply(`<@&${modRole}> This message was not scanned due to the manual blacklist.`);
+			message.lineReplyNoMention(`<@&${modRole}> This message was not scanned due to the manual blacklist.`);
 			return;
 		}
 		if (message.channel.type === "dm") {
-			message.reply(`I cannot scan an image in a dm. Please send it in ${channel}`);
+			message.lineReply(`I cannot scan an image in a dm. Please send it in ${channel}`);
 			return;
 		}
 		if (message.channel != channel) {
-			message.reply(`I cannot scan an image in this channel. Please send it in ${channel}.
+			message.lineReply(`I cannot scan an image in this channel. Please send it in ${channel}.
 <@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`);
 			return;
 		}
@@ -365,10 +366,10 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 				}
 				console.log(`Image#${instance} ${(failed) ? `failed. Scanned text: ${text}` : `was scanned at level: ${level}.`}`);
 				if (testMode){
-					message.reply(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
+					message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
 				}
 				if (isNaN(level) || level >50){
-					message.reply(`<@&${modRole}> There was an issue scanning this image.`);
+					message.lineReplyNoMention(`<@&${modRole}> There was an issue scanning this image.`);
 					message.react("❌");
 					message.author.send(`Hold on there trainer, there was an issue scanning your profile screenshot.
 Make sure you follow the example at the top of <#740670778516963339>.
@@ -377,7 +378,6 @@ If there was a different cause, a moderator will be able to help manually approv
 					currentlyImage--;
 					return;
 				} else {
-					//message.reply("Test. Your level was scanned at " + level);
 					roleGrant(level);
 					imageLogCount++;
 					currentlyImage--;
@@ -461,24 +461,24 @@ Have fun raiding. :wave:`);
 		if (command.guildOnly && message.channel.type === "dm") { 				//dm checking
 			logString = logString + `, but it failed, as ${prefix}${commandName} cannot be used in a DM`;
 			console.log(logString);
-			return message.reply("This command cannot be used in a DM");
+			return message.lineReply("This command cannot be used in a DM");
 		}
 		if (command.permissions) {																				//Permission checking
 			const authorPerms = message.channel.permissionsFor(message.author);
 			if (!authorPerms || !authorPerms.has(command.permissions)) {
 				logString = logString + `, but it failed, as ${prefix}${commandName} requires ${command.permissions}, and the user does not possess it.`;
 				console.log(logString);
-				return message.reply(`You must possess the ${command.permissions} permission to execute \`${prefix}${commandName}\``);
+				return message.lineReply(`You must possess the ${command.permissions} permission to execute \`${prefix}${commandName}\``);
 			}
 		}
 		if (command.args && !args.length) {																//Checking for arguments if an argument is required
-			let reply = `You didn't provide any arguments, ${message.author}!`;
+			let reply = `You didn't provide any arguments.`;
 			if (command.usage) {
 				reply += `\nThe proper usage would be: ${command.usage}`;
 			}
 			logString = logString + `, but it failed, as it requires arguments, and none were provided.`;
 			console.log(logString);
-			return message.channel.send(reply);
+			return message.lineReply(reply);
 		}
 		if(command.cooldown){																							//per-author cooldown checking
 			if (!cooldowns.has(command.name)) {
@@ -492,7 +492,7 @@ Have fun raiding. :wave:`);
 					const timeLeft = (expirationTime - currentTime) / 1000;
 					logString = logString + `, but it failed, as ${prefix}${commandName} was on cooldown from this user at the time.`;
 					console.log(logString);
-					return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${prefix}${command.name}\` command.`);
+					return message.lineReply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${prefix}${command.name}\` command.`);
 				}
 			}
 			timestamps.set(message.author.id, currentTime);
@@ -508,7 +508,7 @@ Have fun raiding. :wave:`);
 			}
 		} catch (error) {
 			console.error(error);
-			message.reply("An error occured while trying to run that command");
+			message.lineReply("An error occured while trying to run that command");
 		}
 	}
 });
