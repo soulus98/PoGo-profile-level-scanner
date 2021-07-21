@@ -15,7 +15,7 @@ To add the bot to your own server, you will need to make a bot user and aquire i
 * Download or clone the files in this repo.
 * setup.bat should be run to create some files that are not included in the Github repo
 * config.json should be created and formatted correctly (you can use configTemplate.json to see how it should be formatted. Change the server, channel, and role ids to match those on your server.)
-* your bot Token (from earlier) should be added to keys/keys.json. 
+* your bot Token (from earlier) should be added to keys/keys.json.
 * run start_bot.bat to start the bot server
 
 This bot needs certain permissions to run properly, and something called "SERVER MEMBERS INTENT" to be able to welcome people.  
@@ -61,7 +61,7 @@ Setting|Function|Recommended value
 timeDelay|How long (in seconds) to wait before processing an image. This prevents frequent crashes (?!)|5 or more
 threshold|This is a image-preprocessing technical number. It is the colour value at which gm converts a pixel to either black or white. The only reason it is included as a setting is because it is different on two different computers of mine. 228 on one and 58000 on another. If the image is preprocessed as fully black or fully white, try changing this value.|228 or 58000
 msgDeleteTime|The time (in seconds) until certain messages self-destruct. ATM it only applies to the crash-error message. Leave as 0 to disable this|30 or 0 i guess
-blacklistTime|the time (in hours) to blacklist someone who has posted a screenshot under level 30. This should hopefully prevent people from immediately bypassing the bot|24 or more
+blacklistTime|the time (in days) to blacklist someone who has posted a screenshot under level 30. This should hopefully prevent people from immediately bypassing the bot|1 or more
 
 #### Characters:
 Must be a string of characters. I had intended to have more of these. Perhaps in the future I could add the ability to change the wording of DM messages.
@@ -78,19 +78,16 @@ level40Role|The level 40 role. Intended to be a vanity role
 level50Role|The level 50 role. Intended to be a vanity role
 modRole|The moderator role that gets tagged when a screenshot fails
 serverID|The ID for your server, I have already pre-set this to 423803939582902277 (pokemon go raids) so that it doesn't immediately leave when you add it. lol
-screenshotChannel|The ID for the channel to be scanned for screenshots 
+screenshotChannel|The ID for the channel to be scanned for screenshots
 
 serverID and screenshotChannel should probably be set before launching the bot. It might freak out otherwise.
 
 ## Licence
-Copyleft all wrongs reserved.  
-You can copy, host, modify and redistribute this freely, but you can not use the result for commercial purposes, and must also distribute all derivatives with the same licence.  
-You might recognise this as similar to Creative Commons CC-SA-NC.  
-Attribution is not required.
+Copyright (C) Soul Green - All Rights Reserved
+Unauthorized use of this code is prohibited without express permission
 
 ## Final words
 I am an amateur developer. I am also stupid.  
-If I've made any mistakes or if you encounter an error, feel free to correct me, yell at me, or make an issue in the issues tab. 
+If I've made any mistakes or if you encounter an error, feel free to correct me, yell at me, or make an issue in the issues tab.
 You can find me on discord at soulus98#3935.  
 However, there is a known error called "Error: Error: UNKNOWN: unknown error, open ./eng.traineddata". I have no idea what causes this but I am looking into it.
-
