@@ -70,20 +70,21 @@ Setting|Function
 prefix|The bot command prefix for your server
 
 #### Roles:
-These must be snowflakes. i.e a number of a certain length
+These must be snowflakes. i.e a string of numbers of a certain length
 Setting|Function
 -------|--------
 level30Role|The "Success" role. Intended to be the gate to the rest of the server
 level40Role|The level 40 role. Intended to be a vanity role
 level50Role|The level 50 role. Intended to be a vanity role
 modRole|The moderator role that gets tagged when a screenshot fails
-serverID|The ID for your server, I have already pre-set this to 423803939582902277 (pokemon go raids) so that it doesn't immediately leave when you add it. lol
+serverID|The ID for your server, This is 423803939582902277 for Pokemon Go Raids. Set it so that it doesn't immediately leave when you add it. lol
 screenshotChannel|The ID for the channel to be scanned for screenshots
+blacklistRole|The role, manually given, that the bot will ignore for screenshots
 
 serverID and screenshotChannel should probably be set before launching the bot. It might freak out otherwise.
 
 ## Licence
-Copyright (C) Soul Green - All Rights Reserved
+Copyright (C) Soul Green - All Rights Reserved  
 Unauthorized use of this code is prohibited without express permission
 
 ## Final words

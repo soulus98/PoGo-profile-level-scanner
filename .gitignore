@@ -1,4 +1,5 @@
 config.json
+blacklist.json
 **/keys
 **/screens
 **/node_modules
