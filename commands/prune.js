@@ -18,7 +18,7 @@ module.exports = {
 		 	return `, but it failed, as the number provided was outside the usable range.`;
 		 } else {
 			message.channel.messages.fetch({limit:amount}).then(allMessages =>{
-				message.lineReply(`${args} messages will be deleted. Type \`yes\` to confirm. This will last 10 seconds.`).then(replyMessage =>{
+				message.lineReply(`${args[0]} messages will be deleted. Type \`yes\` to confirm. This will last 10 seconds.`).then(replyMessage =>{
 					let filter = msg => msg.author.id == message.author.id && msg.content.toLowerCase() == "yes";
 					message.channel.awaitMessages(filter, {max: 1, time: 20000}).then(collectMessages => {
 						replyMessage.delete();

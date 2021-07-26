@@ -9,6 +9,10 @@ module.exports = {
 	execute(message, args) {
     const data = [];
     const { commands } = message.client;
+		if (message.channel.type === "dm"){
+			message.lineReplyNoMention("There is no reason to request help in a dm. Please do so in the relevant server");
+			return;
+		}
 		if (!message.channel.permissionsFor(message.author).has("ADMINISTRATOR")){
 			message.lineReplyNoMention(`Hey trainer,
 

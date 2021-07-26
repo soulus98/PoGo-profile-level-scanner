@@ -11,7 +11,7 @@ module.exports = {
   args: true,
   cooldown: 5,
 	guildOnly:true,
-  permissions: "ADMINISTRATOR",
+  permissions: "MANAGE_GUILD",
 	execute(message, args) {
     if (args.length != 1){
       message.lineReply(`You must supply only one argument in the form \`${prefix}toggle [setting-name]\``);
