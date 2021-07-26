@@ -483,9 +483,9 @@ Have fun raiding. :wave:`).then(msg => {
 					if (!deleteScreens) message.react("👍");
 					msgtxt.push(`Hey, welcome to the server. :partying_face:
 
- • Start by typing \`$verify\` in this channel. The bot will then ask for your Trainer Code, so have it ready.
+ • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.
 
- • Extra commands such as \`$team instinct\` and \`$level 35\` are pinned and posted in this channel. Just ask if you can't find them.
+ • Extra commands such as \`$team instinct\` and \`$level 35\` are pinned in that channel. Just ask if you can't find them.
 
  • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>
 
