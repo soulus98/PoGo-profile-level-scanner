@@ -20,11 +20,12 @@
   "ids":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a discord id",
     "screenshotChannel":"(The channel to scan for screenshots)",
+    "logsChannel":"(The channel where the logs are posted. Leave blank for no logs)",
     "level30Role":"(The role for successful scans. i.e. level 30+)",
     "level40Role":"(The role for level 40+ screenshots)",
     "level50Role":"(The role for level 50+ screenshots)",
     "modRole":"(The mod role intended to be notified when an issue occurs)",
     "serverID":"(The server that the bot is intended to be used in)",
-    "blacklistRole":"(The role used to force the bot to ignore certain members. Leave blank to stop the bot from checking.)"
+    "blacklistRole":"(The role used to force the bot to ignore certain members. Leave blank to stop the bot from checking)"
   }
 }

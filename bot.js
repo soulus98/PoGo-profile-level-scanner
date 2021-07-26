@@ -24,7 +24,7 @@ module.exports = {loadConfigs, clearBlacklist};
 function saveBlacklist() {
 	fs.writeFile("./blacklist.json",JSON.stringify(Array.from(blacklist)),()=>{
 		let x = blacklist.size;
-		console.log(`Updated blacklist. There ${(x!=1)?"are":"is"} now ${x} user${(x!=1)?"s":""} blacklisted.`); //test
+		console.log(`[${dateToTime(new Date())}]: Updated blacklist. There ${(x!=1)?"are":"is"} now ${x} user${(x!=1)?"s":""} blacklisted.`); //test
 	});
 }
 
@@ -33,7 +33,7 @@ function clearBlacklist(message, idToDelete){
 	if (idToDelete){
 		blacklist.delete(idToDelete[0]);
 		message.lineReplyNoMention(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`);
-		console.log(`Deleted ${idToDelete[0]} from the blacklist.`);
+		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
 		saveBlacklist();
 	} else {
 		fs.writeFile("./blacklist.json","{}",()=>{
@@ -41,7 +41,6 @@ function clearBlacklist(message, idToDelete){
 		for (const userid of blacklist.keys()){
 			blacklist.delete(userid);
 			message.lineReplyNoMention("Blacklist cleared.");
-			console.log(`Cleared the blacklist.`);
 			saveBlacklist();
 		}
 	}
@@ -74,6 +73,7 @@ function loadConfigs(){
 	welcomeMsg = config.toggles.welcomeMsg;
 	testMode = config.toggles.testMode;
 	screenshotChannel = config.ids.screenshotChannel;
+	logsChannel = config.ids.logsChannel;
 	level30Role = config.ids.level30Role;
 	level40Role = config.ids.level40Role;
 	level50Role = config.ids.level50Role;
@@ -81,6 +81,7 @@ function loadConfigs(){
 	serverID = config.ids.serverID;
 	blacklistRole = config.ids.blacklistRole;
 	channel = client.channels.cache.get(screenshotChannel);
+	logs = client.channels.cache.get(logsChannel);
 	server = client.guilds.cache.get(serverID);
 	if (!loaded){
 		console.log("\nLoading configs...");
@@ -127,7 +128,7 @@ function loadCommands(){
 // Loads the blacklist from file
 function loadBlacklist(){
 	const blackJson = require("./blacklist.json");
-	if (!blackJson[0]) return;
+	if (!blackJson[0]) return console.log(`Blacklist empty.`);;
 	let x = 0;
 	for (item of blackJson){
 		if (lastImageTimestamp-item[1]>blacklistTime){
@@ -140,7 +141,8 @@ function loadBlacklist(){
 		console.log(`Blacklist loaded, and removed ${x} users from it due to time expiration.`);
 		saveBlacklist();
 	} else {
-		console.log(`Blacklist loaded from file.`); //test ??
+		let y = blacklist.size;
+		console.log(`Blacklist loaded from file. It contains ${y} user${(y==1)?"":"s"}`); //test ??
 	}
 }
 
@@ -172,7 +174,7 @@ function checkServer(message){
 }
 
 function dateToTime(inDate){
-	var time = inDate.getHours() + ":" + inDate.getMinutes() + ":" + inDate.getSeconds();
+	var time = `${inDate.getHours()}:${(inDate.getMinutes()<10)?`0${inDate.getMinutes()}`:inDate.getMinutes()}:${(inDate.getSeconds()<10)?`0${inDate.getSeconds()}`:inDate.getSeconds()}`;
 	return time;
 }
 
@@ -180,6 +182,7 @@ load();
 
 client.once("ready", async () => {
 	channel = await client.channels.cache.get(screenshotChannel);
+	logs = await client.channels.cache.get(logsChannel);
 	server = await client.guilds.cache.get(serverID);
 	dev = await client.users.fetch("146186496448135168",false,true);
 	checkServer();
@@ -193,10 +196,22 @@ client.once("ready", async () => {
 		return;
 	};
 	setTimeout(() => {
-		channel.send("The bot has awoken, Hello :wave:");
+		channel.send("The bot has awoken, Hello :wave:").then(msg => {
+			if (msgDeleteTime && !msg.deleted){
+				setTimeout(() => {
+					msg.delete();
+				},msgDeleteTime);
+			}
+		});
+		channel.messages.fetch({limit:20}).then(msgs => {
+			let closeMsg = msgs.find(msg => msg.content == "The bot is sleeping now. Goodbye :wave:");
+			if (closeMsg) closeMsg.delete();
+		});
 		dev.send(`**Dev message: **Loaded in server "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
 		console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in server "${server.name}"#${server.id} in channel "${channel.name}"#${channel.id}`);
 		console.log("======================================================================================");
+
+		//The bot is sleeping now.
 	},timeDelay);
 });
 
@@ -230,6 +245,9 @@ client.on("message", message => {
 		if (channel == undefined){
 			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix}set screenshotChannel <id>\``);
 		};
+		if (message.channel == logs) {
+			return;
+		}
 		if (message.member.roles.cache.has(blacklistRole) && blacklistRole){
 			message.lineReplyNoMention(`<@&${modRole}> This message was not scanned due to the manual blacklist.`);
 			return;
@@ -243,6 +261,17 @@ client.on("message", message => {
 <@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`);
 			return;
 		}
+		if (message.member.roles.cache.has(level50Role) && message.member.roles.cache.has(level40Role) && message.member.roles.cache.has(level30Role)){
+			message.author.send("You already have all available roles.");
+			logs.send(`User: ${message.author}\nRoles: All 3 already possessed\n`,message.attachments.first());
+			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
+			if (deleteScreens) {
+				if (message){
+					message.delete();
+				}
+			}
+			return;
+		}
 		if (blacklistTime>0){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
 			if (blacklist.has(message.author.id)){
 				if (currentTime-blacklist.get(message.author.id)<blacklistTime){
@@ -250,11 +279,11 @@ client.on("message", message => {
 If you have surpassed level 30, tag @moderator and someone will let you in manually.
 Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 						message.delete();
-						console.log(`User ${message.author.username}${message.author} sent an image, but it was declined, due to the blacklist`);
+						console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the blacklist`);
 						return;
 				} else {
 					blacklist.delete(message.author.id);
-					console.log(`Removed ${message.author.username}${message.author} from the blacklist.`);
+					console.log(`[${dateToTime(postedTime)}]: Removed ${message.author.username}${message.author} from the blacklist.`);
 				}
 			}
 		}
@@ -273,12 +302,12 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 				}
 			}, 1000);
 		}
-
-		function imageWrite(){ // this is just the next step in processing. I should make the write stream - and most of these functions - different modules
+		async function imageWrite(){ // this is just the next step in processing. I should make the write stream - and most of these functions - different modules
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
 			logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent image#${instance}`;
 			try{
-				image = message.attachments.first();
+				const image = message.attachments.first();
+				const logimg = await logs.send(`User: ${message.author}`,image);
 				if(saveLocalCopy){ 																				// this seems to be the cause of the unknown error
 					const imageName = image.id + "." + image.url.split(".").pop();	// if saveLocalCopy is off, the error is very rare
 					const imageDL = fs.createWriteStream(screensFolder + "/" + imageName); // it must be tesseract not being able to deal
@@ -286,7 +315,7 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 						response.pipe(imageDL);
 					});
 				}
-				crop(image);
+				crop(image, logimg);
 				if (wasDelayed == true){
 					delayAmount = Math.round((currentTime - postedTime)/1000);
 					console.log(logString + `, and it was delayed for ${delayAmount}s`);
@@ -300,21 +329,21 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 				return;
 			}
 		}
-		function crop(image){ // this is another badly named function which should be a seperate module // TODO: Make all these functions modules
+		function crop(image, logimg){ // this is another badly named function which should be a seperate module // TODO: Make all these functions modules
 			https.get(image.url, function(response){
 				img = gm(response);
 				img
 			  .size((err,size) => {
 			    if (err){ // this error has only ever fired once, not sure why
-			      console.log(`An error occured while sizing "img".`);
+			      console.log(`Error: An error occured while sizing "img".`);
 						throw err;
 						return;
 			    }
 					cropSize = rect(size); // a module that returns a crop size case.
-					cropper();						 //250 random images were supported so hopefuly that covers most common phone resolutions
+					cropper(image, logimg);						 //250 random images were supported so hopefuly that covers most common phone resolutions
 				});
 			});
-			function cropper() { // I don't know why, but I can't use img twice. I have to call https.get each time. annoying
+			function cropper(image, logimg) { // I don't know why, but I can't use img twice. I have to call https.get each time. annoying
 				https.get(image.url, function(response){
 					const imageName = image.id + "crop." + image.url.split(".").pop();
 					imgTwo = gm(response);
@@ -325,7 +354,7 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 					.flatten()
 					.toBuffer((err, imgBuff) => {
 						if (err){
-							console.log(`An error occured while buffering "imgTwo": ${err}`);
+							console.log(`Error: An error occured while buffering "imgTwo": ${err}`);
 							throw err;
 							return;
 						}
@@ -338,19 +367,19 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 						if (saveLocalCopy) {
 							fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
 								if (err){
-									console.log(`An error occured while writing "imgTwo": ${err}`);
+									console.log(`Error: An error occured while writing "imgTwo": ${err}`);
 									return;
 								}
 								//console.log("Written"); //test ??
 							});
 						}
-						setTimeout(()=>{recog(imgBuff);},timeDelay*(4/5));
+						setTimeout(()=>{recog(imgBuff, image, logimg);},timeDelay*(4/5));
 						//recog(imgBuff);
 					});
 				});
 			}
 		}
-		async function recog(imgBuff){
+		async function recog(imgBuff, image, logimg){
 			message.react("👀"); //test
 			const worker = createWorker({
 				//logger: m => console.log(m)
@@ -378,16 +407,18 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 					message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
 				}
 				if (isNaN(level) || level >50){
+					logimg.edit(`User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``,image);
 					message.lineReplyNoMention(`<@&${modRole}> There was an issue scanning this image.`);
 					message.react("❌");
 					message.author.send(`Hold on there trainer, there was an issue scanning your profile screenshot.
 Make sure you follow the example at the top of <#740670778516963339>.
+If part of your buddy is close to the level number, try rotating it out of the way.
 If there was a different cause, a moderator will be able to help manually approve you.`);
 					imageLogCount++;
 					currentlyImage--;
 					return;
 				} else {
-					roleGrant(level);
+					roleGrant(level, image, logimg);
 					imageLogCount++;
 					currentlyImage--;
 					//console.log(`Remaining images: ${currentlyImage}`);//test
@@ -399,21 +430,20 @@ If there was a different cause, a moderator will be able to help manually approv
 				}
 			})();
 		}
-		function roleGrant(level){
+		function roleGrant(level, image, logimg){
 			const msgtxt = [];
+			let given30 = false;
+			let given40 = false;
+			let given50 = false;
 			try {
 				role30 = message.guild.roles.cache.get(level30Role);
 				role40 = message.guild.roles.cache.get(level40Role);
 				role50 = message.guild.roles.cache.get(level50Role);
-				if (message.member.roles.cache.has(level50Role) && message.member.roles.cache.has(level40Role) && message.member.roles.cache.has(level30Role)){
-					message.author.send("You already have all available roles.");
-					return;
-				}
 				if(message.member.roles.cache.has(level30Role)){
 					msgtxt.push("You already have the Remote Raids role");
 				}
 				else if (level<30 && message.author){
-					message.react("👎");
+					if (!deleteScreens) message.react("👎");
 					message.author.send(`Hey trainer!
 Thank you so much for your interest in joining our raid server.
 Unfortunately we have a level requirement of 30 to gain full access, and your screenshot was scanned at ${level}.
@@ -426,32 +456,63 @@ Hope to raid with you soon! :slight_smile:
 https://discord.gg/tNUXgXC`);
 				blacklist.set(message.author.id,currentTime);
 				saveBlacklist();
-				console.log(`User ${message.author.username}${message.author} was scanned at level ${level} and was added to the blacklist`);
-					//TODO: blacklist & mention server staff DM
+				console.log(`[${dateToTime(new Date())}]: User ${message.author.username}${message.author} was added to the blacklist`);
+				logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nBlacklisted for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime==1)?"":"s"}`,image);
+					//TODO: mention server staff DM
 					return;
 				}
 				else if (level>29){
-					message.member.roles.add(message.guild.roles.cache.get(level30Role)).catch(console.error);
-					message.react("👍");
-					msgtxt.push(`Hey trainer, welcome to the server. :partying_face:
-To get started type \`$verify\` in <#740262255584739391> to start setting up your profile. Extra commands are pinned in that channel.
-Instructions for joining and hosting raids are over at <#733418554283655250>.
+					channel.send(`Hey, ${message.author}. Welcome to the server. :partying_face:
+
+ • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.
+
+ • Extra commands such as \`$team instinct\` and \`$level 35\` are pinned in that channel. Just ask if you can't find them.
+
+ • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>.
+
+Feel free to ask any questions you have over in <#733706705560666275>.
+Have fun raiding. :wave:`).then(msg => {
+						setTimeout(()=>{
+							msg.delete()
+						},5000);
+					});
+						setTimeout(()=>{
+							message.member.roles.add(message.guild.roles.cache.get(level30Role)).catch(console.error);
+						},250);
+					given30 = true;
+					if (!deleteScreens) message.react("👍");
+					msgtxt.push(`Hey, welcome to the server. :partying_face:
+
+ • Start by typing \`$verify\` in this channel. The bot will then ask for your Trainer Code, so have it ready.
+
+ • Extra commands such as \`$team instinct\` and \`$level 35\` are pinned and posted in this channel. Just ask if you can't find them.
+
+ • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>
+
 Feel free to ask any questions you have over in <#733706705560666275>.
 Have fun raiding. :wave:`);
 				}
 				if ((level>39 && level40Role && !message.member.roles.cache.has(level40Role)) || level>49 && level50Role){
 					message.member.roles.add(message.guild.roles.cache.get(level40Role)).catch(console.error);
-					message.react("👍");
+					given40 = true;
+					if (!deleteScreens) message.react("👍");
 					msgtxt.push(`${(message.member.roles.cache.has(level30Role)) ? ", however,":"\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the Level 40`);
 					if (level>49 && level50Role){
 						message.member.roles.add(message.guild.roles.cache.get(level50Role)).catch(console.error);
-						message.react("👍");
+						given50 = true;
+						if (!deleteScreens) message.react("👍");
 						msgtxt.push(` and the Level 50`);
 					}
 					msgtxt.push(` vanity role${(level>49 && level50Role) ? "s":""}.`);
 				}
 			} catch (e) {
-				console.log(`an error occured. Error: ${e}`);
+				console.log(`an error occured while giving rolls. Error: ${e}`);
+			}
+			if (!given30 && !given40 && !given50){
+				logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`,image);
+			}
+			else {
+				logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles given: ${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`,image);
 			}
 			message.author.send(msgtxt.join(""), {split:true});
 		}
@@ -466,7 +527,7 @@ Have fun raiding. :wave:`);
 			|| client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName)); //this searches aliases
 		//a bunch of checking
 		if (!command) return; 																						//is it a command
-		logString = `[${dateToTime(postedTime)}]: User: ${message.author.username}${message.author} used ${prefix}${commandName}`;
+		logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} used ${prefix}${commandName}`;
 		if (command.guildOnly && message.channel.type === "dm") { 				//dm checking
 			logString = logString + `, but it failed, as ${prefix}${commandName} cannot be used in a DM`;
 			console.log(logString);

@@ -10,7 +10,7 @@ module.exports = {
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
 		console.log(`${message.author.username}${message.author} force quit the server at ${message.createdAt.toLocaleString()}.`);
-		message.lineReplyNoMention("👋").then( () => {
+		message.lineReplyNoMention("The bot is sleeping now. Goodbye :wave:").then( () => {
 			process.exit(0);
 		});
 	},
