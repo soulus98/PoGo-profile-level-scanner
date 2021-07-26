@@ -7,7 +7,7 @@ module.exports = {
   aliases: ["quit","end"],
   usage: `${prefix}quit`,
 	guildOnly:true,
-	permissions: "ADMINISTRATOR",
+	permissions: "MANAGE_GUILD",
 	execute(message, args) {
 		console.log(`${message.author.username}${message.author} force quit the server at ${message.createdAt.toLocaleString()}.`);
 		message.channel.send("👋").then( () => {

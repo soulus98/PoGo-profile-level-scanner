@@ -11,7 +11,7 @@ module.exports = {
   usage: `${prefix}settings`,
   cooldown: 5,
 	guildOnly:true,
-	permissions: "ADMINISTRATOR",
+	permissions: "MANAGE_GUILD",
 	execute(message, args) {
 		//config = {};
 	  //delete require.cache[require.resolve("./config.json")];

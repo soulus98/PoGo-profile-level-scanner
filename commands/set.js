@@ -10,7 +10,7 @@ module.exports = {
   usage: `\`${prefix}set <setting> <value>\``,
   cooldown: 5,
 	guildOnly:true,
-	permissions: "ADMINISTRATOR",
+	permissions: "MANAGE_GUILD",
 	execute(message, args) {
 		if (args.length != 2){
 			message.lineReply(`You must supply two arguments in the form \`${prefix}set [setting-name] [value]\``);

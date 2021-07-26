@@ -9,7 +9,7 @@ module.exports = {
   usage: `\`${prefix}cbl [user-id]\``,
   cooldown: 5,
 	guildOnly:true,
-	permissions: "ADMINISTRATOR",
+	permissions: "MANAGE_GUILD",
 	execute(message, args) {
     if (args[0]){
       clearBlacklist(message, args);

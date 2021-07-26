@@ -205,7 +205,7 @@ Thank you. `);
 
 client.on("message", message => {
 	if (message.author.bot) return; // Bot? Cancel
-	if(message.guild.id != serverID && serverID){ // If we are in the wrong server
+	if(message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
 	}
