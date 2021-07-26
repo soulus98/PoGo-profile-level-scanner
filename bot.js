@@ -50,6 +50,8 @@ function clearBlacklist(message, idToDelete){
 
 // Loads all the variables at program launch
 function load(){
+	console.log("======================================================================================");
+	console.log(`Server starting...`);
 		loadConfigs();
 		checkDateFolder(launchDate);
 		loadCommands();
@@ -78,6 +80,8 @@ function loadConfigs(){
 	modRole = config.ids.modRole;
 	serverID = config.ids.serverID;
 	blacklistRole = config.ids.blacklistRole;
+	channel = client.channels.cache.get(screenshotChannel);
+	server = client.guilds.cache.get(serverID);
 	if (!loaded){
 		console.log("\nLoading configs...");
 		console.log("\nConfigs:",config);
@@ -167,6 +171,11 @@ function checkServer(message){
 	});
 }
 
+function dateToTime(inDate){
+	var time = inDate.getHours() + ":" + inDate.getMinutes() + ":" + inDate.getSeconds();
+	return time;
+}
+
 load();
 
 client.once("ready", async () => {
@@ -184,15 +193,15 @@ client.once("ready", async () => {
 		return;
 	};
 	setTimeout(() => {
-		channel.send("Loaded!");
+		channel.send("The bot has awoken, Hello :wave:");
 		dev.send(`**Dev message: **Loaded in server "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
-		console.log(`\nReady! Loaded in server "${server.name}"#${server.id} in channel "${channel.name}"#${channel.id}`);
+		console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in server "${server.name}"#${server.id} in channel "${channel.name}"#${channel.id}`);
+		console.log("======================================================================================");
 	},timeDelay);
 });
 
 client.on("guildMemberAdd", member => {
-	joinTime = new Date();
-	console.log(`New member ${member.user.username}${member} joined the server at ${joinTime.toLocaleString()}`);
+	console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
   if (!channel || !welcomeMsg) return;
   channel.send(`Hey ${member},
 
@@ -209,8 +218,8 @@ client.on("message", message => {
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
 	}
-	wasDelayed = false;
-	postedTime = new Date();
+	var wasDelayed = false;
+	const postedTime = new Date();
 	currentTime = Date.now();
 	if (screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
 		screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
@@ -267,7 +276,7 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 
 		function imageWrite(){ // this is just the next step in processing. I should make the write stream - and most of these functions - different modules
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
-			logString = `User ${message.author.username}${message.author} sent image#${instance} at ${postedTime.toLocaleString()}`;
+			logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent image#${instance}`;
 			try{
 				image = message.attachments.first();
 				if(saveLocalCopy){ 																				// this seems to be the cause of the unknown error
@@ -278,7 +287,7 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 					});
 				}
 				crop(image);
-				if (wasDelayed == true){ // this fails often and I don't know why. it seems simple // TODO: investigate that
+				if (wasDelayed == true){
 					delayAmount = Math.round((currentTime - postedTime)/1000);
 					console.log(logString + `, and it was delayed for ${delayAmount}s`);
 				} else { console.log(logString); }
@@ -364,7 +373,7 @@ Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
 					failed = true;
 					level = "Failure";
 				}
-				console.log(`Image#${instance} ${(failed) ? `failed. Scanned text: ${text}` : `was scanned at level: ${level}.`}`);
+				console.log(`[${dateToTime(postedTime)}]: Image#${instance} ${(failed) ? `failed. Scanned text: ${text}` : `was scanned at level: ${level}.`}`);
 				if (testMode){
 					message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
 				}
@@ -457,7 +466,7 @@ Have fun raiding. :wave:`);
 			|| client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName)); //this searches aliases
 		//a bunch of checking
 		if (!command) return; 																						//is it a command
-		logString = `User: ${message.author.username}${message.author} used ${prefix}${commandName} at ${postedTime.toLocaleString()}`;
+		logString = `[${dateToTime(postedTime)}]: User: ${message.author.username}${message.author} used ${prefix}${commandName}`;
 		if (command.guildOnly && message.channel.type === "dm") { 				//dm checking
 			logString = logString + `, but it failed, as ${prefix}${commandName} cannot be used in a DM`;
 			console.log(logString);
@@ -542,7 +551,7 @@ process.on("unhandledRejection", (err, promise) => {
 
 process.on("SIGINT", signal => {
   console.log(`Process ${process.pid} has been interrupted`);
-	channel.send("Bot server forcibly closed. Goodbye :wave:").then(()=>{
+	channel.send("The bot is sleeping now. Goodbye :wave:").then(()=>{
 		process.exit(0);
 	});
 });
