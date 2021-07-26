@@ -74,6 +74,7 @@ function loadConfigs(){
 	testMode = config.toggles.testMode;
 	screenshotChannel = config.ids.screenshotChannel;
 	logsChannel = config.ids.logsChannel;
+	profileChannel = config.ids.profileChannel;
 	level30Role = config.ids.level30Role;
 	level40Role = config.ids.level40Role;
 	level50Role = config.ids.level50Role;
@@ -82,6 +83,7 @@ function loadConfigs(){
 	blacklistRole = config.ids.blacklistRole;
 	channel = client.channels.cache.get(screenshotChannel);
 	logs = client.channels.cache.get(logsChannel);
+	profile = client.channels.cache.get(profileChannel);
 	server = client.guilds.cache.get(serverID);
 	if (!loaded){
 		console.log("\nLoading configs...");
@@ -183,6 +185,7 @@ load();
 client.once("ready", async () => {
 	channel = await client.channels.cache.get(screenshotChannel);
 	logs = await client.channels.cache.get(logsChannel);
+	profile = await client.channels.cache.get(profileChannel);
 	server = await client.guilds.cache.get(serverID);
 	dev = await client.users.fetch("146186496448135168",false,true);
 	checkServer();
@@ -193,6 +196,14 @@ client.once("ready", async () => {
 	};
 	if (channel == undefined){
 		console.log("\nOops the screenshot channel is broken.");
+		return;
+	};
+	if (logs == undefined){
+		console.log("\nOops the logs channel is broken.");
+		return;
+	};
+	if (profile == undefined){
+		console.log("\nOops the profile setup channel is broken.");
 		return;
 	};
 	setTimeout(() => {
@@ -224,7 +235,13 @@ Welcome to the server!
 To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
 Please do so in this channel.
 
-Thank you. `);
+Thank you. `).then(msg => {
+		if (msgDeleteTime && !msg.deleted){
+			setTimeout(() => {
+				msg.delete();
+			},msgDeleteTime);
+		}
+	});
 });
 
 client.on("message", message => {
@@ -464,28 +481,31 @@ https://discord.gg/tNUXgXC`);
 				else if (level>29){
 					channel.send(`Hey, ${message.author}. Welcome to the server. :partying_face:
 
- • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.
-
- • Extra commands such as \`$team instinct\` and \`$level 35\` are pinned in that channel. Just ask if you can't find them.
-
- • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>.
-
-Feel free to ask any questions you have over in <#733706705560666275>.
-Have fun raiding. :wave:`).then(msg => {
+ • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.`).then(msg => {
 						setTimeout(()=>{
 							msg.delete()
 						},5000);
 					});
-						setTimeout(()=>{
-							message.member.roles.add(message.guild.roles.cache.get(level30Role)).catch(console.error);
-						},250);
+					setTimeout(()=>{
+						message.member.roles.add(message.guild.roles.cache.get(level30Role)).catch(console.error);
+					},250);
+					profile.send(`Hey, ${message.author}. Welcome to the server. :partying_face:
+
+ • Start by typing \`$verify\` in this channel. The bot will then ask for your Trainer Code, so have it ready.
+
+ • Extra commands such as \`$team <team-name>\` and \`$level 35\` are pinned and posted in this channel. Just ask if you can't find them.
+
+ • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>.
+
+Feel free to ask any questions you have over in <#733706705560666275>.
+Have fun raiding. :wave:`);
 					given30 = true;
 					if (!deleteScreens) message.react("👍");
 					msgtxt.push(`Hey, welcome to the server. :partying_face:
 
  • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.
 
- • Extra commands such as \`$team instinct\` and \`$level 35\` are pinned in that channel. Just ask if you can't find them.
+ • Extra commands such as \`$team <team-name>\` and \`$level <no>\` are pinned in that channel. Just ask if you can't find them.
 
  • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>
 

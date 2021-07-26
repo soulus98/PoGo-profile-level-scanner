@@ -13,7 +13,7 @@ module.exports = {
 			message.lineReplyNoMention("There is no reason to request help in a dm. Please do so in the relevant server");
 			return;
 		}
-		if (!message.channel.permissionsFor(message.author).has("ADMINISTRATOR")){
+		if (!message.channel.permissionsFor(message.author).has("MANAGE_GUILD")){
 			message.lineReplyNoMention(`Hey trainer,
 
 Welcome to the server!
