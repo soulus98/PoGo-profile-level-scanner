@@ -210,18 +210,19 @@ client.once("ready", async () => {
 		channel.send("The bot has awoken, Hello :wave:").then(msg => {
 			if (msgDeleteTime && !msg.deleted){
 				setTimeout(() => {
-					msg.delete();
+					msg.delete().catch(()=>{
+						console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${msg.id}`);
+					});
 				},msgDeleteTime);
 			}
 		});
 		channel.messages.fetch({limit:20}).then(msgs => {
-			let closeMsg = msgs.find(msg => msg.content == "The bot is sleeping now. Goodbye :wave:" || msg.content == "Restarting..." );
+			let closeMsg = msgs.find(msg => msg.content == "The bot is sleeping now. Goodbye :wave:" || msg.content == "Restarting..." || msg.content == "The bot has awoken, Hello :wave:");
 			if (closeMsg) closeMsg.delete();
 		});
 		dev.send(`**Dev message: **Loaded in server "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
 		console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in server "${server.name}"#${server.id} in channel "${channel.name}"#${channel.id}`);
 		console.log("======================================================================================");
-
 	},timeDelay);
 });
 
@@ -273,17 +274,16 @@ client.on("message", message => {
 			return;
 		}
 		if (message.channel != channel) {
-			try {
-				message.lineReply(`I cannot scan an image in this channel. Please send it in ${channel}.
-<@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`);
-			} catch (e) {
-				console.log(`Error: I can not send a message in ${message.channel}`);
-			} finally {
+			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
+			message.lineReply(`I cannot scan an image in this channel. Please send it in ${channel}.
+<@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`).catch(()=>{
+				console.error(`Error: I can not send a message in ${message.channel.name}${message.channel}`);
 				return;
-			}
+			});
+			return;
 		}
 		if (message.member == null){
-			console.log(`[${dateToTime(new Date())}]: User ${message.author.username}${message.author} sent an image, but could not be scanned, due to the member == null issue.`);
+			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be scanned, due to the member == null issue.`);
 			logs.send(`User: ${message.author}\nLeft the server. No roles added.`,message.attachments.first());
 			return;
 		}
@@ -292,33 +292,25 @@ client.on("message", message => {
 			return;
 		}
 		if (message.member.roles.cache.has(level50Role) && message.member.roles.cache.has(level40Role) && message.member.roles.cache.has(level30Role)){
-			try {
-				message.author.send("You already have all available roles.");
-			} catch (e) {
-				console.log(`Error: Could not send DM to ${message.author.username}${message.author}`);
-			}
+			message.author.send("You already have all available roles.").catch(()=>{
+				console.error(`Error: Could not send DM to ${message.author.username}${message.author}`);
+			});
 			logs.send(`User: ${message.author}\nRoles: All 3 already possessed\n`,message.attachments.first());
 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
-			if (deleteScreens) {
-				if (message){
-					message.delete();
-				}
-			}
+			if (deleteScreens && !message.deleted) message.delete();
 			return;
 		}
 		if (blacklistTime>0){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
 			if (blacklist.has(message.author.id)){
 				if (currentTime-blacklist.get(message.author.id)<blacklistTime){
-					try {
-						message.author.send(`We are sorry, but you are currently prohibited from using the automated system due to a recent screenshot that was scanned under level 30.
+					message.author.send(`We are sorry, but you are currently prohibited from using the automated system due to a recent screenshot that was scanned under level 30.
 If you have surpassed level 30, tag @moderator or message <@575252669443211264> to ask to be let in manually.
 Otherwise, keep leveling up, and post your screenshot when you have reached that point.
-Hope to raid with you soon! :wave:`);
-					}  catch (e) {
+Hope to raid with you soon! :wave:`).catch(() => {
 						console.log(`Error: Could not send DM to ${message.author.username}${message.author}`);
-					}
+					});
 					logs.send(`User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${(blacklistTime-(currentTime-blacklist.get(message.author.id)))/3600000} hours`,message.attachments.first());
-					if (deleteScreens) message.delete();
+					if (deleteScreens && !message.deleted) message.delete().catch(console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.id}`));
 					console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the blacklist`);
 					return;
 				} else {
@@ -420,7 +412,7 @@ Hope to raid with you soon! :wave:`);
 			}
 		}
 		async function recog(imgBuff, image, logimg){
-			message.react("👀"); //test
+			if (!message.deleted)message.react("👀"); //test
 			const worker = createWorker({
 				//logger: m => console.log(m)
 			});
@@ -444,8 +436,9 @@ Hope to raid with you soon! :wave:`);
 				}
 				console.log(`[${dateToTime(postedTime)}]: Image#${instance} ${(failed) ? `failed. Scanned text: ${text}` : `was scanned at level: ${level}.`}`);
 				if (testMode){
-					console.log("test 2");
-					if (!message.deleted) message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
+					message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `).catch(()=>{
+						message.channel.send(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
+					});
 				}
 				if (isNaN(level) || level >50 || level <1){
 					logimg.edit(`User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``,image);
@@ -467,11 +460,7 @@ If there was a different cause, a moderator will be able to help manually approv
 					imageLogCount++;
 					currentlyImage--;
 					//console.log(`Remaining images: ${currentlyImage}`);//test
-					if (deleteScreens) {
-						if (message){
-							message.delete();
-						}
-					}
+					if (deleteScreens && !message.deleted) message.delete().catch(console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.id}`));;
 				}
 			})();
 		}
@@ -481,7 +470,6 @@ If there was a different cause, a moderator will be able to help manually approv
 				logimg.edit(`User: ${message.author}\nLeft the server. No roles added.`,image);
 				return;
 			}
-			console.log("test");
 			const msgtxt = [];
 			let given30 = false;
 			let given40 = false;
@@ -494,7 +482,9 @@ If there was a different cause, a moderator will be able to help manually approv
 					msgtxt.push("You already have the Remote Raids role");
 				}
 				else if (level<30 && message.author){
-					if (!deleteScreens) message.react("👎");
+					if (!deleteScreens){
+						if (!message.deleted) message.react("👎");
+					}
 					try {
 						message.author.send(`Hey trainer!
 Thank you so much for your interest in joining our raid server.
@@ -507,7 +497,7 @@ In the meantime please join our sister server with this link.
 Hope to raid with you soon! :slight_smile:
 https://discord.gg/tNUXgXC`);
 					} catch (e) {
-						console.log(`Error: Could not send DM to ${message.author.username}${message.author}`);
+						console.error(`Error: Could not send DM to ${message.author.username}${message.author}`);
 					}
 				blacklist.set(message.author.id,currentTime);
 				saveBlacklist();
@@ -521,7 +511,7 @@ https://discord.gg/tNUXgXC`);
 
  • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.`).then(msg => {
 						setTimeout(()=>{
-							msg.delete()
+							msg.delete().catch(console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.id}`));;
 						},5000);
 					});
 					setTimeout(()=>{
@@ -538,7 +528,9 @@ https://discord.gg/tNUXgXC`);
 Feel free to ask any questions you have over in <#733706705560666275>.
 Have fun raiding. :wave:`);
 					given30 = true;
-					if (!deleteScreens) message.react("👍");
+					if (!deleteScreens){
+						if (!message.deleted) message.react("👍");
+					}
 					msgtxt.push(`Hey, welcome to the server. :partying_face:
 
  • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.
@@ -553,12 +545,12 @@ Have fun raiding. :wave:`);
 				if ((level>39 && level40Role && !message.member.roles.cache.has(level40Role)) || level>49 && level50Role){
 					message.member.roles.add(message.guild.roles.cache.get(level40Role)).catch(console.error);
 					given40 = true;
-					if (!deleteScreens) message.react("👍");
+					if (!deleteScreens && !message.deleted) message.react("👍");
 					msgtxt.push(`${(message.member.roles.cache.has(level30Role)) ? ", however,":"\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the Level 40`);
 					if (level>49 && level50Role){
 						message.member.roles.add(message.guild.roles.cache.get(level50Role)).catch(console.error);
 						given50 = true;
-						if (!deleteScreens) message.react("👍");
+						if (!deleteScreens && !message.deleted) message.react("👍");
 						msgtxt.push(` and the Level 50`);
 					}
 					msgtxt.push(` vanity role${(level>49 && level50Role) ? "s":""}.`);
@@ -655,7 +647,7 @@ Have fun raiding. :wave:`);
 		 const errorMessage = channel.send(`An internal error occured. Please retry sending the screenshot(s) that failed.`);
 		 errorMessage.then((errorMessage)=>{setTimeout(()=>{
 			 if (errorMessage && msgDeleteTime>0){
-				 errorMessage.delete();
+				 errorMessage.delete().catch(console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${errorMessage.id}`));
 			 }
 		 },msgDeleteTime);});
 	 } else {
