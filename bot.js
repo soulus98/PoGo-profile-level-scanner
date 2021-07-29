@@ -453,9 +453,9 @@ Hope to raid with you soon! :wave:`);
 					message.react("❌");
 					try {
 						message.author.send(`Hold on there trainer, there was an issue scanning your profile screenshot.
-							Make sure you follow the example at the top of <#740670778516963339>.
-							If part of your buddy is close to the level number, try rotating it out of the way.
-							If there was a different cause, a moderator will be able to help manually approve you.`);
+Make sure you follow the example at the top of <#740670778516963339>.
+If part of your buddy is close to the level number, try rotating it out of the way.
+If there was a different cause, a moderator will be able to help manually approve you.`);
 					} catch (e) {
 						console.log(`Error: Could not send DM to ${message.author.username}${message.author}`);
 					}
