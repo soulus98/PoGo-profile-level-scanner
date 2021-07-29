@@ -268,6 +268,20 @@ client.on("message", message => {
 		if (message.channel == logs) {
 			return;
 		}
+		if (message.channel.type === "dm") {
+			message.lineReply(`I cannot scan an image in a dm. Please send it in ${channel}`);
+			return;
+		}
+		if (message.channel != channel) {
+			try {
+				message.lineReply(`I cannot scan an image in this channel. Please send it in ${channel}.
+<@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`);
+			} catch (e) {
+				console.log(`Error: I can not send a message in ${message.channel}`);
+			} finally {
+				return;
+			}
+		}
 		if (message.member == null){
 			console.log(`[${dateToTime(new Date())}]: User ${message.author.username}${message.author} sent an image, but could not be scanned, due to the member == null issue.`);
 			logs.send(`User: ${message.author}\nLeft the server. No roles added.`,message.attachments.first());
@@ -277,20 +291,11 @@ client.on("message", message => {
 			message.lineReplyNoMention(`<@&${modRole}> This message was not scanned due to the manual blacklist.`);
 			return;
 		}
-		if (message.channel.type === "dm") {
-			message.lineReply(`I cannot scan an image in a dm. Please send it in ${channel}`);
-			return;
-		}
-		if (message.channel != channel) {
-			message.lineReply(`I cannot scan an image in this channel. Please send it in ${channel}.
-<@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`);
-			return;
-		}
 		if (message.member.roles.cache.has(level50Role) && message.member.roles.cache.has(level40Role) && message.member.roles.cache.has(level30Role)){
 			try {
 				message.author.send("You already have all available roles.");
 			} catch (e) {
-				console.log(`Error: Could not send DM to ${message.author.username}`);
+				console.log(`Error: Could not send DM to ${message.author.username}${message.author}`);
 			}
 			logs.send(`User: ${message.author}\nRoles: All 3 already possessed\n`,message.attachments.first());
 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
@@ -306,14 +311,16 @@ client.on("message", message => {
 				if (currentTime-blacklist.get(message.author.id)<blacklistTime){
 					try {
 						message.author.send(`We are sorry, but you are currently prohibited from using the automated system due to a recent screenshot that was scanned under level 30.
-							If you have surpassed level 30, tag @moderator and someone will let you in manually.
-							Otherwise, keep leveling up, and we will be raiding with you shortly. :wave:`);
+If you have surpassed level 30, tag @moderator or message <@575252669443211264> to ask to be let in manually.
+Otherwise, keep leveling up, and post your screenshot when you have reached that point.
+Hope to raid with you soon! :wave:`);
 					}  catch (e) {
-						console.log(`Error: Could not send DM to ${message.author.username}`);
+						console.log(`Error: Could not send DM to ${message.author.username}${message.author}`);
 					}
-						message.delete();
-						console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the blacklist`);
-						return;
+					logs.send(`User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${(blacklistTime-(currentTime-blacklist.get(message.author.id)))/3600000} hours`,message.attachments.first());
+					if (deleteScreens) message.delete();
+					console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the blacklist`);
+					return;
 				} else {
 					blacklist.delete(message.author.id);
 					console.log(`[${dateToTime(postedTime)}]: Removed ${message.author.username}${message.author} from the blacklist.`);
@@ -450,7 +457,7 @@ client.on("message", message => {
 							If part of your buddy is close to the level number, try rotating it out of the way.
 							If there was a different cause, a moderator will be able to help manually approve you.`);
 					} catch (e) {
-						console.log(`Error: Could not send DM to ${message.author.username}`);
+						console.log(`Error: Could not send DM to ${message.author.username}${message.author}`);
 					}
 					imageLogCount++;
 					currentlyImage--;
@@ -494,13 +501,13 @@ Thank you so much for your interest in joining our raid server.
 Unfortunately we have a level requirement of 30 to gain full access, and your screenshot was scanned at ${level}.
 Gaining xp is very easy to do now with friendships, events, lucky eggs and so much more! Please stay and hang out with us here.
 You can use <#733418314222534826> to connect with other trainers and get the xp you need to hit level 30!
-Once you've reached that point, please repost your screenshot.
+Once you've reached that point, please repost your screenshot, or message <@575252669443211264>.
 
 In the meantime please join our sister server with this link.
 Hope to raid with you soon! :slight_smile:
 https://discord.gg/tNUXgXC`);
 					} catch (e) {
-						console.log(`Error: Could not send DM to ${message.author.username}`);
+						console.log(`Error: Could not send DM to ${message.author.username}${message.author}`);
 					}
 				blacklist.set(message.author.id,currentTime);
 				saveBlacklist();
@@ -568,7 +575,7 @@ Have fun raiding. :wave:`);
 			try {
 				message.author.send(msgtxt.join(""), {split:true});
 			} catch (e) {
-				console.log(`Error: Could not send DM to ${message.author.username}`);
+				console.log(`Error: Could not send DM to ${message.author.username}${message.author}`);
 			}
 		}
 	}
