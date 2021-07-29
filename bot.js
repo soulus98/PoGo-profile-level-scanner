@@ -189,7 +189,7 @@ client.once("ready", async () => {
 	server = await client.guilds.cache.get(serverID);
 	dev = await client.users.fetch("146186496448135168",false,true);
 	checkServer();
-	client.user.setActivity(`Use ${prefix}help for help.`);
+	client.user.setActivity(`v1.3`);
 	if (server == undefined){
 		console.log("\nOops the screenshot server is broken.");
 		return;
@@ -215,14 +215,13 @@ client.once("ready", async () => {
 			}
 		});
 		channel.messages.fetch({limit:20}).then(msgs => {
-			let closeMsg = msgs.find(msg => msg.content == "The bot is sleeping now. Goodbye :wave:");
+			let closeMsg = msgs.find(msg => msg.content == "The bot is sleeping now. Goodbye :wave:" || msg.content == "Restarting..." );
 			if (closeMsg) closeMsg.delete();
 		});
 		dev.send(`**Dev message: **Loaded in server "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
 		console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in server "${server.name}"#${server.id} in channel "${channel.name}"#${channel.id}`);
 		console.log("======================================================================================");
 
-		//The bot is sleeping now.
 	},timeDelay);
 });
 
@@ -440,7 +439,7 @@ client.on("message", message => {
 					console.log("test 2");
 					if (!message.deleted) message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
 				}
-				if (isNaN(level) || level >50){
+				if (isNaN(level) || level >50 || level <1){
 					logimg.edit(`User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``,image);
 					message.lineReplyNoMention(`<@&${modRole}> There was an issue scanning this image.`);
 					message.react("❌");
