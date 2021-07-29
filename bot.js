@@ -225,23 +225,24 @@ client.once("ready", async () => {
 	},timeDelay);
 });
 
-client.on("guildMemberAdd", member => {
-	console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
-  if (!channel || !welcomeMsg) return;
-  channel.send(`Hey ${member},
-
-Welcome to the server!
-To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
-Please do so in this channel.
-
-Thank you. `).then(msg => {
-		if (msgDeleteTime && !msg.deleted){
-			setTimeout(() => {
-				msg.delete();
-			},msgDeleteTime);
-		}
-	});
-});
+// Not necessary anymore
+// client.on("guildMemberAdd", member => {
+// 	console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
+//   if (!channel || !welcomeMsg) return;
+//   channel.send(`Hey ${member},
+//
+// Welcome to the server!
+// To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
+// Please do so in this channel.
+//
+// Thank you. `).then(msg => {
+// 		if (msgDeleteTime && !msg.deleted){
+// 			setTimeout(() => {
+// 				msg.delete();
+// 			},msgDeleteTime);
+// 		}
+// 	});
+// });
 
 client.on("message", message => {
 	if (message.channel == profile) {
