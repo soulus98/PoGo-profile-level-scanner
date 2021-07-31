@@ -188,7 +188,7 @@ client.once("ready", async () => {
 	server = await client.guilds.cache.get(serverID);
 	dev = await client.users.fetch("146186496448135168",false,true);
 	checkServer();
-	client.user.setActivity(`v1.3`);
+	client.user.setActivity(`v1.3.1`);
 	if (server == undefined){
 		console.log("\nOops the screenshot server is broken.");
 		return;
@@ -396,6 +396,18 @@ Hope to raid with you soon! :wave:`).catch(() => {
 					.toBuffer((err, imgBuff) => {
 						if (err){
 							console.error(`[${dateToTime(postedTime)}]: Error: An error occured while buffering "imgTwo".`);
+							console.error(`[${dateToTime(postedTime)}]: Some info for soul:`);
+							console.error("\nMessage:");
+							console.error(message);
+							console.error("\natt.first: ")
+							console.error(message.attachments.first);
+							console.error("\nimage: ");
+							console.error(image);
+							console.error("image.url: ");
+							console.error(image.url)
+							console.error("imgTwo: ");
+							console.error(imgTwo); 			//testo
+							logimg.edit(`User: ${message.author}\nThis image crashed the server...`,image);
 							throw err;
 							return;
 						}
@@ -656,19 +668,25 @@ Have fun raiding. :wave:`);
 		 imageLogCount++;
 		 currentlyImage--;
 	 }
-	 if (err.message.substr(0,35) == "Error: UNKNOWN: unknown error, open"){
-		 console.error(`[${dateToTime(new Date())}]: Error: Known imageWrite crash. Consider turning off saveLocalCopy. This error should be handled correctly.`);
-		 const errorMessage = channel.send(`An internal error occured. Please retry sending the screenshot(s) that failed.`);
-		 errorMessage.then((errorMessage)=>{setTimeout(()=>{
-			 if (errorMessage && msgDeleteTime>0){
-				 errorMessage.delete().catch(()=>{
-					 console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${errorMessage.url}\nContent of mesage: "${errorMessage.content}"`);
-				 });
-			 }
-		 },msgDeleteTime);});
+	 if (err != null) {
+		 if (err.message.substr(0,35) == "Error: UNKNOWN: unknown error, open"){
+			 console.error(`[${dateToTime(new Date())}]: Error: Known imageWrite crash. Consider turning off saveLocalCopy. This error should be handled correctly.`);
+			 const errorMessage = channel.send(`An internal error occured. Please retry sending the screenshot(s) that failed.`);
+			 errorMessage.then((errorMessage)=>{setTimeout(()=>{
+				 if (errorMessage && msgDeleteTime>0){
+					 errorMessage.delete().catch(()=>{
+						 console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${errorMessage.url}\nContent of mesage: "${errorMessage.content}"`);
+					 });
+				 }
+			 },msgDeleteTime);});
+		 }
 	 } else {
-		 console.log(`Uncaught Exception: ${err}${err.stack}`);
-		 channel.send(`<@&${modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
+		 if (err != null) {
+			 console.error(`Uncaught Exception: ${err}${err.stack}`);
+			 channel.send(`<@&${modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
+		 } else {
+			 console.error(err);
+		 }
 	 }
  });
 
