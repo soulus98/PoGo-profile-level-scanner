@@ -24,7 +24,7 @@ module.exports = {loadConfigs, clearBlacklist};
 function saveBlacklist() {
 	fs.writeFile("./blacklist.json",JSON.stringify(Array.from(blacklist)),()=>{
 		let x = blacklist.size;
-		console.log(`[${dateToTime(new Date())}]: Updated blacklist. There ${(x!=1)?"are":"is"} now ${x} user${(x!=1)?"s":""} blacklisted.`); //test
+		console.log(`[${dateToTime(new Date())}]: Updated blacklist. There ${(x!=1)?"are":"is"} now ${x} user${(x!=1)?"s":""} blacklisted.`); //testo
 	});
 }
 
@@ -36,13 +36,11 @@ function clearBlacklist(message, idToDelete){
 		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
 		saveBlacklist();
 	} else {
-		fs.writeFile("./blacklist.json","{}",()=>{
-		});
-		for (const userid of blacklist.keys()){
-			blacklist.delete(userid);
+		blacklist = new Discord.Collection();
+		fs.writeFile("./blacklist.json","[]",()=>{
+			loadBlacklist();
 			message.lineReplyNoMention("Blacklist cleared.");
-			saveBlacklist();
-		}
+		});
 	}
 	return;
 }
@@ -129,8 +127,9 @@ function loadCommands(){
 
 // Loads the blacklist from file
 function loadBlacklist(){
+	delete require.cache[require.resolve("./blacklist.json")];
 	const blackJson = require("./blacklist.json");
-	if (!blackJson[0]) return console.log(`Blacklist empty.`);;
+	if (!blackJson[0]) return console.log(`Blacklist loaded (empty).`);
 	let x = 0;
 	for (item of blackJson){
 		if (lastImageTimestamp-item[1]>blacklistTime){
@@ -144,7 +143,7 @@ function loadBlacklist(){
 		saveBlacklist();
 	} else {
 		let y = blacklist.size;
-		console.log(`Blacklist loaded from file. It contains ${y} user${(y==1)?"":"s"}`); //test ??
+		console.log(`Blacklist loaded from file. It contains ${y} user${(y==1)?"":"s"}`);
 	}
 }
 
@@ -248,6 +247,7 @@ client.once("ready", async () => {
 // });
 
 client.on("message", message => {
+	if (imageLogCount>0 && imageLogCount % 50 === 0) loadBlacklist();
 	if(message.channel == profile) {
 		return;
 	}
@@ -412,7 +412,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 									throw err;
 									return;
 								}
-								//console.log("Written"); //test ??
+								//console.log("Written"); //testo ??
 							});
 						}
 						setTimeout(()=>{recog(imgBuff, image, logimg);},timeDelay*(4/5));
@@ -430,7 +430,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 			});
 			(async () => {
 				await worker.load();
-				//console.log(`Recognising: i#${instance}. iLC: ${imageLogCount}.`); //test??
+				//console.log(`Recognising: i#${instance}. iLC: ${imageLogCount}.`); //testo??
 				await worker.loadLanguage("eng");
 				await worker.initialize("eng");
 				await worker.setParameters({
@@ -469,7 +469,7 @@ If there was a different cause, a moderator will be able to help manually approv
 					roleGrant(level, image, logimg);
 					imageLogCount++;
 					currentlyImage--;
-					//console.log(`Remaining images: ${currentlyImage}`);//test
+					//console.log(`Remaining images: ${currentlyImage}`);//testo
 					if (deleteScreens && !message.deleted) message.delete().catch(()=>{
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
