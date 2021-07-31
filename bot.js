@@ -222,8 +222,8 @@ client.once("ready", async () => {
 				console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${closeMsg.url}\nContent of mesage: "${closeMsg.content}"`);
 			});
 		});
-		dev.send(`**Dev message: **Loaded in server "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
-		console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in server "${server.name}"#${server.id} in channel "${channel.name}"#${channel.id}`);
+		dev.send(`**Dev message: **Loaded in guild: "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
+		console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in guild: "${server.name}"#${server.id} in channel: "${channel.name}"#${channel.id}`);
 		console.log("======================================================================================");
 	},timeDelay);
 });
@@ -423,7 +423,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 		}
 		async function recog(imgBuff, image, logimg){
 			if (!message.deleted) message.react("👀").catch(()=>{
-				console.error(`[${dateToTime(postedTime)}]: Error: Could not react to message: ${message.url}\nContent of mesage: "${message.content}"`);
+				console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👀 to message: ${message.url}\nContent of mesage: "${message.content}"`);
 			});
 			const worker = createWorker({
 				//logger: m => console.log(m)
@@ -498,15 +498,15 @@ If there was a different cause, a moderator will be able to help manually approv
 							console.error(`[${dateToTime(postedTime)}]: Error: Could not react to message: ${message.url}\nContent of mesage: "${message.content}"`);
 						});
 						message.author.send(`Hey trainer!
-	Thank you so much for your interest in joining our raid server.
-	Unfortunately we have a level requirement of 30 to gain full access, and your screenshot was scanned at ${level}.
-	Gaining xp is very easy to do now with friendships, events, lucky eggs and so much more! Please stay and hang out with us here.
-	You can use <#733418314222534826> to connect with other trainers and get the xp you need to hit level 30!
-	Once you've reached that point, please repost your screenshot, or message <@575252669443211264> if you have to be let in manually.
+Thank you so much for your interest in joining our raid server.
+Unfortunately we have a level requirement of 30 to gain full access, and your screenshot was scanned at ${level}.
+Gaining xp is very easy to do now with friendships, events, lucky eggs and so much more! Please stay and hang out with us here.
+You can use <#733418314222534826> to connect with other trainers and get the xp you need to hit level 30!
+Once you've reached that point, please repost your screenshot, or message <@575252669443211264> if you have to be let in manually.
 
-	In the meantime please join our sister server with this link.
-	Hope to raid with you soon! :slight_smile:
-	https://discord.gg/tNUXgXC`).catch(() => {
+In the meantime please join our sister server with this link.
+Hope to raid with you soon! :slight_smile:
+https://discord.gg/tNUXgXC`).catch(() => {
 							console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 						});
 					blacklist.set(message.author.id,currentTime);
@@ -519,7 +519,7 @@ If there was a different cause, a moderator will be able to help manually approv
 					else if (level>29){
 						channel.send(`Hey, ${message.author}. Welcome to the server. :partying_face:
 
-	 • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.`).then(msg => {
+ • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.`).then(msg => {
 							setTimeout(()=>{
 								msg.delete().catch(()=>{
 									console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
@@ -528,31 +528,33 @@ If there was a different cause, a moderator will be able to help manually approv
 						});
 						setTimeout(()=>{
 							message.member.roles.add(message.guild.roles.cache.get(level30Role)).catch(console.error);
-						},2000);
-						profile.send(`Hey, ${message.author}. Welcome to the server. :partying_face:
+							given30 = true;
+						},250);
+						setTimeout(()=>{
+							profile.send(`Hey, ${message.author}. Welcome to the server. :partying_face:
 
-	 • Start by typing \`$verify\` in this channel. The bot will then ask for your Trainer Code, so have it ready.
+ • Start by typing \`$verify\` in this channel. The bot will then ask for your Trainer Code, so have it ready.
 
-	 • Extra commands such as \`$team <team-name>\` and \`$level 35\` are pinned and posted in this channel. Just ask if you can't find them.
+ • Extra commands such as \`$team <team-name>\` and \`$level 35\` are pinned and posted in this channel. Just ask if you can't find them.
 
-	 • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>.
+ • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>.
 
-	Feel free to ask any questions you have over in <#733706705560666275>.
-	Have fun raiding. :wave:`);
-						given30 = true;
+Feel free to ask any questions you have over in <#733706705560666275>.
+Have fun raiding. :wave:`);
+						}, 3000);
 						if (!deleteScreens && !message.deleted) message.react("👍").catch(()=>{
 							console.error(`[${dateToTime(postedTime)}]: Error: Could not react to message: ${message.url}\nContent of mesage: "${message.content}"`);
 						});
 						msgtxt.push(`Hey, welcome to the server. :partying_face:
 
-	 • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.
+ • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.
 
-	 • Extra commands such as \`$team <team-name>\` and \`$level <no>\` are pinned in that channel. Just ask if you can't find them.
+ • Extra commands such as \`$team <team-name>\` and \`$level <no>\` are pinned in that channel. Just ask if you can't find them.
 
-	 • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>
+ • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>
 
-	Feel free to ask any questions you have over in <#733706705560666275>.
-	Have fun raiding. :wave:`);
+Feel free to ask any questions you have over in <#733706705560666275>.
+Have fun raiding. :wave:`);
 					}
 					if ((level>39 && level40Role && !message.member.roles.cache.has(level40Role)) || level>49 && level50Role){
 						message.member.roles.add(message.guild.roles.cache.get(level40Role)).catch(console.error);
