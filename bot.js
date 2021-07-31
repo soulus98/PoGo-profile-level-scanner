@@ -535,9 +535,9 @@ https://discord.gg/tNUXgXC`).catch(() => {
 								});
 							},5000);
 						});
+						given30 = true;
 						setTimeout(()=>{
 							message.member.roles.add(message.guild.roles.cache.get(level30Role)).catch(console.error);
-							given30 = true;
 						},250);
 						setTimeout(()=>{
 							profile.send(`Hey, ${message.author}. Welcome to the server. :partying_face:
