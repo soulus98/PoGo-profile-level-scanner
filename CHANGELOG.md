@@ -1,4 +1,7 @@
 ## v1.3  
+* Added an infodump for if the empty buffer issue reoccurs
+
+## v1.3  
 Fixed a few bugs:
 * Fixed the blacklist and ]cbl  
 * Made the blacklist clear old accounts every 50 images  
