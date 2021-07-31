@@ -487,9 +487,6 @@ If there was a different cause, a moderator will be able to help manually approv
 				let given40 = false;
 				let given50 = false;
 				try {
-					role30 = message.guild.roles.cache.get(level30Role);
-					role40 = message.guild.roles.cache.get(level40Role);
-					role50 = message.guild.roles.cache.get(level50Role);
 					if(message.member.roles.cache.has(level30Role)){
 						msgtxt.push("You already have the Remote Raids role");
 					}
