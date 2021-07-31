@@ -1,4 +1,4 @@
-## v1.3  
+## v1.3.1
 * Added an infodump for if the empty buffer issue reoccurs
 
 ## v1.3  
