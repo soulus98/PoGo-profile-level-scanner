@@ -4,6 +4,7 @@
 * Added ]ver for checking the version number
 * Added a "message.author" tag in the dm messages
 * Added emoji (and names) in the "React failed" error messages  
+* Bot no longer yells at you for images in the wrong channel
 
 Stats.json will be: created automatically by the bot, saved every image, and loaded on launch.
 So far tracked are: Attempts; Declined from scanning due to •Blacklist, •Left the server before processing, •Has all 3 roles already; Fails, and Under 30s.  
