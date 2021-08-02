@@ -1,4 +1,4 @@
-## v1.3 
+# v1.3 
 Fixed a few bugs:
 * Fixed the blacklist and ]cbl  
 * Made the blacklist clear old accounts every 50 images  
@@ -22,7 +22,7 @@ Fixed a few bugs:
 The blacklist.json file should now be created (at launch and every 30) if it doesn't already exist, so feel free to delete it if it breaks again (?!) and gets too big.
 
 
-## v1.1
+# v1.1
 * Added manage_guild to ]set, ]tog, ]show, ]quit
 * Fixed the config.json ]set issue (I think)
 * Reworded bot messages for joining, leaving, and quitting
