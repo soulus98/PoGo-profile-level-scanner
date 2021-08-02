@@ -12,6 +12,9 @@ The declined images aren't scanned, so they shouldn't be included when calculati
 The rest of the successes are sorted by level, so you can see a distribution.  
 Maybe one day I can make ]stats show a graph 😂
 
+#### v1.4.1 (3/8/21)
+* Removed an accidental testing console log
+
 
 # v1.3
 Fixed a few bugs:

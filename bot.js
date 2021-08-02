@@ -12,7 +12,7 @@ const cooldowns = new Discord.Collection();
 blacklist = new Discord.Collection();
 stats = new Discord.Collection();
 lastImageTimestamp = Date.now();
-const ver = "v1.4"
+const ver = "v1.4.1"
 imageAttempts = 0;
 imageLogCount = 0;
 launchDate = new Date();
@@ -180,7 +180,6 @@ function loadStats() {
 					stats.set(item[0],item[1]);
 				}
 				console.log("Stats loaded");
-				console.log(stats);
 			},750);
 		}
 	}
@@ -346,7 +345,6 @@ function saveStats(level) {
 			console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
 			return;
 		}
-			console.log(stats); //testo
 	});
 }
 
