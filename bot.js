@@ -36,7 +36,6 @@ function clearBlacklist(message, idToDelete){
 		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
 		saveBlacklist();
 	} else {
-		blacklist = new Discord.Collection();
 		fs.writeFile("./blacklist.json","[]",()=>{
 			loadBlacklist();
 			message.lineReplyNoMention("Blacklist cleared.");
@@ -99,10 +98,10 @@ function checkDateFolder(checkDate){
 	console.log(`\nChecking for ${newFolder}...`);
 	fs.access(newFolder, error => {
 	    if (!error) {
-				console.log(`\nFolder ${checkDate.toDateString()} already existed.`);
+				console.log(`Folder ${checkDate.toDateString()} already existed.\n`);
 	    } else {
 				fs.mkdirSync(newFolder);
-				console.log(`\nFolder ${checkDate.toDateString()} created.`);
+				console.log(`Folder ${checkDate.toDateString()} created.\n`);
 	    }
 	});
 }
@@ -127,23 +126,48 @@ function loadCommands(){
 
 // Loads the blacklist from file
 function loadBlacklist(){
-	delete require.cache[require.resolve("./blacklist.json")];
-	const blackJson = require("./blacklist.json");
-	if (!blackJson[0]) return console.log(`Blacklist loaded (empty).`);
-	let x = 0;
-	for (item of blackJson){
-		if (lastImageTimestamp-item[1]>blacklistTime){
-			x = x+1;
+	blacklist = new Discord.Collection();
+	try {
+		delete require.cache[require.resolve("./blacklist.json")];
+	} catch (e){
+		if (e.code == "MODULE_NOT_FOUND") {
+			//do nothing
 		} else {
-			blacklist.set(item[0],item[1]);
+			console.error(`[${dateToTime(new Date())}]: Error thrown when loading blacklist. Error: ${e}`);
 		}
-	}
-	if (x){
-		console.log(`Blacklist loaded, and removed ${x} users from it due to time expiration.`);
-		saveBlacklist();
-	} else {
-		let y = blacklist.size;
-		console.log(`Blacklist loaded from file. It contains ${y} user${(y==1)?"":"s"}`);
+	} finally {
+		var blackJson = "";
+		try {
+			blackJson = require("./blacklist.json");
+		} catch (e) {
+			if (e.code == "MODULE_NOT_FOUND") {
+				fs.writeFile("./blacklist.json","[]",()=>{
+					console.log("Could not find blacklist.json. Making a new one...");
+					blackJson = require("./blacklist.json");
+				});
+			}	else {
+				console.error(`[${dateToTime(new Date())}]: Error thrown when loading blacklist. Error: ${e}`);
+			}
+		} finally {
+			setTimeout(()=>{
+				if (!blackJson[0]) return console.log(`Blacklist loaded (empty).`);
+				let x = 0;
+				for (item of blackJson){
+					if (lastImageTimestamp-item[1]>blacklistTime){
+						x = x+1;
+					} else {
+						blacklist.set(item[0],item[1]);
+					}
+				}
+				if (x){
+					console.log(`Blacklist loaded, and removed ${x} users from it due to time expiration.`);
+					saveBlacklist();
+				} else {
+					let y = blacklist.size;
+					console.log(`Blacklist loaded from file. It contains ${y} user${(y==1)?"":"s"}`);
+				}
+			},500);
+		}
 	}
 }
 
@@ -247,7 +271,6 @@ client.once("ready", async () => {
 // });
 
 client.on("message", message => {
-	if (imageLogCount>0 && imageLogCount % 50 === 0) loadBlacklist();
 	if(message.channel == profile) {
 		return;
 	}
@@ -594,6 +617,7 @@ Have fun raiding. :wave:`);
 				message.author.send(msgtxt.join(""), {split:true}).catch(() => {
 					console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 				});
+				if (imageLogCount>0 && imageLogCount % 30 === 0) loadBlacklist();
 			}
 		}
 	}
