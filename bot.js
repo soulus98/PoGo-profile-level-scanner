@@ -10,7 +10,9 @@ require('discord-reply');
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
 blacklist = new Discord.Collection();
+stats = new Discord.Collection();
 lastImageTimestamp = Date.now();
+const ver = "v1.4"
 imageAttempts = 0;
 imageLogCount = 0;
 launchDate = new Date();
@@ -18,31 +20,7 @@ loaded = false;
 currentlyImage = 0;
 screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 config = {};
-module.exports = {loadConfigs, clearBlacklist};
-
-// Saves the under-30 blacklist to file
-function saveBlacklist() {
-	fs.writeFile("./blacklist.json",JSON.stringify(Array.from(blacklist)),()=>{
-		let x = blacklist.size;
-		console.log(`[${dateToTime(new Date())}]: Updated blacklist. There ${(x!=1)?"are":"is"} now ${x} user${(x!=1)?"s":""} blacklisted.`); //testo
-	});
-}
-
-// Called from clear-blacklist.js to clear the blacklist when requested
-function clearBlacklist(message, idToDelete){
-	if (idToDelete){
-		blacklist.delete(idToDelete[0]);
-		message.lineReplyNoMention(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`);
-		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
-		saveBlacklist();
-	} else {
-		fs.writeFile("./blacklist.json","[]",()=>{
-			loadBlacklist();
-			message.lineReplyNoMention("Blacklist cleared.");
-		});
-	}
-	return;
-}
+module.exports = {loadConfigs, clearBlacklist, ver};
 
 // Loads all the variables at program launch
 function load(){
@@ -52,6 +30,7 @@ function load(){
 		checkDateFolder(launchDate);
 		loadCommands();
 		loadBlacklist();
+		loadStats();
 		client.login(token);
 }
 
@@ -146,7 +125,7 @@ function loadBlacklist(){
 					blackJson = require("./blacklist.json");
 				});
 			}	else {
-				console.error(`[${dateToTime(new Date())}]: Error thrown when loading blacklist. Error: ${e}`);
+				console.error(`[${dateToTime(new Date())}]: Error thrown when loading blacklist (2). Error: ${e}`);
 			}
 		} finally {
 			setTimeout(()=>{
@@ -167,6 +146,42 @@ function loadBlacklist(){
 					console.log(`Blacklist loaded from file. It contains ${y} user${(y==1)?"":"s"}`);
 				}
 			},500);
+		}
+	}
+}
+
+// Loads the stats from file
+function loadStats() {
+	stats = new Discord.Collection();
+	try {
+		delete require.cache[require.resolve("./stats.json")];
+	} catch (e){
+		if (e.code == "MODULE_NOT_FOUND") {
+			//do nothing
+		} else {
+			console.error(`[${dateToTime(new Date())}]: Error thrown when loading stats. Error: ${e}`);
+		}
+	} finally {
+		var statsJson = "";
+		try {
+			statsJson = require("./stats.json");
+		} catch (e) {
+			if (e.code == "MODULE_NOT_FOUND") {
+				fs.writeFile("./stats.json","[[\"Attempts\",0],[\"Declined-Blacklist\",0],[\"Declined-Left-Server\",0],[\"Declined-All-Roles\",0],[\"Fails\",0],[\"Under-30\",0],[30,0],[31,0],[32,0],[33,0],[34,0],[35,0],[36,0],[37,0],[38,0],[39,0],[40,0],[41,0],[42,0],[43,0],[44,0],[45,0],[46,0],[47,0],[48,0],[49,0],[50,0]]",()=>{
+					console.log("Could not find stats.json. Making a new one...");
+					statsJson = require("./stats.json");
+				});
+			}	else {
+				console.error(`[${dateToTime(new Date())}]: Error thrown when loading stats (2). Error: ${e}`);
+			}
+		} finally {
+			setTimeout(()=>{
+				for (item of statsJson){
+					stats.set(item[0],item[1]);
+				}
+				console.log("Stats loaded");
+				console.log(stats);
+			},750);
 		}
 	}
 }
@@ -198,11 +213,6 @@ function checkServer(message){
 	});
 }
 
-function dateToTime(inDate){
-	var time = `${inDate.getHours()}:${(inDate.getMinutes()<10)?`0${inDate.getMinutes()}`:inDate.getMinutes()}:${(inDate.getSeconds()<10)?`0${inDate.getSeconds()}`:inDate.getSeconds()}`;
-	return time;
-}
-
 load();
 
 client.once("ready", async () => {
@@ -212,7 +222,7 @@ client.once("ready", async () => {
 	server = await client.guilds.cache.get(serverID);
 	dev = await client.users.fetch("146186496448135168",false,true);
 	checkServer();
-	client.user.setActivity(`v1.3.1`);
+	client.user.setActivity(`${ver}`);
 	if (server == undefined){
 		console.log("\nOops the screenshot server is broken.");
 		return;
@@ -251,24 +261,94 @@ client.once("ready", async () => {
 	},timeDelay);
 });
 
-// Not necessary anymore
-// client.on("guildMemberAdd", member => {
-// 	console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
-//   if (!channel || !welcomeMsg) return;
-//   channel.send(`Hey ${member},
-//
-// Welcome to the server!
-// To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
-// Please do so in this channel.
-//
-// Thank you. `).then(msg => {
-// 		if (msgDeleteTime && !msg.deleted){
-// 			setTimeout(() => {
-// 				msg.delete();
-// 			},msgDeleteTime);
-// 		}
-// 	});
-// });
+/*Not necessary anymore
+client.on("guildMemberAdd", member => {
+	console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
+  if (!channel || !welcomeMsg) return;
+  channel.send(`Hey ${member},
+
+Welcome to the server!
+To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
+Please do so in this channel.
+
+Thank you. `).then(msg => {
+		if (msgDeleteTime && !msg.deleted){
+			setTimeout(() => {
+				msg.delete();
+			},msgDeleteTime);
+		}
+	});
+});
+*/
+
+// Saves the under-30 blacklist to file
+function saveBlacklist() {
+	fs.writeFile("./blacklist.json",JSON.stringify(Array.from(blacklist)),()=>{
+		let x = blacklist.size;
+		console.log(`[${dateToTime(new Date())}]: Updated blacklist. There ${(x!=1)?"are":"is"} now ${x} user${(x!=1)?"s":""} blacklisted.`); //testo
+	});
+}
+
+// Called from clear-blacklist.js to clear the blacklist when requested
+function clearBlacklist(message, idToDelete){
+	if (idToDelete){
+		blacklist.delete(idToDelete[0]);
+		message.lineReplyNoMention(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`);
+		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
+		saveBlacklist();
+	} else {
+		fs.writeFile("./blacklist.json","[]",(err)=>{
+			if (err){
+				console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
+				return;
+			}
+			loadBlacklist();
+			message.lineReplyNoMention("Blacklist cleared.");
+		});
+	}
+	return;
+}
+
+// Turns a date object into a readable time format
+function dateToTime(inDate){
+	var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct', 'Nov', 'Dec'];
+	var time = `${inDate.getFullYear()}-${months[inDate.getMonth()]}-${(inDate.getDate()<10)?`0${inDate.getDate()}`:inDate.getDate()} ${inDate.getHours()}:${(inDate.getMinutes()<10)?`0${inDate.getMinutes()}`:inDate.getMinutes()}:${(inDate.getSeconds()<10)?`0${inDate.getSeconds()}`:inDate.getSeconds()}`;
+	return time;
+}
+
+// Saves the stats to file
+function saveStats(level) {
+	if(isNaN(level) || level >50 || level <1){
+		if(level == "Failure" || level >50 || level <1){
+			stats.set("Attempts",stats.get("Attempts")+1);
+			stats.set("Fails",stats.get("Fails")+1);
+		} else if (level == "black") {
+			stats.set("Attempts",stats.get("Attempts")+1);
+			stats.set("Declined-Blacklist",stats.get("Declined-Blacklist")+1);
+		} else if (level == "all") {
+			stats.set("Attempts",stats.get("Attempts")+1);
+			stats.set("Declined-All-Roles",stats.get("Declined-All-Roles")+1);
+		} else if (level == "left") {
+			stats.set("Attempts",stats.get("Attempts")+1);
+			stats.set("Declined-Left-Server",stats.get("Declined-Left-Server")+1);
+		} else {
+			console.error(`[${dateToTime(new Date())}]: Error while saving the stats. Literally impossible to get to this, so if we have, something weird has happened.`);
+		}
+	} else if (level < 30) {
+		stats.set("Attempts",stats.get("Attempts")+1);
+		stats.set("Under-30",stats.get("Under-30")+1);
+	} else {
+		stats.set("Attempts",stats.get("Attempts")+1);
+		stats.set(parseFloat(level),stats.get(parseFloat(level))+1);
+	}
+	fs.writeFile("./stats.json",JSON.stringify(Array.from(stats)),(err)=>{
+		if (err){
+			console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
+			return;
+		}
+			console.log(stats); //testo
+	});
+}
 
 client.on("message", message => {
 	if(message.channel == profile) {
@@ -299,16 +379,17 @@ client.on("message", message => {
 			return;
 		}
 		if (message.channel != channel) {
-			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
-			message.lineReply(`I cannot scan an image in this channel. Please send it in ${channel}.
-<@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`).catch(()=>{
-				console.error(`[${dateToTime(postedTime)}]: Error: I can not send a message in ${message.channel.name}${message.channel}`);
-			});
+// 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
+// 			message.lineReply(`I cannot scan an image in this channel. Please send it in ${channel}.
+// <@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`).catch(()=>{
+// 				console.error(`[${dateToTime(postedTime)}]: Error: I can not send a message in ${message.channel.name}${message.channel}`);
+// 			});
 			return;
 		}
 		if (message.member == null){
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since they left the server.`);
 			logs.send(`User: ${message.author}\nLeft the server. No roles added.`,message.attachments.first());
+			saveStats("left");
 			return;
 		}
 		if (message.member.roles.cache.has(blacklistRole) && blacklistRole){
@@ -317,6 +398,7 @@ client.on("message", message => {
 			});
 			logs.send(`User: ${message.author}\nNot scanned due to manual blacklist:\n<@&${blacklistRole}>`,message.attachments.first());
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the auto blacklist`);
+			saveStats("black");
 			return;
 		}
 		if (message.member.roles.cache.has(level50Role) && message.member.roles.cache.has(level40Role) && message.member.roles.cache.has(level30Role)){
@@ -328,12 +410,15 @@ client.on("message", message => {
 			if (deleteScreens && !message.deleted) message.delete().catch(()=>{
 				console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 			});
+			saveStats("all");
 			return;
 		}
 		if (blacklistTime>0){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
 			if (blacklist.has(message.author.id)){
 				if (currentTime-blacklist.get(message.author.id)<blacklistTime){
-					message.author.send(`We are sorry, but you are currently prohibited from using the automated system due to a recent screenshot that was scanned under level 30.
+					saveStats("black");
+					message.author.send(`Hey, ${message.author}.
+We are sorry, but you are currently prohibited from using the automated system due to a recent screenshot that was scanned under level 30.
 If you have surpassed level 30, tag @moderator or message <@575252669443211264> to ask to be let in manually.
 Otherwise, keep leveling up, and post your screenshot when you have reached that point.
 Hope to raid with you soon! :wave:`).catch(() => {
@@ -387,7 +472,9 @@ Hope to raid with you soon! :wave:`).catch(() => {
 			}catch (error){ // this catch block rarely fires, as there are tonnes more catch cases under crop();
 				logString = logString + `, but an uncaught error occured. Error: ${error}`;
 				console.log(logString);
-				message.react("❌");
+				message.react("❌").catch(()=>{
+					console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
+				});
 				imageLogCount++;
 				currentlyImage--;
 				return;
@@ -423,7 +510,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 							console.error("\nMessage:");
 							console.error(message);
 							console.error("\natt.first: ")
-							console.error(message.attachments.first);
+							console.error(message.attachments.first());
 							console.error("\nimage: ");
 							console.error(image);
 							console.error("image.url: ");
@@ -458,7 +545,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 		}
 		async function recog(imgBuff, image, logimg){
 			if (!message.deleted) message.react("👀").catch(()=>{
-				console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👀 to message: ${message.url}\nContent of mesage: "${message.content}"`);
+				console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 			});
 			const worker = createWorker({
 				//logger: m => console.log(m)
@@ -490,8 +577,10 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				if (isNaN(level) || level >50 || level <1){
 					logimg.edit(`User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``,image);
 					message.lineReplyNoMention(`<@&${modRole}> There was an issue scanning this image.`);
-					message.react("❌");
-					message.author.send(`Hold on there trainer, there was an issue scanning your profile screenshot.
+					message.react("❌").catch(()=>{
+						console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
+					});
+					message.author.send(`Sorry, ${message.author}, but there was an issue scanning your profile screenshot.
 Make sure you follow the example at the top of <#740670778516963339>.
 If part of your buddy is close to the level number, try rotating it out of the way.
 If there was a different cause, a moderator will be able to help manually approve you.`).catch(() => {
@@ -499,6 +588,7 @@ If there was a different cause, a moderator will be able to help manually approv
 					});
 					imageLogCount++;
 					currentlyImage--;
+					saveStats(level);
 					return;
 				} else {
 					roleGrant(level, image, logimg);
@@ -515,6 +605,7 @@ If there was a different cause, a moderator will be able to help manually approv
 			if (message.member == null){
 				console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be scanned, since the member left the server.`);
 				logimg.edit(`User: ${message.author}\nLeft the server. No roles added.`, image);
+				saveStats("left");
 				return;
 			} else {
 				const msgtxt = [];
@@ -527,9 +618,9 @@ If there was a different cause, a moderator will be able to help manually approv
 					}
 					else if (level<30 && message.author){
 						if (!message.deleted) message.react("👎").catch(()=>{
-							console.error(`[${dateToTime(postedTime)}]: Error: Could not react to message: ${message.url}\nContent of mesage: "${message.content}"`);
+							console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👎 (thumbsdown) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 						});
-						message.author.send(`Hey trainer!
+						message.author.send(`Hey ${message.author}!
 Thank you so much for your interest in joining our raid server.
 Unfortunately we have a level requirement of 30 to gain full access, and your screenshot was scanned at ${level}.
 Gaining xp is very easy to do now with friendships, events, lucky eggs and so much more! Please stay and hang out with us here.
@@ -541,11 +632,11 @@ Hope to raid with you soon! :slight_smile:
 https://discord.gg/tNUXgXC`).catch(() => {
 							console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 						});
-					blacklist.set(message.author.id,currentTime);
-					saveBlacklist();
-					console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} was added to the blacklist`);
-					logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nBlacklisted for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime==1)?"":"s"}`,image);
-						//TODO: mention server staff DM
+						blacklist.set(message.author.id,currentTime);
+						saveBlacklist();
+						console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} was added to the blacklist`);
+						logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nBlacklisted for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime==1)?"":"s"}`,image);
+						saveStats(level);
 						return;
 					}
 					else if (level>29){
@@ -575,9 +666,9 @@ Feel free to ask any questions you have over in <#733706705560666275>.
 Have fun raiding. :wave:`);
 						}, 3000);
 						if (!deleteScreens && !message.deleted) message.react("👍").catch(()=>{
-							console.error(`[${dateToTime(postedTime)}]: Error: Could not react to message: ${message.url}\nContent of mesage: "${message.content}"`);
+							console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 						});
-						msgtxt.push(`Hey, welcome to the server. :partying_face:
+						msgtxt.push(`Hey, ${message.author}. Welcome to the server. :partying_face:
 
  • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.
 
@@ -592,14 +683,14 @@ Have fun raiding. :wave:`);
 						message.member.roles.add(message.guild.roles.cache.get(level40Role)).catch(console.error);
 						given40 = true;
 						if (!deleteScreens && !message.deleted) message.react("👍").catch(()=>{
-							console.error(`[${dateToTime(postedTime)}]: Error: Could not react to message: ${message.url}\nContent of mesage: "${message.content}"`);
+							console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 						});
 						msgtxt.push(`${(message.member.roles.cache.has(level30Role)) ? ", however,":"\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the Level 40`);
 						if (level>49 && level50Role){
 							message.member.roles.add(message.guild.roles.cache.get(level50Role)).catch(console.error);
 							given50 = true;
 							if (!deleteScreens && !message.deleted) message.react("👍").catch(()=>{
-								console.error(`[${dateToTime(postedTime)}]: Error: Could not react to message: ${message.url}\nContent of mesage: "${message.content}"`);
+								console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 							});
 							msgtxt.push(` and the Level 50`);
 						}
@@ -618,6 +709,7 @@ Have fun raiding. :wave:`);
 					console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 				});
 				if (imageLogCount>0 && imageLogCount % 30 === 0) loadBlacklist();
+				saveStats(level);
 			}
 		}
 	}

@@ -9,7 +9,6 @@ module.exports = {
 	description: "Shows all settings for the current (and only) instance of the bot",
   aliases: ["settings","options","opts","show"],
   usage: `${prefix}settings`,
-  cooldown: 5,
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
