@@ -4,7 +4,8 @@
 * Added ]ver for checking the version number
 * Added a "message.author" tag in the dm messages
 * Added emoji (and names) in the "React failed" error messages  
-Stats.json will be: created automatically by the bot, saved every image, and loaded on launch.  
+
+Stats.json will be: created automatically by the bot, saved every image, and loaded on launch.
 So far tracked are: Attempts; Declined from scanning due to •Blacklist, •Left the server before processing, •Has all 3 roles already; Fails, and Under 30s.  
 The declined images aren't scanned, so they shouldn't be included when calculating a success rate.  
 The rest of the successes are sorted by level, so you can see a distribution.  
@@ -31,7 +32,8 @@ Fixed a few bugs:
 
 #### v1.3.3 (2/8/21)
 * Fixed the blacklist (again) and added a check for an empty blacklist.json file
-* Changed the check to every 30 messages, since it will now not fire for failed or blacklisted images.  
+* Changed the check to every 30 messages, since it will now not fire for failed or blacklisted images.
+
 The blacklist.json file should now be created (at launch and every 30) if it doesn't already exist, so feel free to delete it if it breaks again (?!) and gets too big.
 
 
