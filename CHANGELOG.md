@@ -15,6 +15,11 @@ Maybe one day I can make ]stats show a graph 😂
 #### v1.4.1 (3/8/21)
 * Removed an accidental testing console log
 
+#### v1.4.2 (3/8/21)
+* Changed up how ]stats works so that it is more accurate.
+
+I honestly don't understand how stats.js references the stats collection, but it works, so oh well.
+
 
 # v1.3
 Fixed a few bugs:
