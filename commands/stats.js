@@ -10,9 +10,7 @@ module.exports = {
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
     const data = [];
-    stats = new Discord.Collection();
-    statsJson = require("../stats.json");
-    for (item of statsJson){
+    for (item of stats){
       stats.set(item[0],item[1]);
     }
     fails = stats.get("Fails");

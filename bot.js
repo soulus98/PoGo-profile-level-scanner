@@ -615,7 +615,7 @@ If there was a different cause, a moderator will be able to help manually approv
 						msgtxt.push("You already have the Remote Raids role");
 					}
 					else if (level<30 && message.author){
-						if (!message.deleted) message.react("👎").catch(()=>{
+						if (!deleteScreens && !message.deleted) message.react("👎").catch(()=>{
 							console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👎 (thumbsdown) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 						});
 						message.author.send(`Hey ${message.author}!
