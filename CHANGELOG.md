@@ -2,6 +2,8 @@
 * Changed the logs posting to a url rather than a whole image, to stop the bot from triple-handling the image. Should increase performance significantly.
 * Changed the amount of info that is dumped during the "Stream equals empty buffer" error. I suspect this error just means the server failed to retain the image information due to overloading.
 
+#### v1.5.1
+* Start of modularization updates (aka "Mod:"). I moved the command handler to "handlers/commands.js" and dateToTime() to "fun/dateToTime.js"
 
 # v1.4 (2021-Aug-2)
 * Added ]stats and analytics
