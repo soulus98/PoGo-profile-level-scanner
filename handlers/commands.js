@@ -13,7 +13,6 @@ function handleCommand(message,postedTime){
   //a bunch of checking
   if (!command) return; 																						//is it a command
   logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} used ${prefix}${commandName}`;
-  console.log("testo 2");
   if (command.guildOnly && message.channel.type === "dm") { 				//dm checking
     logString = logString + `, but it failed, as ${prefix}${commandName} cannot be used in a DM`;
     console.log(logString);

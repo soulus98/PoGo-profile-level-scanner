@@ -706,7 +706,6 @@ Have fun raiding. :wave:`);
 		}
 	}
 	else {
-		console.log("testo 1");
 		handleCommand(message,postedTime);
 	}
 });
