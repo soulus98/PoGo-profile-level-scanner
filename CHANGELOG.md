@@ -15,6 +15,9 @@
 * Fixed an issue in the command handler
 * I had to remove the per-author cooldowns on commands. Shouldn't be a problem.
 
+#### v1.5.3 (2021-Aug-5)
+* Reverted 1.5... urls don't work... That optimisation is basically impossible
+
 
 
 # v1.4 (2021-Aug-2)
