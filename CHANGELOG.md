@@ -8,6 +8,9 @@
 #### v1.5.1.1 (2021-Aug-5)
 * Updated a vulnerable package
 
+#### v1.5.1.2 (2021-Aug-5)
+* Removed a test message I left in
+
 
 
 # v1.4 (2021-Aug-2)
