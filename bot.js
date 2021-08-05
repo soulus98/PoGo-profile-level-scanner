@@ -6,6 +6,7 @@ const https = require("https");
 const Discord = require("discord.js");
 const {rect} = require("./rect.js");
 const {handleCommand} = require("./handlers/commands.js");
+const {mail} = require("./handlers/dm.js");
 const {dateToTime} = require("./fun/dateToTime.js");
 require('discord-reply');
 
@@ -371,8 +372,7 @@ client.on("message", message => {
 			return;
 		}
 		if (message.channel.type === "dm") {
-			message.lineReply(`I cannot scan an image in a dm. Please send it in ${channel}`);
-			return;
+			mail(message);
 		}
 		if (message.channel != channel) {
 // 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
