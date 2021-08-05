@@ -452,7 +452,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
 			logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent image#${instance}`;
 			try{
-				const logimg = await logs.send(`User: ${message.author}\nImg Link: ${image.url}`);
+				const logimg = await logs.send(`User: ${message.author}`, image);
 				if(saveLocalCopy){ 																				// this seems to be the cause of the unknown error
 					const imageName = image.id + "." + image.url.split(".").pop();	// if saveLocalCopy is off, the error is very rare
 					const imageDL = fs.createWriteStream(screensFolder + "/" + imageName); // it must be tesseract not being able to deal
@@ -692,10 +692,10 @@ Have fun raiding. :wave:`);
 					console.error(`[${dateToTime(postedTime)}]: Error: thrown while giving rolls. Error: ${e}`);
 				}
 				if (!given30 && !given40 && !given50){
-					logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`,image);
+					logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`, image);
 				}
 				else {
-					logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles given: ${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`,image);
+					logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles given: ${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`, image);
 				}
 				message.author.send(msgtxt.join(""), {split:true}).catch(() => {
 					console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
