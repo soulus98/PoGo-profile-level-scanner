@@ -19,7 +19,7 @@
   "homepage": "https://github.com/soulus98/ocrbot#readme",
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.0.1",
-    "canvas": "^2.7.0",
+    "canvas": "^2.8.0",
     "discord-reply": "^0.1.2",
     "discord.js": "^12.5.1",
     "gm": "^1.23.1",
