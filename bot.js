@@ -384,9 +384,10 @@ client.on("message", message => {
 // 			});
 			return;
 		}
+		const image = message.attachments.first();
 		if (message.member == null){
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since they left the server.`);
-			logs.send(`User: ${message.author}\nLeft the server. No roles added.`,message.attachments.first());
+			logs.send(`User: ${message.author}\nImg Link: ${image.url}\nLeft the server. No roles added.`);
 			saveStats("left");
 			return;
 		}
@@ -394,7 +395,7 @@ client.on("message", message => {
 			message.lineReplyNoMention(`<@&${modRole}> This message was not scanned due to the manual blacklist.`).catch(()=>{
 				console.error(`[${dateToTime(postedTime)}]: Error: I can not send a message in ${message.channel.name}${message.channel}`);
 			});
-			logs.send(`User: ${message.author}\nNot scanned due to manual blacklist:\n<@&${blacklistRole}>`,message.attachments.first());
+			logs.send(`User: ${message.author}\nImg Link: ${image.url}\nNot scanned due to manual blacklist:\n<@&${blacklistRole}>`);
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the auto blacklist`);
 			saveStats("black");
 			return;
@@ -403,7 +404,7 @@ client.on("message", message => {
 			message.author.send("You already have all available roles.").catch(()=>{
 				console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 			});
-			logs.send(`User: ${message.author}\nRoles: All 3 already possessed\n`,message.attachments.first());
+			logs.send(`User: ${message.author}\nImg Link: ${image.url}\nRoles: All 3 already possessed`);
 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
 			if (deleteScreens && !message.deleted) message.delete().catch(()=>{
 				console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
@@ -422,7 +423,7 @@ Otherwise, keep leveling up, and post your screenshot when you have reached that
 Hope to raid with you soon! :wave:`).catch(() => {
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 					});
-					logs.send(`User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((blacklistTime-(currentTime-blacklist.get(message.author.id)))/3600000).toFixed(1)} hours`,message.attachments.first());
+					logs.send(`User: ${message.author}\nImg Link: ${image.url}\nNot scanned due to automatic blacklist. \nTime left: ${((blacklistTime-(currentTime-blacklist.get(message.author.id)))/3600000).toFixed(1)} hours`);
 					if (deleteScreens && !message.deleted) message.delete().catch(()=>{
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
@@ -453,8 +454,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
 			logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent image#${instance}`;
 			try{
-				const image = message.attachments.first();
-				const logimg = await logs.send(`User: ${message.author}`,image);
+				const logimg = await logs.send(`User: ${message.author}\nImg Link: ${image.url}`);
 				if(saveLocalCopy){ 																				// this seems to be the cause of the unknown error
 					const imageName = image.id + "." + image.url.split(".").pop();	// if saveLocalCopy is off, the error is very rare
 					const imageDL = fs.createWriteStream(screensFolder + "/" + imageName); // it must be tesseract not being able to deal
@@ -505,17 +505,13 @@ Hope to raid with you soon! :wave:`).catch(() => {
 						if (err){
 							console.error(`[${dateToTime(postedTime)}]: Error: An error occured while buffering "imgTwo".`);
 							console.error(`[${dateToTime(postedTime)}]: Some info for soul:`);
-							console.error("\nMessage:");
-							console.error(message);
-							console.error("\natt.first: ")
-							console.error(message.attachments.first());
 							console.error("\nimage: ");
 							console.error(image);
-							console.error("image.url: ");
-							console.error(image.url)
+							console.error("imgBuff: ");
+							console.error(imgBuff); 			//testo
 							console.error("imgTwo: ");
 							console.error(imgTwo); 			//testo
-							logimg.edit(`User: ${message.author}\nThis image crashed the server...`,image);
+							logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nThis image was posted during a crash...`);
 							throw err;
 							return;
 						}
@@ -573,7 +569,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 					});
 				}
 				if (isNaN(level) || level >50 || level <1){
-					logimg.edit(`User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``,image);
+					logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nResult: Failed\nScanned text: \`${text}\``);
 					message.lineReplyNoMention(`<@&${modRole}> There was an issue scanning this image.`);
 					message.react("❌").catch(()=>{
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
@@ -602,7 +598,7 @@ If there was a different cause, a moderator will be able to help manually approv
 		function roleGrant(level, image, logimg){
 			if (message.member == null){
 				console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be scanned, since the member left the server.`);
-				logimg.edit(`User: ${message.author}\nLeft the server. No roles added.`, image);
+				logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nLeft the server. No roles added.`);
 				saveStats("left");
 				return;
 			} else {
@@ -633,7 +629,7 @@ https://discord.gg/tNUXgXC`).catch(() => {
 						blacklist.set(message.author.id,currentTime);
 						saveBlacklist();
 						console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} was added to the blacklist`);
-						logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nBlacklisted for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime==1)?"":"s"}`,image);
+						logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nResult: \`${level}\`\nBlacklisted for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime==1)?"":"s"}`);
 						saveStats(level);
 						return;
 					}
@@ -698,10 +694,10 @@ Have fun raiding. :wave:`);
 					console.error(`[${dateToTime(postedTime)}]: Error: thrown while giving rolls. Error: ${e}`);
 				}
 				if (!given30 && !given40 && !given50){
-					logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`,image);
+					logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nResult: \`${level}\`\nRoles: RR possessed. None added.`);
 				}
 				else {
-					logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles given: ${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`,image);
+					logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nResult: \`${level}\`\nRoles given: ${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`);
 				}
 				message.author.send(msgtxt.join(""), {split:true}).catch(() => {
 					console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);

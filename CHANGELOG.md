@@ -1,4 +1,9 @@
-# v1.4 (2/8/21)
+# v1.5 (2021-Aug-5)
+* Changed the logs posting to a url rather than a whole image, to stop the bot from triple-handling the image. Should increase performance significantly.
+* Changed the amount of info that is dumped during the "Stream equals empty buffer" error. I suspect this error just means the server failed to retain the image information due to overloading.
+
+
+# v1.4 (2021-Aug-2)
 * Added ]stats and analytics
 * Added date to the logs
 * Added ]ver for checking the version number
@@ -12,13 +17,14 @@ The declined images aren't scanned, so they shouldn't be included when calculati
 The rest of the successes are sorted by level, so you can see a distribution.  
 Maybe one day I can make ]stats show a graph 😂
 
-#### v1.4.1 (3/8/21)
+#### v1.4.1 (2021-Aug-3)
 * Removed an accidental testing console log
 
-#### v1.4.2 (3/8/21)
+#### v1.4.2 (2021-Aug-3)
 * Changed up how ]stats works so that it is more accurate.
 
 I honestly don't understand how stats.js references the stats collection, but it works, so oh well.
+
 
 
 # v1.3
@@ -39,7 +45,7 @@ Fixed a few bugs:
 #### v1.3.2
 * Emergency fix to a new bug in the logs channel process
 
-#### v1.3.3 (2/8/21)
+#### v1.3.3 (2021-Aug-2)
 * Fixed the blacklist (again) and added a check for an empty blacklist.json file
 * Changed the check to every 30 messages, since it will now not fire for failed or blacklisted images.
 
