@@ -11,6 +11,10 @@
 #### v1.5.1.2 (2021-Aug-5)
 * Removed a test message I left in
 
+#### v1.5.2 (2021-Aug-5)
+* Fixed an issue in the command handler
+* I had to remove the per-author cooldowns on commands. Shouldn't be a problem.
+
 
 
 # v1.4 (2021-Aug-2)

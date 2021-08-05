@@ -8,7 +8,6 @@ module.exports = {
 	description: `Used to change the value of certain settings. Currently toggles settings for all instances of the bot, as there is only one intended instance. Use \`${prefix}show-options\` to see all current settings.`,
   aliases: ["set", "modify"],
   usage: `\`${prefix}set <setting> <value>\``,
-  cooldown: 5,
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {

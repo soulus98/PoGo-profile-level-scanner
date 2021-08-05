@@ -14,7 +14,7 @@ const cooldowns = new Discord.Collection();
 blacklist = new Discord.Collection();
 stats = new Discord.Collection();
 lastImageTimestamp = Date.now();
-const ver = "v1.5.1";
+const ver = "v1.5.2";
 imageAttempts = 0;
 imageLogCount = 0;
 launchDate = new Date();
@@ -22,7 +22,7 @@ loaded = false;
 currentlyImage = 0;
 screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 config = {};
-module.exports = {loadConfigs, clearBlacklist, ver};
+module.exports = {loadConfigs, clearBlacklist, ver, cooldowns};
 
 // Loads all the variables at program launch
 function load(){

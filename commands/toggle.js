@@ -9,7 +9,6 @@ module.exports = {
   aliases: ["toggle", "tog"],
   usage: `\`${prefix}toggle <setting>\``,
   args: true,
-  cooldown: 5,
 	guildOnly:true,
   permissions: "MANAGE_GUILD",
 	execute(message, args) {
