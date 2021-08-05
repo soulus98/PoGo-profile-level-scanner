@@ -352,6 +352,9 @@ client.on("message", message => {
 		return;
 	}
 	if (message.author.bot) return; // Bot? Cancel
+	if (message.channel.type === "dm") {
+		mail(message);
+	}
 	if(message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
@@ -370,9 +373,6 @@ client.on("message", message => {
 		};
 		if (message.channel == logs) {
 			return;
-		}
-		if (message.channel.type === "dm") {
-			mail(message);
 		}
 		if (message.channel != channel) {
 // 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
