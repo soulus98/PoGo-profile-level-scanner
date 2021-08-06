@@ -455,7 +455,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 					setTimeout(imageWrite,timeDelay*(1/5));	// hopefully it is bodged well enough to be stable
 					clearInterval(intervalID);
 				}
-			}, 1000);
+			}, timeDelay);
 		}
 		async function imageWrite(){ // this is just the next step in processing. I should make the write stream - and most of these functions - different modules
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
@@ -472,7 +472,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				crop(image, logimg);
 				if (wasDelayed == true){
 					delayAmount = Math.round((currentTime - postedTime)/1000);
-					console.log(logString + `, and it was delayed for ${delayAmount}s`);
+					console.log(logString + `, and it was delayed for ${delayAmount}s. There are ${currentlyImage} more images to process.`);
 				} else { console.log(logString); }
 			}catch (error){ // this catch block rarely fires, as there are tonnes more catch cases under crop();
 				logString = logString + `, but an uncaught error occured. Error: ${error}`;
@@ -503,7 +503,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				else {
 					console.error(`[${dateToTime(postedTime)}]: Error: Invalid file type.`);
 					console.error(`Could not read file .${fileType}`);
-					message.lineReply(`I cannot scan this filetype: .${fileType}. If you think this is in error, please tell a moderator.`);
+					message.lineReply(`I cannot scan this filetype: \`.${fileType}.\`\nIf you think this is in error, please tell a moderator.`);
 					return;
 				}
 			});

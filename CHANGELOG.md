@@ -1,8 +1,9 @@
 # v1.6 (2021-Aug-6)
 * Readded the welcomeMsg as a dm
 * Removed the welcomeMsg console message, as it was very annoying
-* Added a filetype filter. Now only jpeg, png, jfif, tiff, and bmp are supported. 
+* Added a filetype filter. Now only jpeg, png, jfif, tiff, and bmp are supported.
 * Removed the infinite folder glitch (no.38)
+* Added how many images are currently being processed to the delay log
 * Caught a few more error messages
 
 # v1.5 (2021-Aug-5)
