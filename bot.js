@@ -4,7 +4,7 @@ const {token} = require("./keys/keys.json");
 const fs = require("fs");
 const https = require("https");
 const Discord = require("discord.js");
-const {rect} = require("./rect.js");
+const {rect} = require("./fun/rect.js");
 const {handleCommand} = require("./handlers/commands.js");
 const {dateToTime} = require("./fun/dateToTime.js");
 require('discord-reply');
@@ -75,16 +75,20 @@ function loadConfigs(){
 // Checks whether the date folder exists for the images to be saved to and creates it if not.
 // This should probably not run if "saveLocalCopy" is off, but I'm too worried to change it.
 function checkDateFolder(checkDate){
-	newFolder = `./screens/Auto/${checkDate.toDateString()}`
-	console.log(`\nChecking for ${newFolder}...`);
-	fs.access(newFolder, error => {
-	    if (!error) {
-				console.log(`Folder ${checkDate.toDateString()} already existed.\n`);
-	    } else {
-				fs.mkdirSync(newFolder);
-				console.log(`Folder ${checkDate.toDateString()} created.\n`);
-	    }
-	});
+	setTimeout(function () {
+		if (saveLocalCopy) {
+			newFolder = `./screens/Auto/${checkDate.toDateString()}`
+			console.log(`\nChecking for ${newFolder}...`);
+			fs.access(newFolder, error => {
+				if (!error) {
+					console.log(`Folder ${checkDate.toDateString()} already existed.\n`);
+				} else {
+					fs.mkdirSync(newFolder);
+					console.log(`Folder ${checkDate.toDateString()} created.\n`);
+				}
+			});
+		}
+	}, 350);
 }
 
 // Loads the command files. This was standard in the discord.js guide
@@ -349,12 +353,13 @@ function saveStats(level) {
 	});
 }
 
+//⛔ testo
 client.on("message", message => {
 	if(message.channel == profile) {
 		return;
 	}
 	if (message.author.bot) return; // Bot? Cancel
-	if(message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
+	if (message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
 	}
@@ -386,6 +391,7 @@ client.on("message", message => {
 			return;
 		}
 		const image = message.attachments.first();
+		const fileType = image.url.split(".").pop().toLowerCase();
 		if (message.member == null){
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since they left the server.`);
 			logs.send(`User: ${message.author}\nLeft the server. No roles added.\n`,image);
@@ -457,7 +463,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 			try{
 				const logimg = await logs.send(`User: ${message.author}`, image);
 				if(saveLocalCopy){ 																				// this seems to be the cause of the unknown error
-					const imageName = image.id + "." + image.url.split(".").pop();	// if saveLocalCopy is off, the error is very rare
+					const imageName = image.id + "." + fileType;	// if saveLocalCopy is off, the error is very rare
 					const imageDL = fs.createWriteStream(screensFolder + "/" + imageName); // it must be tesseract not being able to deal
 					const request = https.get(image.url, function(response) {							 // with muliple things happening at once
 						response.pipe(imageDL);
@@ -482,20 +488,27 @@ Hope to raid with you soon! :wave:`).catch(() => {
 		function crop(image, logimg){ // this is another badly named function which should be a seperate module // TODO: Make all these functions modules
 			https.get(image.url, function(response){
 				img = gm(response);
-				img
-				.size((err,size) => {
-					if (err){ // this error has only ever fired once, not sure why
-						console.log(`[${dateToTime(postedTime)}]: Error: An error occured while sizing "img".`);
-						throw err;
-						return;
-					}
-					const cropSize = rect(size); // a module that returns a crop size case.
-					cropper(image, logimg, cropSize);						 //250 random images were supported so hopefuly that covers most common phone resolutions
-				});
+				const acceptedFileTypes = ["png","jpg","jpeg","jfif","tiff","bmp"];
+				if(acceptedFileTypes.includes(fileType)){
+					img
+					.size((err,size) => {
+						if (err){ // this error has only ever fired once, not sure why
+							console.error(`[${dateToTime(postedTime)}]: Error while sizing.`,image);
+							return;
+						}
+						const cropSize = rect(size); 			// a module that returns a crop size case.
+						cropper(image, logimg, cropSize);	//250 random images were supported so hopefuly that covers most common phone resolutions
+					});
+				}
+				else {
+					console.error(`[${dateToTime(postedTime)}]: Error: Invalid file type.`);
+					console.error(`Could not read file .${fileType}`);
+					message.lineReply(`I cannot scan this filetype: .${fileType}. If you think this is in error, please tell a moderator.`);
+					return;
+				}
 			});
 			function cropper(image, logimg, cropSize) { // I don't know why, but I can't use img twice. I have to call https.get each time. annoying
 				https.get(image.url, function(response){
-					const imageName = image.id + "crop." + image.url.split(".").pop();
 					imgTwo = gm(response);
 					imgTwo
 					.blackThreshold(threshold)
@@ -523,6 +536,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 
 						//This is for seeing the cropped version
 						if (saveLocalCopy) {
+							const imageName = image.id + "crop." + image.url.split(".").pop();
 							fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
 								if (err){
 									console.error(`[${dateToTime(postedTime)}]: Error: An error occured while writing "imgTwo".`);
