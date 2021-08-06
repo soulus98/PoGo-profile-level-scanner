@@ -14,7 +14,7 @@ const cooldowns = new Discord.Collection();
 blacklist = new Discord.Collection();
 stats = new Discord.Collection();
 lastImageTimestamp = Date.now();
-const ver = "v1.5.3";
+const ver = "v1.6";
 imageAttempts = 0;
 imageLogCount = 0;
 launchDate = new Date();
@@ -262,25 +262,28 @@ client.once("ready", async () => {
 	},timeDelay);
 });
 
-/*Not necessary anymore
+
 client.on("guildMemberAdd", member => {
-	console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
-  if (!channel || !welcomeMsg) return;
-  channel.send(`Hey ${member},
+	//console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
+  if (!welcomeMsg) return;
+  member.send(`Hey ${member}, welcome to Pokémon GO Raids!
 
-Welcome to the server!
-To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
-Please do so in this channel.
+In order to gain access to our server we kindly ask you to post a screenshot of your trainer page that shows your trainer level.
 
-Thank you. `).then(msg => {
-		if (msgDeleteTime && !msg.deleted){
-			setTimeout(() => {
-				msg.delete();
-			},msgDeleteTime);
-		}
+Please post your screenshot in: <#740670778516963339>
+
+You’ll then be given the required roles.
+
+Then type \`$verify\` in <#740262255584739391> and follow the instructions, please.
+
+Good luck, trainer!
+
+We will only grant access to our server to trainers level 30 and up!
+If you are under 30, you will be direct messaged with a link to our sister server, with no level requirement.`).catch(()=>{
+		console.error(`[${dateToTime(new Date())}]: Error: Could not send welcomeMsg DM to ${member.user.username}${member}`);
 	});
 });
-*/
+
 
 // Saves the under-30 blacklist to file
 function saveBlacklist() {
@@ -358,7 +361,7 @@ client.on("message", message => {
 	var wasDelayed = false;
 	const postedTime = new Date();
 	currentTime = Date.now();
-	if (screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
+	if (saveLocalCopy && screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
 		screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
 		checkDateFolder(postedTime);
 	}

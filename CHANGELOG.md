@@ -1,3 +1,9 @@
+# v1.6 (2021-Aug-6)
+* Readded the welcomeMsg as a dm
+* Removed the welcomeMsg console message, as it was very annoying
+* Caught an error message so I can identify the most common file types that we want to avoid, in the future
+
+
 # v1.5 (2021-Aug-5)
 * Changed the logs posting to a url rather than a whole image, to stop the bot from triple-handling the image. Should increase performance significantly.
 * Changed the amount of info that is dumped during the "Stream equals empty buffer" error. I suspect this error just means the server failed to retain the image information due to overloading.
