@@ -173,7 +173,7 @@ function loadStats() {
 			statsJson = require("./stats.json");
 		} catch (e) {
 			if (e.code == "MODULE_NOT_FOUND") {
-				fs.writeFile("./stats.json","[[\"Attempts\",0],[\"Declined-Blacklist\",0],[\"Declined-Left-Server\",0],[\"Declined-All-Roles\",0],[\"Fails\",0],[\"Under-30\",0],[30,0],[31,0],[32,0],[33,0],[34,0],[35,0],[36,0],[37,0],[38,0],[39,0],[40,0],[41,0],[42,0],[43,0],[44,0],[45,0],[46,0],[47,0],[48,0],[49,0],[50,0]]",()=>{
+				fs.writeFile("./stats.json","[[\"Attempts\",0],[\"Declined-Blacklist\",0],[\"Declined-Left-Server\",0],[\"Declined-All-Roles\",0],[\"Declined-Wrong-Type\",0],[\"Fails\",0],[\"Under-30\",0],[30,0],[31,0],[32,0],[33,0],[34,0],[35,0],[36,0],[37,0],[38,0],[39,0],[40,0],[41,0],[42,0],[43,0],[44,0],[45,0],[46,0],[47,0],[48,0],[49,0],[50,0]]",()=>{
 					console.log("Could not find stats.json. Making a new one...");
 					statsJson = require("./stats.json");
 				});
@@ -335,6 +335,9 @@ function saveStats(level) {
 		} else if (level == "left") {
 			stats.set("Attempts",stats.get("Attempts")+1);
 			stats.set("Declined-Left-Server",stats.get("Declined-Left-Server")+1);
+		} else if (level == "wrong") {
+			stats.set("Attempts",stats.get("Attempts")+1);
+			stats.set("Declined-Wrong-Type",stats.get("Declined-Wrong-Type")+1||1);
 		} else {
 			console.error(`[${dateToTime(new Date())}]: Error while saving the stats. Literally impossible to get to this, so if we have, something weird has happened.`);
 		}
@@ -392,6 +395,14 @@ client.on("message", message => {
 		}
 		const image = message.attachments.first();
 		const fileType = image.url.split(".").pop().toLowerCase();
+		const acceptedFileTypes = ["png","jpg","jpeg","jfif","tiff","bmp"];
+		if(!acceptedFileTypes.includes(fileType)){
+			console.error(`[${dateToTime(postedTime)}]: Error: Invalid file type: ${fileType}`);
+			message.lineReply(`I cannot scan this filetype: \`.${fileType}.\`\nIf you think this is in error, please tell a moderator.`);
+			logs.send(`User: ${message.author}\nLeft the server. No roles added.\n`,image);
+			saveStats("wrong");
+			return;
+		}
 		if (message.member == null){
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since they left the server.`);
 			logs.send(`User: ${message.author}\nLeft the server. No roles added.\n`,image);
@@ -488,24 +499,15 @@ Hope to raid with you soon! :wave:`).catch(() => {
 		function crop(image, logimg){ // this is another badly named function which should be a seperate module // TODO: Make all these functions modules
 			https.get(image.url, function(response){
 				img = gm(response);
-				const acceptedFileTypes = ["png","jpg","jpeg","jfif","tiff","bmp"];
-				if(acceptedFileTypes.includes(fileType)){
-					img
-					.size((err,size) => {
-						if (err){ // this error has only ever fired once, not sure why
-							console.error(`[${dateToTime(postedTime)}]: Error while sizing.`,image);
-							return;
-						}
-						const cropSize = rect(size); 			// a module that returns a crop size case.
-						cropper(image, logimg, cropSize);	//250 random images were supported so hopefuly that covers most common phone resolutions
-					});
-				}
-				else {
-					console.error(`[${dateToTime(postedTime)}]: Error: Invalid file type.`);
-					console.error(`Could not read file .${fileType}`);
-					message.lineReply(`I cannot scan this filetype: \`.${fileType}.\`\nIf you think this is in error, please tell a moderator.`);
-					return;
-				}
+				img
+				.size((err,size) => {
+					if (err){ // this error has only ever fired once, not sure why
+						console.error(`[${dateToTime(postedTime)}]: Error while sizing.`,image);
+						return;
+					}
+					const cropSize = rect(size); 			// a module that returns a crop size case.
+					cropper(image, logimg, cropSize);	//250 random images were supported so hopefuly that covers most common phone resolutions
+				});
 			});
 			function cropper(image, logimg, cropSize) { // I don't know why, but I can't use img twice. I have to call https.get each time. annoying
 				https.get(image.url, function(response){
