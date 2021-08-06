@@ -354,6 +354,7 @@ client.on("message", message => {
 	if (message.author.bot) return; // Bot? Cancel
 	if (message.channel.type === "dm") {
 		mail(message);
+		return;
 	}
 	if(message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
@@ -706,7 +707,6 @@ Have fun raiding. :wave:`);
 		}
 	}
 	else {
-		console.log("testo 1");
 		handleCommand(message,postedTime);
 	}
 });
