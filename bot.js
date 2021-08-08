@@ -14,7 +14,7 @@ const cooldowns = new Discord.Collection();
 blacklist = new Discord.Collection();
 stats = new Discord.Collection();
 lastImageTimestamp = Date.now();
-const ver = "v1.6";
+const ver = "v1.6.1";
 imageAttempts = 0;
 imageLogCount = 0;
 launchDate = new Date();
@@ -386,6 +386,10 @@ client.on("message", message => {
 			return;
 		}
 		if (message.channel != channel) {
+
+// Some mail-ticket handling code should go here in the future
+
+// This is no longer necessary, especially since other channels might be mail channels. Still should stress the importance of security
 // 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
 // 			message.lineReply(`I cannot scan an image in this channel. Please send it in ${channel}.
 // <@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`).catch(()=>{
@@ -398,14 +402,22 @@ client.on("message", message => {
 		const acceptedFileTypes = ["png","jpg","jpeg","jfif","tiff","bmp"];
 		if(!acceptedFileTypes.includes(fileType)){
 			console.error(`[${dateToTime(postedTime)}]: Error: Invalid file type: ${fileType}`);
-			message.lineReply(`I cannot scan this filetype: \`.${fileType}.\`\nIf you think this is in error, please tell a moderator.`);
-			logs.send(`User: ${message.author}\nLeft the server. No roles added.\n`,image);
+			message.lineReply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`);
+			logs.send(`User: ${message.author}\nFile is not an image. Not scanned.\n`,image);
+			saveStats("wrong");
+			return;
+		}
+		console.log(image.height,image.width);
+		if(image.height < 50 || image.width < 50){
+			console.error(`[${dateToTime(postedTime)}]: Error: Empty/Tiny image file`);
+			message.lineReply(`I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.`);
+			logs.send(`User: ${message.author}\nEmpty/Tiny image file. Not scanned.\n`,image);
 			saveStats("wrong");
 			return;
 		}
 		if (message.member == null){
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since they left the server.`);
-			logs.send(`User: ${message.author}\nLeft the server. No roles added.\n`,image);
+			logs.send(`User: ${message.author}\nLeft the server. Not scanned.\n`,image);
 			saveStats("left");
 			return;
 		}

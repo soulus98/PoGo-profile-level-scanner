@@ -6,6 +6,8 @@
 * Added how many images are currently being processed to the delay log
 * Caught a few more error messages
 
+#### v1.6.1 (2021-Aug-8)
+* Added a check for tiny and non-existent images. They are classed as "Wrong Filetype" for the purposes of stats.
 
 
 # v1.5 (2021-Aug-5)
