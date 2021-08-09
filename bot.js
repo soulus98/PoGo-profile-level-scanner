@@ -6,6 +6,7 @@ const https = require("https");
 const Discord = require("discord.js");
 const {rect} = require("./fun/rect.js");
 const {handleCommand} = require("./handlers/commands.js");
+const {mail} = require("./handlers/dm.js");
 const {dateToTime} = require("./fun/dateToTime.js");
 require('discord-reply');
 const ver = require('./package.json').version;
@@ -392,10 +393,6 @@ client.on("message", message => {
 			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix}set screenshotChannel <id>\``);
 		};
 		if (message.channel == logs) {
-			return;
-		}
-		if (message.channel.type === "dm") {
-			message.lineReply(`I cannot scan an image in a dm. Please send it in ${channel}`);
 			return;
 		}
 		if (message.channel != channel) {
