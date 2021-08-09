@@ -652,7 +652,7 @@ Once you've reached that point, please repost your screenshot, or message <@5752
 
 In the meantime please join our sister server with this link.
 Hope to raid with you soon! :slight_smile:
-https://discord.gg/tNUXgXC`).catch(() => {
+https://discord.gg/bTJxQNKJH2`).catch(() => {
 							console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 						});
 						blacklist.set(message.author.id,currentTime);
