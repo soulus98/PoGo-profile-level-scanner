@@ -1,7 +1,7 @@
 const fs = require("fs");
 const gm = require("gm");
 const {rect} = require("./rect.js");
-config = require("./config.json");
+config = require("./server/config.json");
 threshold = config.numbers.threshold;
 
 images = ["image.jpg"];

@@ -1,6 +1,6 @@
 const { createWorker, PSM } = require('tesseract.js');
-const { rect } = require("./rect.js");
-const configs = require('./config.json');
+const { rect } = require("./fun/rect.js");
+const configs = require('./server/config.json');
 const threshold = configs.numbers.threshold;
 const gm = require('gm');
 const https = require('https');

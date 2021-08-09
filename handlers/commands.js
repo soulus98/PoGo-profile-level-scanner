@@ -1,4 +1,4 @@
-const prefix = require("../config.json").chars.prefix;
+const prefix = require("../server/config.json").chars.prefix;
 const {dateToTime} = require("../fun/dateToTime.js");
 
 function handleCommand(message,postedTime){

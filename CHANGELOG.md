@@ -9,6 +9,11 @@
 #### v1.6.1 (2021-Aug-8)
 * Added a check for tiny and non-existent images. They are classed as "Wrong Filetype" for the purposes of stats.
 
+#### v1.6.2 (2021-Aug-9)
+* Now references package.json for ver number
+* Added new server link to dm message
+
+
 
 # v1.5 (2021-Aug-5)
 * Changed the logs posting to a url rather than a whole image, to stop the bot from triple-handling the image. Should increase performance significantly.

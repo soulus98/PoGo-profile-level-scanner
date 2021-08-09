@@ -1,6 +1,6 @@
 const { createWorker , PSM } = require("tesseract.js");
 const gm = require("gm");
-const {token} = require("./keys/keys.json");
+const {token} = require("./server/keys.json");
 const fs = require("fs");
 const https = require("https");
 const Discord = require("discord.js");
@@ -8,13 +8,13 @@ const {rect} = require("./fun/rect.js");
 const {handleCommand} = require("./handlers/commands.js");
 const {dateToTime} = require("./fun/dateToTime.js");
 require('discord-reply');
+const ver = require('./package.json').version;
 
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
 blacklist = new Discord.Collection();
 stats = new Discord.Collection();
 lastImageTimestamp = Date.now();
-const ver = "v1.6.1";
 imageAttempts = 0;
 imageLogCount = 0;
 launchDate = new Date();
@@ -22,7 +22,7 @@ loaded = false;
 currentlyImage = 0;
 screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 config = {};
-module.exports = {loadConfigs, clearBlacklist, ver, cooldowns};
+module.exports = {loadConfigs, clearBlacklist, cooldowns};
 
 // Loads all the variables at program launch
 function load(){
@@ -39,8 +39,8 @@ function load(){
 // Loads (or re-loads) the bot settings
 function loadConfigs(){
 	config = {};
-	delete require.cache[require.resolve("./config.json")];
-	config = require("./config.json");
+	delete require.cache[require.resolve("./server/config.json")];
+	config = require("./server/config.json");
 	prefix = config.chars.prefix;
 	timeDelay = config.numbers.timeDelay*1000;
 	threshold = config.numbers.threshold;
@@ -113,7 +113,7 @@ function loadCommands(){
 function loadBlacklist(){
 	blacklist = new Discord.Collection();
 	try {
-		delete require.cache[require.resolve("./blacklist.json")];
+		delete require.cache[require.resolve("./server/blacklist.json")];
 	} catch (e){
 		if (e.code == "MODULE_NOT_FOUND") {
 			//do nothing
@@ -123,12 +123,12 @@ function loadBlacklist(){
 	} finally {
 		var blackJson = "";
 		try {
-			blackJson = require("./blacklist.json");
+			blackJson = require("./server/blacklist.json");
 		} catch (e) {
 			if (e.code == "MODULE_NOT_FOUND") {
-				fs.writeFile("./blacklist.json","[]",()=>{
+				fs.writeFile("./server/blacklist.json","[]",()=>{
 					console.log("Could not find blacklist.json. Making a new one...");
-					blackJson = require("./blacklist.json");
+					blackJson = require("./server/blacklist.json");
 				});
 			}	else {
 				console.error(`[${dateToTime(new Date())}]: Error thrown when loading blacklist (2). Error: ${e}`);
@@ -160,7 +160,7 @@ function loadBlacklist(){
 function loadStats() {
 	stats = new Discord.Collection();
 	try {
-		delete require.cache[require.resolve("./stats.json")];
+		delete require.cache[require.resolve("./server/stats.json")];
 	} catch (e){
 		if (e.code == "MODULE_NOT_FOUND") {
 			//do nothing
@@ -170,12 +170,12 @@ function loadStats() {
 	} finally {
 		var statsJson = "";
 		try {
-			statsJson = require("./stats.json");
+			statsJson = require("./server/stats.json");
 		} catch (e) {
 			if (e.code == "MODULE_NOT_FOUND") {
-				fs.writeFile("./stats.json","[[\"Attempts\",0],[\"Declined-Blacklist\",0],[\"Declined-Left-Server\",0],[\"Declined-All-Roles\",0],[\"Declined-Wrong-Type\",0],[\"Fails\",0],[\"Under-30\",0],[30,0],[31,0],[32,0],[33,0],[34,0],[35,0],[36,0],[37,0],[38,0],[39,0],[40,0],[41,0],[42,0],[43,0],[44,0],[45,0],[46,0],[47,0],[48,0],[49,0],[50,0]]",()=>{
+				fs.writeFile("./server/stats.json","[[\"Attempts\",0],[\"Declined-Blacklist\",0],[\"Declined-Left-Server\",0],[\"Declined-All-Roles\",0],[\"Declined-Wrong-Type\",0],[\"Fails\",0],[\"Under-30\",0],[30,0],[31,0],[32,0],[33,0],[34,0],[35,0],[36,0],[37,0],[38,0],[39,0],[40,0],[41,0],[42,0],[43,0],[44,0],[45,0],[46,0],[47,0],[48,0],[49,0],[50,0]]",()=>{
 					console.log("Could not find stats.json. Making a new one...");
-					statsJson = require("./stats.json");
+					statsJson = require("./server/stats.json");
 				});
 			}	else {
 				console.error(`[${dateToTime(new Date())}]: Error thrown when loading stats (2). Error: ${e}`);
@@ -291,7 +291,7 @@ If you are under 30, you will be direct messaged with a link to our sister serve
 
 // Saves the under-30 blacklist to file
 function saveBlacklist() {
-	fs.writeFile("./blacklist.json",JSON.stringify(Array.from(blacklist)),()=>{
+	fs.writeFile("./server/blacklist.json",JSON.stringify(Array.from(blacklist)),()=>{
 		let x = blacklist.size;
 		console.log(`[${dateToTime(new Date())}]: Updated blacklist. There ${(x!=1)?"are":"is"} now ${x} user${(x!=1)?"s":""} blacklisted.`); //testo
 	});
@@ -305,7 +305,7 @@ function clearBlacklist(message, idToDelete){
 		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
 		saveBlacklist();
 	} else {
-		fs.writeFile("./blacklist.json","[]",(err)=>{
+		fs.writeFile("./server/blacklist.json","[]",(err)=>{
 			if (err){
 				console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
 				return;
@@ -348,7 +348,7 @@ function saveStats(level) {
 		stats.set("Attempts",stats.get("Attempts")+1);
 		stats.set(parseFloat(level),stats.get(parseFloat(level))+1);
 	}
-	fs.writeFile("./stats.json",JSON.stringify(Array.from(stats)),(err)=>{
+	fs.writeFile("./server/stats.json",JSON.stringify(Array.from(stats)),(err)=>{
 		if (err){
 			console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
 			return;
