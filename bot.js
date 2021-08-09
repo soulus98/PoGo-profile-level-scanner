@@ -6,6 +6,7 @@ const https = require("https");
 const Discord = require("discord.js");
 const {rect} = require("./fun/rect.js");
 const {handleCommand} = require("./handlers/commands.js");
+const mail = require("./handlers/dm.js");
 const {dateToTime} = require("./fun/dateToTime.js");
 require('discord-reply');
 const ver = require('./package.json').version;
@@ -23,7 +24,6 @@ currentlyImage = 0;
 screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 config = {};
 module.exports = {loadConfigs, clearBlacklist, cooldowns};
-
 // Loads all the variables at program launch
 function load(){
 	console.log("======================================================================================");
@@ -35,7 +35,6 @@ function load(){
 		loadStats();
 		client.login(token);
 }
-
 // Loads (or re-loads) the bot settings
 function loadConfigs(){
 	config = {};
@@ -71,7 +70,6 @@ function loadConfigs(){
 		console.log("\nReloaded configs\n");
 	}
 }
-
 // Checks whether the date folder exists for the images to be saved to and creates it if not.
 // This should probably not run if "saveLocalCopy" is off, but I'm too worried to change it.
 function checkDateFolder(checkDate){
@@ -104,7 +102,6 @@ function checkDateFolder(checkDate){
 		});
 	}
 }
-
 // Loads the command files. This was standard in the discord.js guide
 function loadCommands(){
 	client.commands = new Discord.Collection();
@@ -122,7 +119,6 @@ function loadCommands(){
 	}
 	console.log(commandFilesNames);
 }
-
 // Loads the blacklist from file
 function loadBlacklist(){
 	blacklist = new Discord.Collection();
@@ -169,7 +165,6 @@ function loadBlacklist(){
 		}
 	}
 }
-
 // Loads the stats from file
 function loadStats() {
 	stats = new Discord.Collection();
@@ -204,7 +199,6 @@ function loadStats() {
 		}
 	}
 }
-
 // Checks all the bot guilds and leaves them if they aren't the intended server
 // If it is called from the main event, it sends a reply message
 // This is vital, else someone could change the settings by simply inviting the bot to their server and being admin
@@ -280,7 +274,6 @@ client.once("ready", async () => {
 	},timeDelay);
 });
 
-
 client.on("guildMemberAdd", member => {
 	//console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
   if (!welcomeMsg) return;
@@ -302,7 +295,6 @@ If you are under 30, you will be direct messaged with a link to our sister serve
 	});
 });
 
-
 // Saves the under-30 blacklist to file
 function saveBlacklist() {
 	fs.writeFile("./server/blacklist.json",JSON.stringify(Array.from(blacklist)),()=>{
@@ -310,7 +302,6 @@ function saveBlacklist() {
 		console.log(`[${dateToTime(new Date())}]: Updated blacklist. There ${(x!=1)?"are":"is"} now ${x} user${(x!=1)?"s":""} blacklisted.`); //testo
 	});
 }
-
 // Called from clear-blacklist.js to clear the blacklist when requested
 function clearBlacklist(message, idToDelete){
 	if (idToDelete){
@@ -330,10 +321,6 @@ function clearBlacklist(message, idToDelete){
 	}
 	return;
 }
-
-// Turns a date object into a readable time format
-
-
 // Saves the stats to file
 function saveStats(level) {
 	if(isNaN(level) || level >50 || level <1){
@@ -376,7 +363,8 @@ client.on("message", message => {
 	}
 	if (message.author.bot) return; // Bot? Cancel
 	if (message.channel.type === "dm") {
-		mail(message);
+		console.log("testo 3");
+		mail.mailDM(message);
 		return;
 	}
 	if (message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
@@ -757,7 +745,7 @@ Have fun raiding. :wave:`);
 	}
 });
 
- process.on("uncaughtException", (err) => {
+process.on("uncaughtException", (err) => {
 	 if (currentlyImage > 0){
 		 imageLogCount++;
 		 currentlyImage--;
