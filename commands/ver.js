@@ -1,6 +1,6 @@
-const config = require("../config.json");
+const config = require("../server/config.json");
 const prefix = config.chars.prefix;
-const {ver} = require("../bot.js");
+const ver = require("../package.json").version;
 
 module.exports = {
 	name: "version",

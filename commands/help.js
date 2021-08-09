@@ -1,4 +1,4 @@
-const config = require("../config.json");
+const config = require("../server/config.json");
 const configDescriptions = require("../configDescriptions.json");
 const prefix = config.chars.prefix;
 module.exports = {

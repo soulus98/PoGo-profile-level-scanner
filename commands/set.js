@@ -1,4 +1,4 @@
-config = require("../config.json");
+configs = require("../server/config.json");
 const prefix = config.chars.prefix;
 const fs = require("fs");
 const bot = require("../bot.js");
@@ -8,7 +8,6 @@ module.exports = {
 	description: `Used to change the value of certain settings. Currently toggles settings for all instances of the bot, as there is only one intended instance. Use \`${prefix}show-options\` to see all current settings.`,
   aliases: ["set", "modify"],
   usage: `\`${prefix}set <setting> <value>\``,
-  cooldown: 5,
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
@@ -17,8 +16,6 @@ module.exports = {
 			return `, but it failed, as there were an incorrect amount of arguments`;
 		}
 		try{
-			fs.readFile("config.json", (err, raw) => {
-				configs =JSON.parse(raw);
 				numbers = configs.numbers;
 				chars = configs.chars;
 				ids = configs.ids;
@@ -57,7 +54,7 @@ module.exports = {
 					to = ids[args[0]];
 				}
 				const jsonString = JSON.stringify(configs);
-				fs.writeFile("./config.json",jsonString, err => {
+				fs.writeFile("./server/config.json",jsonString, err => {
 					if (err) {
 						message.lineReply(`An unexpected error occured when editing the config file.`);
 						console.log(`But an unexpected write error occured. Error: ${err}`);
@@ -69,7 +66,6 @@ module.exports = {
 						return;
 					}
 				})
-			})
 		} catch (err){
 			message.lineReply(`An unexpected error occured.`);
 			return `, but an unexpected error occured. Error: ${err}`;

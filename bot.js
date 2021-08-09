@@ -1,21 +1,20 @@
 const { createWorker , PSM } = require("tesseract.js");
 const gm = require("gm");
-const {token} = require("./keys/keys.json");
+const {token} = require("./server/keys.json");
 const fs = require("fs");
 const https = require("https");
 const Discord = require("discord.js");
-const {rect} = require("./rect.js");
+const {rect} = require("./fun/rect.js");
 const {handleCommand} = require("./handlers/commands.js");
-const {mail} = require("./handlers/dm.js");
 const {dateToTime} = require("./fun/dateToTime.js");
 require('discord-reply');
+const ver = require('./package.json').version;
 
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
 blacklist = new Discord.Collection();
 stats = new Discord.Collection();
 lastImageTimestamp = Date.now();
-const ver = "v1.5.1";
 imageAttempts = 0;
 imageLogCount = 0;
 launchDate = new Date();
@@ -23,7 +22,7 @@ loaded = false;
 currentlyImage = 0;
 screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 config = {};
-module.exports = {loadConfigs, clearBlacklist, ver};
+module.exports = {loadConfigs, clearBlacklist, cooldowns};
 
 // Loads all the variables at program launch
 function load(){
@@ -40,8 +39,8 @@ function load(){
 // Loads (or re-loads) the bot settings
 function loadConfigs(){
 	config = {};
-	delete require.cache[require.resolve("./config.json")];
-	config = require("./config.json");
+	delete require.cache[require.resolve("./server/config.json")];
+	config = require("./server/config.json");
 	prefix = config.chars.prefix;
 	timeDelay = config.numbers.timeDelay*1000;
 	threshold = config.numbers.threshold;
@@ -76,16 +75,34 @@ function loadConfigs(){
 // Checks whether the date folder exists for the images to be saved to and creates it if not.
 // This should probably not run if "saveLocalCopy" is off, but I'm too worried to change it.
 function checkDateFolder(checkDate){
-	newFolder = `./screens/Auto/${checkDate.toDateString()}`
-	console.log(`\nChecking for ${newFolder}...`);
-	fs.access(newFolder, error => {
-	    if (!error) {
-				console.log(`Folder ${checkDate.toDateString()} already existed.\n`);
-	    } else {
-				fs.mkdirSync(newFolder);
-				console.log(`Folder ${checkDate.toDateString()} created.\n`);
-	    }
-	});
+	if (saveLocalCopy) {
+		newFolder = `./screens/Auto/${checkDate.toDateString()}`
+		console.log(`\nChecking for ${newFolder}...`);
+		fs.access(newFolder, (err) => {
+			if (err){
+				fs.mkdir("./screens",{recursive: true},(err)=>{
+					if (err) console.error(err);
+					else {
+						console.log("Created/checked Folder: \"screens\"");
+						fs.mkdir("./screens/Auto",{recursive: true},(err)=>{
+							if (err) console.error(err);
+							else {
+								console.log("Created/checked Folder: \"Auto\"");
+								fs.mkdir(newFolder,{recursive: true},(err)=>{
+									if (err) console.error(err);
+									else {
+										console.log(`Created/checked Folder: ${checkDate.toDateString()}.\n`);
+									}
+								});
+							}
+						});
+					}
+				});
+			} else {
+				console.log(`Folder: ${checkDate.toDateString()} already existed.\n`);
+			}
+		});
+	}
 }
 
 // Loads the command files. This was standard in the discord.js guide
@@ -110,7 +127,7 @@ function loadCommands(){
 function loadBlacklist(){
 	blacklist = new Discord.Collection();
 	try {
-		delete require.cache[require.resolve("./blacklist.json")];
+		delete require.cache[require.resolve("./server/blacklist.json")];
 	} catch (e){
 		if (e.code == "MODULE_NOT_FOUND") {
 			//do nothing
@@ -120,12 +137,12 @@ function loadBlacklist(){
 	} finally {
 		var blackJson = "";
 		try {
-			blackJson = require("./blacklist.json");
+			blackJson = require("./server/blacklist.json");
 		} catch (e) {
 			if (e.code == "MODULE_NOT_FOUND") {
-				fs.writeFile("./blacklist.json","[]",()=>{
+				fs.writeFile("./server/blacklist.json","[]",()=>{
 					console.log("Could not find blacklist.json. Making a new one...");
-					blackJson = require("./blacklist.json");
+					blackJson = require("./server/blacklist.json");
 				});
 			}	else {
 				console.error(`[${dateToTime(new Date())}]: Error thrown when loading blacklist (2). Error: ${e}`);
@@ -157,7 +174,7 @@ function loadBlacklist(){
 function loadStats() {
 	stats = new Discord.Collection();
 	try {
-		delete require.cache[require.resolve("./stats.json")];
+		delete require.cache[require.resolve("./server/stats.json")];
 	} catch (e){
 		if (e.code == "MODULE_NOT_FOUND") {
 			//do nothing
@@ -167,12 +184,12 @@ function loadStats() {
 	} finally {
 		var statsJson = "";
 		try {
-			statsJson = require("./stats.json");
+			statsJson = require("./server/stats.json");
 		} catch (e) {
 			if (e.code == "MODULE_NOT_FOUND") {
-				fs.writeFile("./stats.json","[[\"Attempts\",0],[\"Declined-Blacklist\",0],[\"Declined-Left-Server\",0],[\"Declined-All-Roles\",0],[\"Fails\",0],[\"Under-30\",0],[30,0],[31,0],[32,0],[33,0],[34,0],[35,0],[36,0],[37,0],[38,0],[39,0],[40,0],[41,0],[42,0],[43,0],[44,0],[45,0],[46,0],[47,0],[48,0],[49,0],[50,0]]",()=>{
+				fs.writeFile("./server/stats.json","[[\"Attempts\",0],[\"Declined-Blacklist\",0],[\"Declined-Left-Server\",0],[\"Declined-All-Roles\",0],[\"Declined-Wrong-Type\",0],[\"Fails\",0],[\"Under-30\",0],[30,0],[31,0],[32,0],[33,0],[34,0],[35,0],[36,0],[37,0],[38,0],[39,0],[40,0],[41,0],[42,0],[43,0],[44,0],[45,0],[46,0],[47,0],[48,0],[49,0],[50,0]]",()=>{
 					console.log("Could not find stats.json. Making a new one...");
-					statsJson = require("./stats.json");
+					statsJson = require("./server/stats.json");
 				});
 			}	else {
 				console.error(`[${dateToTime(new Date())}]: Error thrown when loading stats (2). Error: ${e}`);
@@ -263,29 +280,32 @@ client.once("ready", async () => {
 	},timeDelay);
 });
 
-/*Not necessary anymore
+
 client.on("guildMemberAdd", member => {
-	console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
-  if (!channel || !welcomeMsg) return;
-  channel.send(`Hey ${member},
+	//console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
+  if (!welcomeMsg) return;
+  member.send(`Hey ${member}, welcome to Pokémon GO Raids!
 
-Welcome to the server!
-To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
-Please do so in this channel.
+In order to gain access to our server we kindly ask you to post a screenshot of your trainer page that shows your trainer level.
 
-Thank you. `).then(msg => {
-		if (msgDeleteTime && !msg.deleted){
-			setTimeout(() => {
-				msg.delete();
-			},msgDeleteTime);
-		}
+Please post your screenshot in: <#740670778516963339>
+
+You’ll then be given the required roles.
+
+Then type \`$verify\` in <#740262255584739391> and follow the instructions, please.
+
+Good luck, trainer!
+
+We will only grant access to our server to trainers level 30 and up!
+If you are under 30, you will be direct messaged with a link to our sister server, with no level requirement.`).catch(()=>{
+		console.error(`[${dateToTime(new Date())}]: Error: Could not send welcomeMsg DM to ${member.user.username}${member}`);
 	});
 });
-*/
+
 
 // Saves the under-30 blacklist to file
 function saveBlacklist() {
-	fs.writeFile("./blacklist.json",JSON.stringify(Array.from(blacklist)),()=>{
+	fs.writeFile("./server/blacklist.json",JSON.stringify(Array.from(blacklist)),()=>{
 		let x = blacklist.size;
 		console.log(`[${dateToTime(new Date())}]: Updated blacklist. There ${(x!=1)?"are":"is"} now ${x} user${(x!=1)?"s":""} blacklisted.`); //testo
 	});
@@ -299,7 +319,7 @@ function clearBlacklist(message, idToDelete){
 		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
 		saveBlacklist();
 	} else {
-		fs.writeFile("./blacklist.json","[]",(err)=>{
+		fs.writeFile("./server/blacklist.json","[]",(err)=>{
 			if (err){
 				console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
 				return;
@@ -329,6 +349,9 @@ function saveStats(level) {
 		} else if (level == "left") {
 			stats.set("Attempts",stats.get("Attempts")+1);
 			stats.set("Declined-Left-Server",stats.get("Declined-Left-Server")+1);
+		} else if (level == "wrong") {
+			stats.set("Attempts",stats.get("Attempts")+1);
+			stats.set("Declined-Wrong-Type",stats.get("Declined-Wrong-Type")+1||1);
 		} else {
 			console.error(`[${dateToTime(new Date())}]: Error while saving the stats. Literally impossible to get to this, so if we have, something weird has happened.`);
 		}
@@ -339,7 +362,7 @@ function saveStats(level) {
 		stats.set("Attempts",stats.get("Attempts")+1);
 		stats.set(parseFloat(level),stats.get(parseFloat(level))+1);
 	}
-	fs.writeFile("./stats.json",JSON.stringify(Array.from(stats)),(err)=>{
+	fs.writeFile("./server/stats.json",JSON.stringify(Array.from(stats)),(err)=>{
 		if (err){
 			console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
 			return;
@@ -352,18 +375,14 @@ client.on("message", message => {
 		return;
 	}
 	if (message.author.bot) return; // Bot? Cancel
-	if (message.channel.type === "dm") {
-		mail(message);
-		return;
-	}
-	if(message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
+	if (message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
 	}
 	var wasDelayed = false;
 	const postedTime = new Date();
 	currentTime = Date.now();
-	if (screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
+	if (saveLocalCopy && screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
 		screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
 		checkDateFolder(postedTime);
 	}
@@ -375,7 +394,15 @@ client.on("message", message => {
 		if (message.channel == logs) {
 			return;
 		}
+		if (message.channel.type === "dm") {
+			message.lineReply(`I cannot scan an image in a dm. Please send it in ${channel}`);
+			return;
+		}
 		if (message.channel != channel) {
+
+// Some mail-ticket handling code should go here in the future
+
+// This is no longer necessary, especially since other channels might be mail channels. Still should stress the importance of security
 // 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
 // 			message.lineReply(`I cannot scan an image in this channel. Please send it in ${channel}.
 // <@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`).catch(()=>{
@@ -384,9 +411,25 @@ client.on("message", message => {
 			return;
 		}
 		const image = message.attachments.first();
+		const fileType = image.url.split(".").pop().toLowerCase();
+		const acceptedFileTypes = ["png","jpg","jpeg","jfif","tiff","bmp"];
+		if(image.height < 50 || image.width < 50 || fileType.length > 6){
+			console.error(`[${dateToTime(postedTime)}]: Error: Empty/Tiny image file`);
+			message.lineReply(`I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.`);
+			logs.send(`User: ${message.author}\nEmpty/Tiny image file. Not scanned.\n`,image);
+			saveStats("wrong");
+			return;
+		}
+		if(!acceptedFileTypes.includes(fileType)){
+			console.error(`[${dateToTime(postedTime)}]: Error: Invalid file type: ${fileType}`);
+			message.lineReply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`);
+			logs.send(`User: ${message.author}\nFile is not an image. Not scanned.\n`,image);
+			saveStats("wrong");
+			return;
+		}
 		if (message.member == null){
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since they left the server.`);
-			logs.send(`User: ${message.author}\nImg Link: ${image.url}\nLeft the server. No roles added.`);
+			logs.send(`User: ${message.author}\nLeft the server. Not scanned.\n`,image);
 			saveStats("left");
 			return;
 		}
@@ -394,7 +437,7 @@ client.on("message", message => {
 			message.lineReplyNoMention(`<@&${modRole}> This message was not scanned due to the manual blacklist.`).catch(()=>{
 				console.error(`[${dateToTime(postedTime)}]: Error: I can not send a message in ${message.channel.name}${message.channel}`);
 			});
-			logs.send(`User: ${message.author}\nImg Link: ${image.url}\nNot scanned due to manual blacklist:\n<@&${blacklistRole}>`);
+			logs.send(`User: ${message.author}\nNot scanned due to manual blacklist:\n<@&${blacklistRole}>`,image);
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the auto blacklist`);
 			saveStats("black");
 			return;
@@ -403,7 +446,7 @@ client.on("message", message => {
 			message.author.send("You already have all available roles.").catch(()=>{
 				console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 			});
-			logs.send(`User: ${message.author}\nImg Link: ${image.url}\nRoles: All 3 already possessed`);
+			logs.send(`User: ${message.author}\nRoles: All 3 already possessed`,image);
 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
 			if (deleteScreens && !message.deleted) message.delete().catch(()=>{
 				console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
@@ -422,7 +465,7 @@ Otherwise, keep leveling up, and post your screenshot when you have reached that
 Hope to raid with you soon! :wave:`).catch(() => {
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 					});
-					logs.send(`User: ${message.author}\nImg Link: ${image.url}\nNot scanned due to automatic blacklist. \nTime left: ${((blacklistTime-(currentTime-blacklist.get(message.author.id)))/3600000).toFixed(1)} hours`);
+					logs.send(`User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((blacklistTime-(currentTime-blacklist.get(message.author.id)))/3600000).toFixed(1)} hours`,image);
 					if (deleteScreens && !message.deleted) message.delete().catch(()=>{
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
@@ -447,15 +490,15 @@ Hope to raid with you soon! :wave:`).catch(() => {
 					setTimeout(imageWrite,timeDelay*(1/5));	// hopefully it is bodged well enough to be stable
 					clearInterval(intervalID);
 				}
-			}, 1000);
+			}, timeDelay);
 		}
 		async function imageWrite(){ // this is just the next step in processing. I should make the write stream - and most of these functions - different modules
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
 			logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent image#${instance}`;
 			try{
-				const logimg = await logs.send(`User: ${message.author}\nImg Link: ${image.url}`);
+				const logimg = await logs.send(`User: ${message.author}`, image);
 				if(saveLocalCopy){ 																				// this seems to be the cause of the unknown error
-					const imageName = image.id + "." + image.url.split(".").pop();	// if saveLocalCopy is off, the error is very rare
+					const imageName = image.id + "." + fileType;	// if saveLocalCopy is off, the error is very rare
 					const imageDL = fs.createWriteStream(screensFolder + "/" + imageName); // it must be tesseract not being able to deal
 					const request = https.get(image.url, function(response) {							 // with muliple things happening at once
 						response.pipe(imageDL);
@@ -464,7 +507,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				crop(image, logimg);
 				if (wasDelayed == true){
 					delayAmount = Math.round((currentTime - postedTime)/1000);
-					console.log(logString + `, and it was delayed for ${delayAmount}s`);
+					console.log(logString + `, and it was delayed for ${delayAmount}s. There are ${currentlyImage} more images to process.`);
 				} else { console.log(logString); }
 			}catch (error){ // this catch block rarely fires, as there are tonnes more catch cases under crop();
 				logString = logString + `, but an uncaught error occured. Error: ${error}`;
@@ -483,17 +526,15 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				img
 				.size((err,size) => {
 					if (err){ // this error has only ever fired once, not sure why
-						console.log(`[${dateToTime(postedTime)}]: Error: An error occured while sizing "img".`);
-						throw err;
+						console.error(`[${dateToTime(postedTime)}]: Error while sizing.`,image);
 						return;
 					}
-					const cropSize = rect(size); // a module that returns a crop size case.
-					cropper(image, logimg, cropSize);						 //250 random images were supported so hopefuly that covers most common phone resolutions
+					const cropSize = rect(size); 			// a module that returns a crop size case.
+					cropper(image, logimg, cropSize);	//250 random images were supported so hopefuly that covers most common phone resolutions
 				});
 			});
 			function cropper(image, logimg, cropSize) { // I don't know why, but I can't use img twice. I have to call https.get each time. annoying
 				https.get(image.url, function(response){
-					const imageName = image.id + "crop." + image.url.split(".").pop();
 					imgTwo = gm(response);
 					imgTwo
 					.blackThreshold(threshold)
@@ -510,7 +551,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 							console.error(imgBuff); 			//testo
 							console.error("imgTwo: ");
 							console.error(imgTwo); 			//testo
-							logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nThis image was posted during a crash...`);
+							logimg.edit(`User: ${message.author}\nThis image was posted during a crash...`,image);
 							throw err;
 							return;
 						}
@@ -521,6 +562,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 
 						//This is for seeing the cropped version
 						if (saveLocalCopy) {
+							const imageName = image.id + "crop." + image.url.split(".").pop();
 							fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
 								if (err){
 									console.error(`[${dateToTime(postedTime)}]: Error: An error occured while writing "imgTwo".`);
@@ -568,7 +610,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 					});
 				}
 				if (isNaN(level) || level >50 || level <1){
-					logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nResult: Failed\nScanned text: \`${text}\``);
+					logimg.edit(`User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``,image);
 					message.lineReplyNoMention(`<@&${modRole}> There was an issue scanning this image.`);
 					message.react("❌").catch(()=>{
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
@@ -597,7 +639,7 @@ If there was a different cause, a moderator will be able to help manually approv
 		function roleGrant(level, image, logimg){
 			if (message.member == null){
 				console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be scanned, since the member left the server.`);
-				logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nLeft the server. No roles added.`);
+				logimg.edit(`User: ${message.author}\nLeft the server. No roles added.`,image);
 				saveStats("left");
 				return;
 			} else {
@@ -622,13 +664,13 @@ Once you've reached that point, please repost your screenshot, or message <@5752
 
 In the meantime please join our sister server with this link.
 Hope to raid with you soon! :slight_smile:
-https://discord.gg/tNUXgXC`).catch(() => {
+https://discord.gg/bTJxQNKJH2`).catch(() => {
 							console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 						});
 						blacklist.set(message.author.id,currentTime);
 						saveBlacklist();
 						console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} was added to the blacklist`);
-						logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nResult: \`${level}\`\nBlacklisted for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime==1)?"":"s"}`);
+						logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nBlacklisted for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime==1)?"":"s"}`,image);
 						saveStats(level);
 						return;
 					}
@@ -693,10 +735,10 @@ Have fun raiding. :wave:`);
 					console.error(`[${dateToTime(postedTime)}]: Error: thrown while giving rolls. Error: ${e}`);
 				}
 				if (!given30 && !given40 && !given50){
-					logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nResult: \`${level}\`\nRoles: RR possessed. None added.`);
+					logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`, image);
 				}
 				else {
-					logimg.edit(`User: ${message.author}\nImg Link: ${image.url}\nResult: \`${level}\`\nRoles given: ${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`);
+					logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles given: ${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`, image);
 				}
 				message.author.send(msgtxt.join(""), {split:true}).catch(() => {
 					console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);

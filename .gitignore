@@ -1,6 +1,3 @@
-config.json
-blacklist.json
-stats.json
-**/keys
+**/server
 **/screens
 **/node_modules

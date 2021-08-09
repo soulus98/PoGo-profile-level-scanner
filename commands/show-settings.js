@@ -1,4 +1,4 @@
-config = require("../config.json");
+config = require("../server/config.json");
 const configDesc = require("../configDescriptions.json");
 prefix = config.chars.prefix;
 const Discord = require("discord.js");
@@ -13,8 +13,8 @@ module.exports = {
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
 		//config = {};
-	  //delete require.cache[require.resolve("./config.json")];
-		//config = require("./config.json");
+	  //delete require.cache[require.resolve("./server/config.json")];
+		//config = require("./server/config.json");
 		prefix = config.chars.prefix;
 		const embed = new Discord.MessageEmbed()
 		.setTitle("Settings")

@@ -1,4 +1,4 @@
-const config = require("../config.json");
+const config = require("../server/config.json");
 const prefix = config.chars.prefix;
 module.exports = {
 	name: "check-server-ping",

@@ -1,3 +1,20 @@
+# v1.6 (2021-Aug-6)
+* Readded the welcomeMsg as a dm
+* Removed the welcomeMsg console message, as it was very annoying
+* Added a filetype filter. Now only jpeg, png, jfif, tiff, and bmp are supported.
+* Removed the infinite folder glitch (no.38)
+* Added how many images are currently being processed to the delay log
+* Caught a few more error messages
+
+#### v1.6.1 (2021-Aug-8)
+* Added a check for tiny and non-existent images. They are classed as "Wrong Filetype" for the purposes of stats.
+
+#### v1.6.2 (2021-Aug-9)
+* Now references package.json for ver number
+* Added new server link to dm message
+
+
+
 # v1.5 (2021-Aug-5)
 * Changed the logs posting to a url rather than a whole image, to stop the bot from triple-handling the image. Should increase performance significantly.
 * Changed the amount of info that is dumped during the "Stream equals empty buffer" error. I suspect this error just means the server failed to retain the image information due to overloading.
@@ -7,6 +24,16 @@
 
 #### v1.5.1.1 (2021-Aug-5)
 * Updated a vulnerable package
+
+#### v1.5.1.2 (2021-Aug-5)
+* Removed a test message I left in
+
+#### v1.5.2 (2021-Aug-5)
+* Fixed an issue in the command handler
+* I had to remove the per-author cooldowns on commands. Shouldn't be a problem.
+
+#### v1.5.3 (2021-Aug-5)
+* Reverted 1.5... urls don't work... That optimisation is basically impossible
 
 
 
