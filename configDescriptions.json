@@ -27,8 +27,6 @@
     "level50Role":"(The role for level 50+ screenshots)",
     "modRole":"(The mod role intended to be notified when an issue occurs)",
     "serverID":"(The server that the bot is intended to be used in)",
-    "blacklistRole":"(The role used to force the bot to ignore certain members. Leave blank to stop the bot from checking)",
-    "mailCategory":"(The category to create mail channels)",
-    "mailLogChannel":"(The log channel for the mail section of the bot)"
+    "blacklistRole":"(The role used to force the bot to ignore certain members. Leave blank to stop the bot from checking)"
   }
 }
