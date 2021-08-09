@@ -1,6 +1,5 @@
-mkdir screens
-mkdir screens\Auto
-mkdir keys
-echo {"token":""} > keys\keys.json
+mkdir server
+echo {"token":""} > server\keys\keys.json
+echo {"token":""} > server\keys\keys.json
 npm install
 pause

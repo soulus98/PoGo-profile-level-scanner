@@ -75,20 +75,34 @@ function loadConfigs(){
 // Checks whether the date folder exists for the images to be saved to and creates it if not.
 // This should probably not run if "saveLocalCopy" is off, but I'm too worried to change it.
 function checkDateFolder(checkDate){
-	setTimeout(function () {
-		if (saveLocalCopy) {
-			newFolder = `./screens/Auto/${checkDate.toDateString()}`
-			console.log(`\nChecking for ${newFolder}...`);
-			fs.access(newFolder, error => {
-				if (!error) {
-					console.log(`Folder ${checkDate.toDateString()} already existed.\n`);
-				} else {
-					fs.mkdirSync(newFolder);
-					console.log(`Folder ${checkDate.toDateString()} created.\n`);
-				}
-			});
-		}
-	}, 350);
+	if (saveLocalCopy) {
+		newFolder = `./screens/Auto/${checkDate.toDateString()}`
+		console.log(`\nChecking for ${newFolder}...`);
+		fs.access(newFolder, (err) => {
+			if (err){
+				fs.mkdir("./screens",{recursive: true},(err)=>{
+					if (err) console.error(err);
+					else {
+						console.log("Created/checked Folder: \"screens\"");
+						fs.mkdir("./screens/Auto",{recursive: true},(err)=>{
+							if (err) console.error(err);
+							else {
+								console.log("Created/checked Folder: \"Auto\"");
+								fs.mkdir(newFolder,{recursive: true},(err)=>{
+									if (err) console.error(err);
+									else {
+										console.log(`Created/checked Folder: ${checkDate.toDateString()}.\n`);
+									}
+								});
+							}
+						});
+					}
+				});
+			} else {
+				console.log(`Folder: ${checkDate.toDateString()} already existed.\n`);
+			}
+		});
+	}
 }
 
 // Loads the command files. This was standard in the discord.js guide
