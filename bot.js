@@ -356,7 +356,6 @@ function saveStats(level) {
 	});
 }
 
-//⛔ testo
 client.on("message", message => {
 	if(message.channel == profile) {
 		return;
@@ -400,18 +399,17 @@ client.on("message", message => {
 		const image = message.attachments.first();
 		const fileType = image.url.split(".").pop().toLowerCase();
 		const acceptedFileTypes = ["png","jpg","jpeg","jfif","tiff","bmp"];
+		if(image.height < 50 || image.width < 50 || fileType.length > 6){
+			console.error(`[${dateToTime(postedTime)}]: Error: Empty/Tiny image file`);
+			message.lineReply(`I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.`);
+			logs.send(`User: ${message.author}\nEmpty/Tiny image file. Not scanned.\n`,image);
+			saveStats("wrong");
+			return;
+		}
 		if(!acceptedFileTypes.includes(fileType)){
 			console.error(`[${dateToTime(postedTime)}]: Error: Invalid file type: ${fileType}`);
 			message.lineReply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`);
 			logs.send(`User: ${message.author}\nFile is not an image. Not scanned.\n`,image);
-			saveStats("wrong");
-			return;
-		}
-		console.log(image.height,image.width);
-		if(image.height < 50 || image.width < 50){
-			console.error(`[${dateToTime(postedTime)}]: Error: Empty/Tiny image file`);
-			message.lineReply(`I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.`);
-			logs.send(`User: ${message.author}\nEmpty/Tiny image file. Not scanned.\n`,image);
 			saveStats("wrong");
 			return;
 		}
