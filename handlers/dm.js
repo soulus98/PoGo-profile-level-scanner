@@ -57,10 +57,8 @@ function mailDM(message) {
   const server = message.client.guilds.cache.get(serverID);
   user = message.author;
   if (queue.has(user.id)){
-    console.log("testo");
     return;
   } else {
-    console.log("testo 2");
     newChannel(message);
   }
 }

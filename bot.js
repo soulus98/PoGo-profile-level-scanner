@@ -363,7 +363,6 @@ client.on("message", message => {
 	}
 	if (message.author.bot) return; // Bot? Cancel
 	if (message.channel.type === "dm") {
-		console.log("testo 3");
 		mail.mailDM(message);
 		return;
 	}
