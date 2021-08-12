@@ -10,9 +10,8 @@ module.exports = {
 	description: "",
   aliases: [""],
   usage: `\`${prefix}\``,
-  cooldown: 5,
 	guildOnly:true,
-	permissions: "ADMINISTRATOR",
+	permissions: "MANAGE_GUILD",
 	execute(message, args) {
 
 	},

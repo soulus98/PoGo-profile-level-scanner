@@ -1,10 +1,10 @@
 const config = require("../server/config.json");
 const prefix = config.chars.prefix;
+
 module.exports = {
 	name: "revert-screenshot-role",
-	aliases: ["revert", "revert-role"],
-	cooldown: 5,
 	description: "Will revert one member from having the Remote Raids role. ATM this is in development, and is most likely not needed.",
+	aliases: ["revert", "revert-role"],
 	usage: `\`${prefix}revert [@mention]\``,
 	guildOnly: true,
 	execute(message, args) {
