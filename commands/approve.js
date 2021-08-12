@@ -1,6 +1,6 @@
 const config = require("../server/config.json");
 const prefix = config.chars.prefix;
-const {saveStats} = require('./func/saveStats.js');
+const {saveStats} = require('../func/saveStats.js');
 
 module.exports = {
 	name: "approve",
@@ -11,25 +11,30 @@ module.exports = {
   args: true,
 	permissions: "MANAGE_GUILD",
 	execute(input, args) {
-    const server = input.guild;
-    if (input[1] == undefined) {
-      const inCommand = true;
-      if (args[0].charAt(0) == "<") {
-        id = args[0].slice(3,-1);
-      } else {
-        id = args[0];
-      }
-      level = args[1] || "missing";
-    } else {
-      const inCommand = false;
-      const message = input[0];
-      const logimg = input[1];
-    }
-
-// id, user
-
-
-
-
+		let prom = new Promise(function(resolve, reject) {
+			server = input.guild;
+			if (input[1] == undefined) {
+				inCommand = true;
+				message = input;
+				logimg = false;
+				if (args[0].charAt(0) == "<") {
+					id = args[0].slice(3,-1);
+				} else {
+					id = args[0];
+				}
+				level = args[1] || "missing";
+				resolve(server.members.cache.get(id));
+				//id, level
+			} else {
+				inCommand = false;
+				message = input[0];
+				logimg = input[1];
+				level = args[1];
+				resolve(message.member);
+			}
+		});
+		prom.then((member)=>{
+			console.log(inCommand,message.id,(logimg)?logimg.id:logimg,level,member.user.username);
+		});
 	},
 };

@@ -332,11 +332,6 @@ function clearBlacklist(message, idToDelete){
 	return;
 }
 
-// Turns a date object into a readable time format
-
-
-// Saves the stats to file
-
 client.on("message", message => {
 	if(message.channel == profile) {
 		return;
