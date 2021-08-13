@@ -2,7 +2,7 @@ const fs = require('fs');
 
 function saveStats(level) {
 	if(isNaN(level) || level >50 || level <1){
-		if(level == "Failure" || level >50 || level <1){
+		if(level == "Failure"){
 			stats.set("Attempts",stats.get("Attempts")+1);
 			stats.set("Fails",stats.get("Fails")+1);
 		} else if (level == "black") {

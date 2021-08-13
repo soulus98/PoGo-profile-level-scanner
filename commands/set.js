@@ -1,5 +1,3 @@
-configs = require("../server/config.json");
-const prefix = config.chars.prefix;
 const fs = require("fs");
 const bot = require("../bot.js");
 
@@ -16,9 +14,9 @@ module.exports = {
 			return `, but it failed, as there were an incorrect amount of arguments`;
 		}
 		try{
-				numbers = configs.numbers;
-				chars = configs.chars;
-				ids = configs.ids;
+				numbers = config.numbers;
+				chars = config.chars;
+				ids = config.ids;
 				if (numbers[args[0]] === undefined && chars[args[0]] === undefined && ids[args[0]] === undefined){
 					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${prefix}show\` to see a list of all settings.`);
 					console.log(`But it failed, as ${args[0]} is not a valid setting.`);
@@ -44,7 +42,7 @@ module.exports = {
 					chars[args[0]] = args[1];
 					to = chars[args[0]];
 				} else if(ids[args[0]]){
-					if(args[1].length < 17 || args[1].length > 19) {
+					if((args[1].length < 17 || args[1].length > 19) && (!(args[1] == 0))) {
 						message.lineReply(`You must supply a valid discord ID for ${args[0]}.`);
 						console.log(`But it failed, as ${args[0]} requires a discord ID, and ${args[1]} isn't one.`);
 						return;
@@ -53,7 +51,7 @@ module.exports = {
 					ids[args[0]] = args[1];
 					to = ids[args[0]];
 				}
-				const jsonString = JSON.stringify(configs);
+				const jsonString = JSON.stringify(config);
 				fs.writeFile("./server/config.json",jsonString, err => {
 					if (err) {
 						message.lineReply(`An unexpected error occured when editing the config file.`);

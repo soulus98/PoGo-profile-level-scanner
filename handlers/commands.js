@@ -36,12 +36,16 @@ function handleCommand(message,postedTime){
   }
   //command execution
   try {
-    addToLogString = command.execute(message, args);
-    if (addToLogString == undefined) {
-      console.log(logString);
-    } else {
-      console.log(logString + addToLogString);
+		if (message.channel.type === "dm") {
+      logString = logString + " (in a DM)";
     }
+    command.execute(message, args).then((addToLogString)=>{
+      if (addToLogString == undefined) {
+        console.log(logString);
+      } else {
+        console.log(logString + addToLogString);
+      }
+    });
   } catch (error) {
     console.error(error);
     message.lineReply("An error occured while trying to run that command.");

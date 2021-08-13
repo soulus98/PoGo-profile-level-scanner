@@ -1,7 +1,5 @@
-configs = require("../server/config.json");
-const prefix = config.chars.prefix;
 const fs = require("fs");
-const bot = require("../bot.js");
+const {loadConfigs} = require("../bot.js");
 
 module.exports = {
 	name: "toggle-setting",
@@ -17,7 +15,7 @@ module.exports = {
       return `, but it failed, as there were no arguments provided`;
     }
     try{
-      toggles = configs.toggles;
+      toggles = config.toggles;
       if (toggles[args[0]] === undefined){
 				message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${prefix}show\` to see a list of all settings.`);
         console.log(`But it failed, as ${args} is not a valid setting.`);
@@ -25,8 +23,8 @@ module.exports = {
       }
       was = toggles[args[0]];
       toggles[args[0]] = !toggles[args[0]];
-      configs.toggles = toggles;
-      const jsonString = JSON.stringify(configs);
+      config.toggles = toggles;
+      const jsonString = JSON.stringify(config);
       fs.writeFile("./server/config.json",jsonString, err => {
         if (err) {
           message.lineReply(`An unexpected error occured when editing the config file.`);
@@ -35,7 +33,7 @@ module.exports = {
         } else {
           message.lineReplyNoMention(`"${args}" was successfully toggled from \`${was.toString().replace("true","ON").replace("false","OFF")}\` to \`${toggles[args[0]].toString().replace("true","ON").replace("false","OFF")}\`.`);
           console.log(`and successfully toggled "${args}" from ${was} to ${toggles[args[0]]}.`);
-					bot.loadConfigs();
+					loadConfigs();
           return;
         }
       })

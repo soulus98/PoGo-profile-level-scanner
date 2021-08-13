@@ -1,6 +1,3 @@
-const config = require("../server/config.json");
-const prefix = config.chars.prefix;
-
 module.exports = {
 	name: "force-quit",
 	description: "Forcibly quit the bot server. IDK why you'd need to do this but I've included it just in case.",

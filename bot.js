@@ -7,9 +7,10 @@ const Discord = require("discord.js");
 const {rect} = require("./func/rect.js");
 const {handleCommand} = require("./handlers/commands.js");
 const {dateToTime} = require("./func/dateToTime.js");
-const {saveStats} = require('./func/saveStats.js');
+const {saveStats} = require("./func/saveStats.js");
+const {saveBlacklist} = require("./func/saveblacklist.js");
+ver = require('./package.json').version;
 require('discord-reply');
-const ver = require('./package.json').version;
 
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
@@ -303,15 +304,6 @@ If you are under 30, you will be direct messaged with a link to our sister serve
 	});
 });
 
-
-// Saves the under-30 blacklist to file
-function saveBlacklist() {
-	fs.writeFile("./server/blacklist.json",JSON.stringify(Array.from(blacklist)),()=>{
-		let x = blacklist.size;
-		console.log(`[${dateToTime(new Date())}]: Updated blacklist. There ${(x!=1)?"are":"is"} now ${x} user${(x!=1)?"s":""} blacklisted.`); //testo
-	});
-}
-
 // Called from clear-blacklist.js to clear the blacklist when requested
 function clearBlacklist(message, idToDelete){
 	if (idToDelete){
@@ -585,10 +577,10 @@ If there was a different cause, a moderator will be able to help manually approv
 					});
 					imageLogCount++;
 					currentlyImage--;
-					saveStats(level);
+					saveStats("Failure");
 					return;
 				} else {
-					roleGrant(level, image, logimg);
+					//roleGrant(level, image, logimg);
 
 					client.commands.get("approve").execute([message,logimg], [message.author.id,level]);
 

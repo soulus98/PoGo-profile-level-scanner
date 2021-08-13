@@ -1,5 +1,3 @@
-const config = require("../config.json");
-const prefix = config.toggles.prefix;
 module.exports = {
 	name: "bing",
 	description: "Bing!",

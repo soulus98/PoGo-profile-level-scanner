@@ -1,4 +1,3 @@
-const config = require("../server/config.json");
 const prefix = config.chars.prefix;
 const {clearBlacklist} = require("../bot.js");
 
@@ -11,10 +10,14 @@ module.exports = {
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
-    if (args[0]){
-      clearBlacklist(message, args);
-    } else {
-      clearBlacklist(message);
-    }
+		return new Promise(function(resolve) {
+			if (args[0]){
+				clearBlacklist(message, args);
+				resolve();
+			} else {
+				clearBlacklist(message);
+				resolve();
+			}
+		});
 	},
 };

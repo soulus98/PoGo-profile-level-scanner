@@ -1,8 +1,5 @@
-config = require("../server/config.json");
 const configDesc = require("../configDescriptions.json");
-prefix = config.chars.prefix;
 const Discord = require("discord.js");
-
 
 module.exports = {
 	name: "show-settings",
@@ -12,10 +9,6 @@ module.exports = {
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
-		//config = {};
-	  //delete require.cache[require.resolve("./server/config.json")];
-		//config = require("./server/config.json");
-		prefix = config.chars.prefix;
 		const embed = new Discord.MessageEmbed()
 		.setTitle("Settings")
 		.setDescription("These are the settings that apply to (every/the only) instance of the bot.");

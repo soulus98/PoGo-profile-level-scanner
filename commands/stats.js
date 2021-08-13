@@ -1,5 +1,3 @@
-const config = require("../server/config.json");
-const prefix = config.chars.prefix;
 const Discord = require("discord.js");
 
 module.exports = {
