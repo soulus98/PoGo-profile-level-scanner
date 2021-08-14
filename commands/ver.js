@@ -4,7 +4,9 @@ module.exports = {
   aliases: ["ver"],
   usage: `\`${prefix}ver\``,
 	execute(message, args) {
-    message.lineReplyNoMention(`Current version: \`${ver}\``);
-    return;
+    return new Promise(function(resolve, reject) {
+			message.lineReplyNoMention(`Current version: \`${ver}\``);
+    	resolve();
+    });
 	},
 };

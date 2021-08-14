@@ -1,3 +1,11 @@
+# v1.7 (2021-Aug-??)
+* Added ]approve (aka ]a). Use ]a <id> [level-under-30] to reject someone
+* Moved all the approval code to commands/approve.js, so ]approve functions exactly the same as when an image has been scanned
+* Fixed up most command's console logs so they are one-liners by promisifying all commands
+
+There are likely bugs in this release.
+
+
 # v1.6 (2021-Aug-6)
 * Readded the welcomeMsg as a dm
 * Removed the welcomeMsg console message, as it was very annoying

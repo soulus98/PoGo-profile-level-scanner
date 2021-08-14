@@ -9,24 +9,26 @@ module.exports = {
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
-		if (args.length != 2){
-			message.lineReply(`You must supply two arguments in the form \`${prefix}set [setting-name] [value]\``);
-			return `, but it failed, as there were an incorrect amount of arguments`;
-		}
-		try{
+		return new Promise(function(resolve, reject) {
+			if (args.length != 2){
+				message.lineReply(`You must supply two arguments in the form \`${prefix}set [setting-name] [value]\``);
+				resolve(`, but it failed, as there were an incorrect amount of arguments: ${args}`);
+				return;
+			}
+			try{
 				numbers = config.numbers;
 				chars = config.chars;
 				ids = config.ids;
 				if (numbers[args[0]] === undefined && chars[args[0]] === undefined && ids[args[0]] === undefined){
 					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${prefix}show\` to see a list of all settings.`);
-					console.log(`But it failed, as ${args[0]} is not a valid setting.`);
+					resolve(`, but it failed, as ${args[0]} is not a valid setting.`);
 					return;
 				}
 				if(numbers[args[0]]){
 					value = parseInt(args[1]);
 					if(isNaN(value)) {
 						message.lineReply(`You must supply a number for ${args[0]}.`);
-						console.log(`But it failed, as ${args[0]} requires a number, and ${args[1]} isn't one.`);
+						resolve(`, but it failed, as ${args[0]} requires a number, and ${args[1]} isn't one.`);
 						return;
 					}
 					was = numbers[args[0]];
@@ -35,7 +37,7 @@ module.exports = {
 				} else if(chars[args[0]]){
 					if(typeof(args[1]) != "string") {
 						message.lineReply(`You must supply a text string for ${args[0]}.`);
-						console.log(`But it failed, as ${args[0]} requires a string, and ${args[1]} isn't one.`);
+						resolve(`, but it failed, as ${args[0]} requires a string, and ${args[1]} isn't one.`);
 						return;
 					}
 					was = chars[args[0]];
@@ -44,7 +46,7 @@ module.exports = {
 				} else if(ids[args[0]]){
 					if((args[1].length < 17 || args[1].length > 19) && (!(args[1] == 0))) {
 						message.lineReply(`You must supply a valid discord ID for ${args[0]}.`);
-						console.log(`But it failed, as ${args[0]} requires a discord ID, and ${args[1]} isn't one.`);
+						resolve(`, but it failed, as ${args[0]} requires a discord ID, and ${args[1]} isn't one.`);
 						return;
 					}
 					was = ids[args[0]];
@@ -55,18 +57,20 @@ module.exports = {
 				fs.writeFile("./server/config.json",jsonString, err => {
 					if (err) {
 						message.lineReply(`An unexpected error occured when editing the config file.`);
-						console.log(`But an unexpected write error occured. Error: ${err}`);
+						resolve(`, but an unexpected write error occured. Error: ${err}`);
 						return;
 					} else {
 						message.lineReplyNoMention(`"${args[0]}" was successfully changed from \`${was}\` to \`${to}\`.\n Please verify that this is the correct value, as I have no value checking system (yet).`);
-						console.log(`and successfully changed "${args[0]}" from ${was} to ${to}.`);
 						bot.loadConfigs();
+						resolve(`, and successfully changed "${args[0]}" from ${was} to ${to}.`);
 						return;
 					}
 				})
-		} catch (err){
-			message.lineReply(`An unexpected error occured.`);
-			return `, but an unexpected error occured. Error: ${err}`;
-		}
+			} catch (err){
+				message.lineReply(`An unexpected error occured.`);
+				resolve(`, but an unexpected error occured. Error: ${err}`);
+				return;
+			}
+		});
 	},
 };

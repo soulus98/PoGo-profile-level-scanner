@@ -9,19 +9,25 @@ module.exports = {
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
-		const embed = new Discord.MessageEmbed()
-		.setTitle("Settings")
-		.setDescription("These are the settings that apply to (every/the only) instance of the bot.");
-		for (const cat in config){
-			embed.addFields(
-				{ name: "\u200B", value: "----------------------------------------------"},
-				{ name: `**${cat.charAt(0).toUpperCase() + cat.slice(1)}:**`, value: `*${configDesc[cat]["self"].replace("{prefix}",prefix)}*`},
+		return new Promise(function(resolve, reject) {
+			const embed = new Discord.MessageEmbed()
+			.setTitle("Settings")
+			.setDescription("These are the settings that apply to (every/the only) instance of the bot.");
+			for (const cat in config){
+				embed.addFields(
+					{ name: "\u200B", value: "----------------------------------------------"},
+					{ name: `**${cat.charAt(0).toUpperCase() + cat.slice(1)}:**`, value: `*${configDesc[cat]["self"].replace("{prefix}",prefix)}*`},
 				);
-			for (const key in config[cat]){
-				embed.addField(`${key}: *${configDesc[cat][key]}*`,`\`${config[cat][key].toString().replace("true","ON").replace("false","OFF")}\``);
-				//data.push(`${key}: \`${config[cat][key]}\`   ${configDesc[cat][key]}`);
+				for (const key in config[cat]){
+					embed.addField(`${key}: *${configDesc[cat][key]}*`,`\`${config[cat][key].toString().replace("true","ON").replace("false","OFF")}\``);
+					//data.push(`${key}: \`${config[cat][key]}\`   ${configDesc[cat][key]}`);
+				}
 			}
-		}
-		message.channel.send(embed);
+			message.lineReplyNoMention(embed).then(()=>{
+				resolve();
+			}).catch((err)=>{
+				console.error(`An error occured when sending settings to ${message.author.username}`);
+			});
+		});
 	},
 };

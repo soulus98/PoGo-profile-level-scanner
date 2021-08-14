@@ -6,9 +6,13 @@ module.exports = {
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
-		console.log(`${message.author.username}${message.author} force quit the server at ${message.createdAt.toLocaleString()}.`);
-		message.lineReplyNoMention("The bot is sleeping now. Goodbye :wave:").then( () => {
-			process.exit(1);
+		return new Promise(function(resolve, reject) {
+			message.lineReplyNoMention("The bot is sleeping now. Goodbye :wave:").then( () => {
+				resolve();
+				setTimeout(function () {
+					process.exit(1);
+				}, 10);
+			});
 		});
 	},
 };

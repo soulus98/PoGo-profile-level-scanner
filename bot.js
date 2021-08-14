@@ -586,7 +586,7 @@ If there was a different cause, a moderator will be able to help manually approv
 
 					imageLogCount++;
 					currentlyImage--;
-					//console.log(`Remaining images: ${currentlyImage}`);//testo
+					if (imageLogCount>0 && imageLogCount % 30 === 0) loadBlacklist();
 					if (deleteScreens && !message.deleted) message.delete().catch(()=>{
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
@@ -700,8 +700,6 @@ Have fun raiding. :wave:`);
 				message.author.send(msgtxt.join(""), {split:true}).catch(() => {
 					console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 				});
-				if (imageLogCount>0 && imageLogCount % 30 === 0) loadBlacklist();
-				saveStats(level);
 			}
 		}
 	}
