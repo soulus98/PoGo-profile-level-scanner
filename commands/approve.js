@@ -207,10 +207,17 @@ Have fun raiding. :wave:`);
 							});
 							saveStats(level);
 							bigResolve(logggString + `, who was given ${(!given30 && !given40 && !given50)?"no roles":""}${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`);
-							if (inCommand){
-								if (!message.deleted) message.delete().catch(()=>{
-									console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
+							if (inCommand && !message.deleted){
+								message.react("👍").catch(()=>{
+									console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								});
+								if (config.numbers.msgDeleteTime) {
+									setTimeout(function () {
+										message.delete().catch(()=>{
+											console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
+										});
+									}, config.numbers.msgDeleteTime*1000);
+								}
 							}
 						});
 					});
