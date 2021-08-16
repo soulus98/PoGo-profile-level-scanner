@@ -5,6 +5,7 @@ module.exports = {
 	description: "Show the current stats for the bot",
   aliases: ["stats","stat","analytics","analytic","anals"],
   usage: `\`${prefix}stats\``,
+	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
 		return new Promise(function(resolve, reject) {

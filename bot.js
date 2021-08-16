@@ -329,12 +329,15 @@ client.on("message", message => {
 		return;
 	}
 	if (message.author.bot) return; // Bot? Cancel
+	const postedTime = new Date();
+	if (message.channel.type === "dm") { // This section may be mail code, one day
+		console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent a message in a dm for some reason.${(message.content)?`\nMessage content: ${message.content}`:" Message was blank/a file"}`);
+	}
 	if (message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
 	}
 	var wasDelayed = false;
-	const postedTime = new Date();
 	currentTime = Date.now();
 	if (saveLocalCopy && screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
 		screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
