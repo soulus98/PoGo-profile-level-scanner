@@ -4,9 +4,9 @@ const {saveBlacklist} = require("../func/saveBlacklist.js");
 
 module.exports = {
 	name: "revert-screenshot-role",
-	description: "Will revert one member from having the Remote Raids role. ATM this is in development, and is most likely not needed.",
+	description: "Will revert one member from having the Remote Raids role and both vanity roles. Will also dm and add to blacklist",
 	aliases: ["r","revert", "revert-role"],
-	usage: `\`${prefix}revert [@mention]\``,
+	usage: `\`${prefix}r <@mention/ID>\``,
 	guildOnly: true,
 	args: true,
 	permissions: "MANAGE_ROLES",
