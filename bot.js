@@ -283,7 +283,7 @@ client.once("ready", async () => {
 });
 
 
-client.on("guildMemberAdd", member => {
+client.on("guildMemberAdd", member => { //dave, dm when a member joins
 	//console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
   if (!welcomeMsg) return;
   member.send(`Hey ${member}, welcome to Pokémon GO Raids!
@@ -411,7 +411,7 @@ client.on("message", message => {
 		if (blacklistTime>0){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
 			if (blacklist.has(message.author.id)){
 				if (currentTime-blacklist.get(message.author.id)<blacklistTime){
-					saveStats("black");
+					saveStats("black"); //dave, dm when a member is blacklisted
 					message.author.send(`Hey, ${message.author}.
 We are sorry, but you are currently prohibited from using the automated system due to a recent screenshot that was scanned under level 30.
 If you have surpassed level 30, tag @moderator or message <@575252669443211264> to ask to be let in manually.
@@ -461,8 +461,8 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				crop(image, logimg);
 				if (wasDelayed == true){
 					delayAmount = Math.round((currentTime - postedTime)/1000);
-					console.log(logString + `, and it was delayed for ${delayAmount}s. There are ${currentlyImage-1} more images to process.`);
-				} else { console.log(logString); }
+					logString = logString + `. It was delayed for ${delayAmount}s. There ${(currentlyImage-1 == 1)?"is":"are"} ${currentlyImage-1} more image${(currentlyImage-1 ==1)?"":"s"} to process`;
+				}
 			}catch (error){ // this catch block rarely fires, as there are tonnes more catch cases under crop();
 				logString = logString + `, but an uncaught error occured. Error: ${error}`;
 				console.log(logString);
@@ -557,7 +557,6 @@ Hope to raid with you soon! :wave:`).catch(() => {
 					failed = true;
 					level = "Failure";
 				}
-				console.log(`[${dateToTime(postedTime)}]: Image#${instance} ${(failed) ? `failed. Scanned text: ${text}` : `was scanned at level: ${level}.`}`);
 				if (testMode){
 					message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `).catch(()=>{
 						message.channel.send(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
@@ -565,25 +564,25 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				}
 				if (isNaN(level) || level >50 || level <1){
 					logimg.edit(`User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``,image);
-					message.lineReplyNoMention(`<@&${modRole}> There was an issue scanning this image.`);
+					message.lineReplyNoMention(`${message.author}<@&${modRole}> There was an issue scanning this image.`);
 					message.react("❌").catch(()=>{
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-					});
+					}); //dave, dm when image fails to scan
 					message.author.send(`Sorry, ${message.author}, but there was an issue scanning your profile screenshot.
 Make sure you follow the example at the top of <#740670778516963339>.
 If part of your buddy is close to the level number, try rotating it out of the way.
 If there was a different cause, a moderator will be able to help manually approve you.`).catch(() => {
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 					});
+					console.log(logString + `. I failed to find a number. Scanned text: ${text}.`);
 					imageLogCount++;
 					currentlyImage--;
 					saveStats("Failure");
 					return;
-				} else {
-					//roleGrant(level, image, logimg);
-
-					client.commands.get("approve").execute([message,logimg], [message.author.id,level]);
-
+				} else { // this is the handler for role adding. It looks messy but is fine
+					client.commands.get("confirm").execute([message,logimg], [message.author.id,level]).then((addToLogString)=>{
+						console.log(logString + addToLogString);
+					});
 					imageLogCount++;
 					currentlyImage--;
 					if (imageLogCount>0 && imageLogCount % 30 === 0) loadBlacklist();
@@ -592,115 +591,6 @@ If there was a different cause, a moderator will be able to help manually approv
 					});
 				}
 			})();
-		}
-		function roleGrant(level, image, logimg){
-			if (message.member == null){
-				console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be scanned, since the member left the server.`);
-				logimg.edit(`User: ${message.author}\nLeft the server. No roles added.`,image);
-				saveStats("left");
-				return;
-			} else {
-				const msgtxt = [];
-				let given30 = false;
-				let given40 = false;
-				let given50 = false;
-				try {
-					if(message.member.roles.cache.has(level30Role)){
-						msgtxt.push("You already have the Remote Raids role");
-					}
-					else if (level<30 && message.author){
-						if (!deleteScreens && !message.deleted) message.react("👎").catch(()=>{
-							console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👎 (thumbsdown) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-						});
-						message.author.send(`Hey ${message.author}!
-Thank you so much for your interest in joining our raid server.
-Unfortunately we have a level requirement of 30 to gain full access, and your screenshot was scanned at ${level}.
-Gaining xp is very easy to do now with friendships, events, lucky eggs and so much more! Please stay and hang out with us here.
-You can use <#733418314222534826> to connect with other trainers and get the xp you need to hit level 30!
-Once you've reached that point, please repost your screenshot, or message <@575252669443211264> if you have to be let in manually.
-
-In the meantime please join our sister server with this link.
-Hope to raid with you soon! :slight_smile:
-https://discord.gg/bTJxQNKJH2`).catch(() => {
-							console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
-						});
-						blacklist.set(message.author.id,currentTime);
-						saveBlacklist();
-						console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} was added to the blacklist`);
-						logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nBlacklisted for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime==1)?"":"s"}`,image);
-						saveStats(level);
-						return;
-					}
-					else if (level>29){
-						channel.send(`Hey, ${message.author}. Welcome to the server. :partying_face:
-
- • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.`).then(msg => {
-							setTimeout(()=>{
-								msg.delete().catch(()=>{
-									console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
-								});
-							},5000);
-						});
-						given30 = true;
-						setTimeout(()=>{
-							message.member.roles.add(message.guild.roles.cache.get(level30Role)).catch(console.error);
-						},250);
-						setTimeout(()=>{
-							profile.send(`Hey, ${message.author}. Welcome to the server. :partying_face:
-
- • Start by typing \`$verify\` in this channel. The bot will then ask for your Trainer Code, so have it ready.
-
- • Extra commands such as \`$team <team-name>\` and \`$level 35\` are pinned and posted in this channel. Just ask if you can't find them.
-
- • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>.
-
-Feel free to ask any questions you have over in <#733706705560666275>.
-Have fun raiding. :wave:`);
-						}, 3000);
-						if (!deleteScreens && !message.deleted) message.react("👍").catch(()=>{
-							console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-						});
-						msgtxt.push(`Hey, ${message.author}. Welcome to the server. :partying_face:
-
- • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.
-
- • Extra commands such as \`$team <team-name>\` and \`$level <no>\` are pinned in that channel. Just ask if you can't find them.
-
- • Instructions for joining and hosting raids are over at <#733418554283655250>. Please also be familiar with the rules in <#747656566559473715>
-
-Feel free to ask any questions you have over in <#733706705560666275>.
-Have fun raiding. :wave:`);
-					}
-					if ((level>39 && level40Role && !message.member.roles.cache.has(level40Role)) || level>49 && level50Role){
-						message.member.roles.add(message.guild.roles.cache.get(level40Role)).catch(console.error);
-						given40 = true;
-						if (!deleteScreens && !message.deleted) message.react("👍").catch(()=>{
-							console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-						});
-						msgtxt.push(`${(message.member.roles.cache.has(level30Role)) ? ", however,":"\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the Level 40`);
-						if (level>49 && level50Role){
-							message.member.roles.add(message.guild.roles.cache.get(level50Role)).catch(console.error);
-							given50 = true;
-							if (!deleteScreens && !message.deleted) message.react("👍").catch(()=>{
-								console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-							});
-							msgtxt.push(` and the Level 50`);
-						}
-						msgtxt.push(` vanity role${(level>49 && level50Role) ? "s":""}.`);
-					}
-				} catch (e) {
-					console.error(`[${dateToTime(postedTime)}]: Error: thrown while giving rolls. Error: ${e}`);
-				}
-				if (!given30 && !given40 && !given50){
-					logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`, image);
-				}
-				else {
-					logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles given: ${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`, image);
-				}
-				message.author.send(msgtxt.join(""), {split:true}).catch(() => {
-					console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
-				});
-			}
 		}
 	}
 	else {

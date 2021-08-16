@@ -18,8 +18,9 @@ function saveStats(level) {
 			stats.set("Attempts",stats.get("Attempts")+1);
 			stats.set("Declined-Wrong-Type",stats.get("Declined-Wrong-Type")+1||1);
 		} else if (level == "missing") {
-			stats.set("Attempts",stats.get("Attempts")+1);
 			stats.set("Manual-Unknown",stats.get("Manual-Unknown")+1||1);
+		} else if (level == "revert") {
+			stats.set("Manual-Reversions",stats.get("Manual-Reversions")+1||1);
 		} else {
 			console.error(`[${dateToTime(new Date())}]: Error while saving the stats. Literally impossible to get to this, so if we have, something weird has happened.`);
 		}

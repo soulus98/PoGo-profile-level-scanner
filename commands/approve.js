@@ -3,10 +3,10 @@ const {dateToTime} = require("../func/dateToTime.js")
 const {saveBlacklist} = require("../func/saveBlacklist.js");
 
 module.exports = {
-	name: "approve",
-	description: "Manually approves a user. Can include level for vanity roles/stats purposes, or a level under 30 to reject/dm.",
-  aliases: ["a","app"],
-  usage: `\`${prefix}a <@mention/ID> [level]\``,
+	name: "confirm",
+	description: "Manually approve/reject a user by telling the bot the user's level. \`level\` can be omitted, the bot will still approve.",
+  aliases: ["c","con"],
+  usage: `\`${prefix}c <@mention/ID> [level]\``,
 	guildOnly:true,
   args: true,
 	permissions: "MANAGE_ROLES",
@@ -54,22 +54,25 @@ module.exports = {
 							logimg.edit(`User: ${message.author}\nLeft the server. No roles added.`,image);
 						}
 					} else if (member === undefined) { //this should not be accessable unless using a command
+						if (!inCommand) console.error(`[${execTime}]: Error: member is undefined without being in a command. Impossible error? Tell Soul pls`);
 						message.lineReply("There is a typo, or some other issue, which causes me to not be able to find that member.");
 						bigResolve(`, but it failed, due to a typo or some other issue. Id: ${id}`);
 					} else {
+						message.lineReply("Oops impossible error. Tell Soul please.");
 						console.error(`[${execTime}]: Error: Member is nullish without being null or undefined... Impossible error? Tell Soul pls`);
 						bigResolve(`, but it failed, due to an impossible error regarding member nullishness.`);
 					}
 					return;
 				}
-				if (inCommand) var logggString = ` and tagged ${member.user.username}`;
+				if (inCommand) var logggString = ` and tagged ${member.user.username}${member.user}`;
 				if (!(level == "missing") && (isNaN(level) || level >50 || level <1)){
 					console.error(`[${execTime}]: Error: Level - ${level} - is NaN, >50, or <1 despite being checked already... Impossible error? Tell Soul pls`);
-					bigResolve(`, but it failed, due to an impossible error regarding level checking.`);
+					bigResolve((logggString||"") + `, but it failed, due to an impossible error regarding level checking.`);
 					return;
 				}
 				const msgtxt = [];
-				const give30 = (level>29||level=="missing")?true:false; //dave, change this to "level>39" to work on elite raids
+				const give30 = (level>29||level=="missing")?true:false; //dave, change this to "level>39" to work on elite raids.
+																																//This, ]set level40 0, and any message changes are all you should need to do
 				const give40 = (level>39)?true:false;
 				const give50 = (level==50)?true:false;
 				let given30 = given40 = given50 = false;
@@ -82,7 +85,7 @@ module.exports = {
 						}	else {
 							message.lineReply(`Ya silly, they already have Remote Raids. You probably want \`${prefix}revert\`. That or you did a typo.`);
 						}
-						bigResolve(`, but it failed, since ${member.user.username} already has RR, so they could not be rejected.`);
+						bigResolve((logggString||"") + ", but it failed, since that member already has RR, so they could not be rejected.");
 						return;
 					}
 					if (!inCommand && !deleteScreens && !message.deleted) message.react("👎").catch(()=>{
@@ -103,7 +106,7 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 					});
 					blacklist.set(id,Date.now());
 					saveBlacklist();
-					console.log(`[${execTime}]: User ${member.user.username}${member} was added to the blacklist`);
+					bigResolve((logggString||"") + `. They were added to the blacklist for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime==1)?"":"s"} for an image scanned at ${level}`);
 					if (!inCommand) {
 						logimg.edit(`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime==1)?"":"s"}`,image);
 					}
@@ -122,7 +125,7 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 									msg.delete().catch(()=>{
 										console.error(`[${execTime}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
 									});
-								},5000);
+								},config.numbers.msgDeleteTime*1000);
 							});
 							setTimeout(()=>{
 								member.roles.add(server.roles.cache.get(level30Role)).catch(console.error);
@@ -188,9 +191,14 @@ Have fun raiding. :wave:`);
 						Promise.all([g40, g50]).then((vals) => {
 							given40 = vals[0];
 							given50 = vals[1];
-							if (given30 || given40 || given50){
-								if (!inCommand && !deleteScreens && !message.deleted) message.react("👍").catch(()=>{
+							if (given30 || given40 || given50 && !message.deleted){
+								if ((!inCommand && !deleteScreens) || (inCommand)) message.react("👍").catch(()=>{
 									console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
+								});
+							}
+							if (!(given30 || given40 || given50) && !message.deleted && inCommand) {
+								message.react("🤷").catch(()=>{
+									console.error(`[${execTime}]: Error: Could not react 🤷 (person_shrugging) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								});
 							}
 							if (given40 || given50) msgtxt.push(`${!(given30)?", however,":"\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the ${(given40)?"\"Level 40\" ":""}${(given50)?(given40)?"and the \"Level 50\" ":"\"Level 50\" ":""}vanity role${(given40 && given50)?"s":""}`);
@@ -206,18 +214,19 @@ Have fun raiding. :wave:`);
 								console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member.user}`);
 							});
 							saveStats(level);
-							bigResolve(logggString + `, who was given ${(!given30 && !given40 && !given50)?"no roles":""}${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`);
-							if (inCommand && !message.deleted){
-								message.react("👍").catch(()=>{
-									console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
+							bigResolve((logggString||"") + `. They were given ${(!given30 && !given40 && !given50)?"no roles":""}${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")} ${(!inCommand)?`for an image scanned at ${level}`:""}`);
+							if (inCommand && !message.deleted && config.numbers.msgDeleteTime){
+								setTimeout(function () {
+									message.delete().catch(()=>{
+										console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
+									});
+								}, config.numbers.msgDeleteTime*1000);
+							}
+							if (inCommand) {
+								channel.messages.fetch({limit:10}).then(msgs => {
+									selfMsgs = msgs.filter(msg => ((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0,4) != "Hey,") || ((message.author.id == id) && !msg.pinned));
+									channel.bulkDelete(selfMsgs);
 								});
-								if (config.numbers.msgDeleteTime) {
-									setTimeout(function () {
-										message.delete().catch(()=>{
-											console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
-										});
-									}, config.numbers.msgDeleteTime*1000);
-								}
 							}
 						});
 					});
