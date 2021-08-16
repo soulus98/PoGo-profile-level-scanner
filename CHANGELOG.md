@@ -6,6 +6,9 @@
 
 There are likely bugs in this release.
 
+#### v1.7.1 (2021-Aug-16)
+* A few tiny changes
+
 
 # v1.6 (2021-Aug-6)
 * Readded the welcomeMsg as a dm
