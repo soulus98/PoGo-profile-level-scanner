@@ -26,7 +26,7 @@ module.exports = {
 						id = args[0];
 					}
 					level = args[1] || "missing";
-					resolve(server.members.cache.get(id));
+					resolve(server.members.fetch(id));
 					//id, level
 				} else {
 					inCommand = false;
@@ -224,7 +224,7 @@ Have fun raiding. :wave:`);
 							}
 							if (inCommand) {
 								channel.messages.fetch({limit:10}).then(msgs => {
-									selfMsgs = msgs.filter(msg => ((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0,4) != "Hey,") || ((message.author.id == id) && !msg.pinned));
+									selfMsgs = msgs.filter(msg => ((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0,4) != "Hey,") || ((msg.author.id == id) && !msg.pinned));
 									channel.bulkDelete(selfMsgs);
 								});
 							}
