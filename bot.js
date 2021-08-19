@@ -8,7 +8,7 @@ const {rect} = require("./func/rect.js");
 const {handleCommand} = require("./handlers/commands.js");
 const {dateToTime} = require("./func/dateToTime.js");
 const {saveStats} = require("./func/saveStats.js");
-const {saveBlacklist} = require("./func/saveblacklist.js");
+const {saveBlacklist} = require("./func/saveBlacklist.js");
 ver = require('./package.json').version;
 require('discord-reply');
 
