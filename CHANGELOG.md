@@ -13,6 +13,7 @@ There are likely bugs in this release.
 #### v1.7.2 (2021-Aug-19)
 * Reactions and deletions for ]c under30
 * Made mentions work better and cleaned up id code
+* Added an autoresponder for dm messages
 * Better wording for undefined message
 * Response message for if someone already had roles
 
