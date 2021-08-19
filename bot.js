@@ -331,7 +331,13 @@ client.on("message", message => {
 	if (message.author.bot) return; // Bot? Cancel
 	const postedTime = new Date();
 	if (message.channel.type === "dm") { // This section may be mail code, one day
-		console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent a message in a dm for some reason.${(message.content)?`\nMessage content: ${message.content}`:" Message was blank/a file"}`);
+		console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent a message in a dm for some reason.${(message.attachments.size > 0)?"\nMessage contained a file":""}${(message.content)?`\nMessage content: ${message.content}`:""}`);
+		if (message.content.startsWith("$")) {
+			message.lineReply(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${profileChannel}> once you have confirmed you are above level 30 by sending a screenshot in <#${screenshotChannel}>.`);
+		} else {
+			message.lineReply(`This bot does not currently work in dms. Please send your profile screenshot in <#${screenshotChannel}>.`);
+		}
+		return;
 	}
 	if (message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
@@ -349,10 +355,6 @@ client.on("message", message => {
 			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix}set screenshotChannel <id>\``);
 		};
 		if (message.channel == logs) {
-			return;
-		}
-		if (message.channel.type === "dm") {
-			message.lineReply(`I cannot scan an image in a dm. Please send it in ${channel}`);
 			return;
 		}
 		if (message.channel != channel) {
