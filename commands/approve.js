@@ -14,19 +14,60 @@ module.exports = {
 		return new Promise(function(bigResolve) {
 			execTime = dateToTime(new Date());
 			let prom = new Promise(function(resolve, reject) {
-				server = input.guild;
 				if (input[1] == undefined) {
 					inCommand = true;
 					message = input;
+					mentions = message.mentions.users;
+					if (mentions.size > 1) {
+						message.lineReply("Sorry, but I cannot confirm more than one user at a time.");
+						bigResolve(`, but it failed, since they tagged two people in the command.`);
+						return;
+					}
 					image = message.attachments.first();
 					logimg = false;
-					if (args[0].charAt(0) == "<") {
-						id = args[0].slice(3,-1);
+					level = args[1] || "missing";
+					if (args[0].startsWith("<@") && args[0].endsWith(">")) {
+						id = args[0].slice(2,-1);
+						if (id.startsWith("!")){
+							id = args[0].slice(1);
+						}
 					} else {
 						id = args[0];
 					}
-					level = args[1] || "missing";
-					resolve(server.members.fetch(id));
+					server.members.fetch(id).then((memb)=>{
+						resolve(memb);
+					}).catch((err)=>{
+						if (err.name == "DiscordAPIError"){
+							if (mentions.size == 1) {
+								memb = mentions.first();
+								if (memb === undefined){
+									message.lineReply("I could not find this member, they may have left the server.");
+									bigResolve(`, but it failed, since I couldn't fetch member ${id}`);
+									return;
+								} else {
+									server.members.fetch(memb.id).then((mem)=>{
+										resolve(mem);
+										return;
+									}).catch((err)=>{
+										message.lineReply("I could not find this member for an exceptionally unexpected reason. Tell the developer please.");
+										console.error(`[${execTime}]: Error: An (exceptionally!) unexpected error occured when trying to fetch ${id}. Err:${err}`);
+										bigResolve(`, but it failed, due to an unexpected error when trying to fetch ${id}.`);
+										return;
+									});
+								}
+							} else {
+								message.lineReply("There may be a typo, or some other issue, which causes me to not be able to find this member.");
+								bigResolve(`, but it failed, due to a typo or some other issue. Id: ${id}.`);
+								return;
+							}
+						} else {
+							message.lineReply("I could not find this member for an unexpected reason. Tell the developer please.");
+							console.error(`[${execTime}]: Error: An unexpected error occured when trying to fetch ${id}.  Err:${err}`);
+							bigResolve(`, but it failed, due to an unexpected error when trying to fetch ${id}.`);
+							return;
+						}
+					});
+
 					//id, level
 				} else {
 					inCommand = false;
@@ -44,24 +85,20 @@ module.exports = {
 			//role id === undefined
 			//any other mistype === undefined
 			return prom.then(function(member) {
-				if (member == null){
-					if (member === null) {
-						console.error(`[${execTime}]: Error: #${id} left the server before they could be processed.`);
-						if (inCommand) {
-							message.lineReply("That member has just left the server, and can not be processed.");
-							bigResolve(`, but it failed, since the member, #${id}, left the server before they could be processed.`);
-						} else {
-							logimg.edit(`User: ${message.author}\nLeft the server. No roles added.`,image);
-						}
-					} else if (member === undefined) { //this should not be accessable unless using a command
-						if (!inCommand) console.error(`[${execTime}]: Error: member is undefined without being in a command. Impossible error? Tell Soul pls`);
-						message.lineReply("There is a typo, or some other issue, which causes me to not be able to find that member.");
-						bigResolve(`, but it failed, due to a typo or some other issue. Id: ${id}`);
+				const msgDeleteTime = config.numbers.msgDeleteTime*1000;
+				if (member === null){
+					console.error(`[${execTime}]: Error: #${id} left the server before they could be processed.`);
+					if (inCommand) {
+						message.lineReply("That member has just left the server, and can not be processed.");
+						bigResolve(`, but it failed, since the member, #${id}, left the server before they could be processed.`);
 					} else {
-						message.lineReply("Oops impossible error. Tell Soul please.");
-						console.error(`[${execTime}]: Error: Member is nullish without being null or undefined... Impossible error? Tell Soul pls`);
-						bigResolve(`, but it failed, due to an impossible error regarding member nullishness.`);
+						logimg.edit(`User: ${message.author}\nLeft the server. No roles added.`,image);
 					}
+					return;
+				} else if (member === undefined) { //this should not be accessable unless using a command
+					if (!inCommand) console.error(`[${execTime}]: Error: member is undefined without being in a command. Impossible error? Tell Soul pls`);
+					message.lineReply("This member may have left the server. If not, then there is a typo, or some other issue, which causes me to not be able to find them.");
+					bigResolve(`, but it failed, due to a typo or some other issue. (This might be an impossible error...? not sure) Id: ${id}`);
 					return;
 				}
 				if (inCommand) var logggString = ` and tagged ${member.user.username}${member.user}`;
@@ -91,6 +128,9 @@ module.exports = {
 					if (!inCommand && !deleteScreens && !message.deleted) message.react("👎").catch(()=>{
 						console.error(`[${execTime}]: Error: Could not react 👎 (thumbsdown) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
+					if (inCommand && !message.deleted) message.react("👍").catch(()=>{
+						console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
+					});
 					// dave, under 30 message in dm
 					member.send(`Hey ${member}!
 Thank you so much for your interest in joining our raid server.
@@ -110,13 +150,18 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 					if (!inCommand) {
 						logimg.edit(`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime==1)?"":"s"}`,image);
 					}
+					if (inCommand) deleteStuff(message);
 					saveStats(level);
 					return;
 				} else {
 					g30 = new Promise(function(resolve) {
 						if(member.roles.cache.has(level30Role)){ //dave, over 30 msg in dm
-							msgtxt.push("You already have the Remote Raids role");
-							resolve(false);
+							if(inCommand){
+								resolve(false);
+							} else {
+								msgtxt.push("You already have the Remote Raids role");
+								resolve(false);
+							}
 						} else { //dave, over 30 msg in PYS
 							channel.send(`Hey, ${member}. Welcome to the server. :partying_face:
 
@@ -125,7 +170,7 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 									msg.delete().catch(()=>{
 										console.error(`[${execTime}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
 									});
-								},config.numbers.msgDeleteTime*1000);
+								},msgDeleteTime);
 							});
 							setTimeout(()=>{
 								member.roles.add(server.roles.cache.get(level30Role)).catch(console.error);
@@ -191,14 +236,23 @@ Have fun raiding. :wave:`);
 						Promise.all([g40, g50]).then((vals) => {
 							given40 = vals[0];
 							given50 = vals[1];
-							if (given30 || given40 || given50 && !message.deleted){
-								if ((!inCommand && !deleteScreens) || (inCommand)) message.react("👍").catch(()=>{
+							if ((given30 || given40 || given50) && !message.deleted){
+								if (!deleteScreens || inCommand) message.react("👍").catch(()=>{
 									console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								});
 							}
 							if (!(given30 || given40 || given50) && !message.deleted && inCommand) {
 								message.react("🤷").catch(()=>{
 									console.error(`[${execTime}]: Error: Could not react 🤷 (person_shrugging) to message: ${message.url}\nContent of mesage: "${message.content}"`);
+								});
+								message.lineReply("That person already had the roles you asked me to give them. Check the command or the user and try again.").then((msg) =>{
+									setTimeout(()=>{
+										if (msgDeleteTime){
+											msg.delete().catch(()=>{
+												console.error(`[${execTime}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
+											});
+										}
+									}, msgDeleteTime);
 								});
 							}
 							if (given40 || given50) msgtxt.push(`${!(given30)?", however,":"\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the ${(given40)?"\"Level 40\" ":""}${(given50)?(given40)?"and the \"Level 50\" ":"\"Level 50\" ":""}vanity role${(given40 && given50)?"s":""}`);
@@ -215,19 +269,7 @@ Have fun raiding. :wave:`);
 							});
 							saveStats(level);
 							bigResolve((logggString||"") + `. They were given ${(!given30 && !given40 && !given50)?"no roles":""}${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")} ${(!inCommand)?`for an image scanned at ${level}`:""}`);
-							if (inCommand && !message.deleted && config.numbers.msgDeleteTime){
-								setTimeout(function () {
-									message.delete().catch(()=>{
-										console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
-									});
-								}, config.numbers.msgDeleteTime*1000);
-							}
-							if (inCommand) {
-								channel.messages.fetch({limit:10}).then(msgs => {
-									selfMsgs = msgs.filter(msg => ((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0,4) != "Hey,") || ((msg.author.id == id) && !msg.pinned));
-									channel.bulkDelete(selfMsgs);
-								});
-							}
+							if (inCommand) deleteStuff(message);
 						});
 					});
 				}
@@ -235,3 +277,18 @@ Have fun raiding. :wave:`);
 		});
 	},
 };
+
+function deleteStuff(message){
+	const msgDeleteTime = config.numbers.msgDeleteTime*1000;
+	if (!message.deleted && msgDeleteTime){
+		setTimeout(function () {
+			message.delete().catch(()=>{
+				console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
+			});
+		}, msgDeleteTime);
+	}
+	channel.messages.fetch({limit:10}).then(msgs => {
+		selfMsgs = msgs.filter(msg => ((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0,4) != "Hey,") || ((msg.author.id == id) && !msg.pinned));
+		channel.bulkDelete(selfMsgs);
+	});
+}

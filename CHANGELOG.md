@@ -7,7 +7,14 @@
 There are likely bugs in this release.
 
 #### v1.7.1 (2021-Aug-16)
-* A few tiny changes
+* Fetch member instead of getting from cache
+* A typo in the delete logic
+
+#### v1.7.2 (2021-Aug-19)
+* Reactions and deletions for ]c under30
+* Made mentions work better and cleaned up id code
+* Better wording for undefined message
+* Response message for if someone already had roles
 
 
 # v1.6 (2021-Aug-6)
