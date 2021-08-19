@@ -335,7 +335,7 @@ client.on("message", message => {
 		if (message.content.startsWith("$")) {
 			message.lineReply(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${profileChannel}> once you have confirmed you are above level 30 by sending a screenshot in <#${screenshotChannel}>.`);
 		} else {
-			message.lineReply(`This bot does not currently work in dms. Please send your profile screenshot in <#${screenshotChannel}>.`);
+			message.lineReply(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${screenshotChannel}>.`);
 		}
 		return;
 	}
