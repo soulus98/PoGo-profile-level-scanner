@@ -218,7 +218,7 @@ function checkServer(message){
 		message.lineReply("This is not the intended server. Goodbye forever :wave:").then(()=>{
 			message.guild.leave().then(s => {
 				console.log(`Left: ${s}#${s.id}, as it is not the intended server.`);
-				dev.send(`**Dev message: **Left: ${s}#${s.id}`);
+				dev.send(`**Dev message: **Left: ${s}#${s.id}`).catch(console.error);
 			}).catch(console.error);
 		}).catch(console.error);
 		return;
@@ -569,7 +569,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				}
 				if (isNaN(level) || level >50 || level <1){
 					logimg.edit(`User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``,image);
-					message.lineReplyNoMention(`${message.author}<@&${modRole}> There was an issue scanning this image.`);
+					message.lineReply(`<@&${modRole}> There was an issue scanning this image.`);
 					message.react("❌").catch(()=>{
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 					}); //dave, dm when image fails to scan
