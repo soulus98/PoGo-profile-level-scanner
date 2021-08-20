@@ -29,7 +29,7 @@ module.exports = {
 					if (args[0].startsWith("<@") && args[0].endsWith(">")) {
 						id = args[0].slice(2,-1);
 						if (id.startsWith("!")){
-							id = args[0].slice(1);
+							id = id.slice(1);
 						}
 					} else {
 						id = args[0];
@@ -236,8 +236,12 @@ Have fun raiding. :wave:`);
 						Promise.all([g40, g50]).then((vals) => {
 							given40 = vals[0];
 							given50 = vals[1];
-							if ((given30 || given40 || given50) && !message.deleted){
-								if (!deleteScreens || inCommand) message.react("👍").catch(()=>{
+							if ((given30 || given40 || given50)){
+								member.send(msgtxt.join(""), {split:true}).catch((err) => {
+									console.error(err);
+									console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member.user}`);
+								});
+								if ((!deleteScreens || inCommand) && !message.deleted) message.react("👍").catch(()=>{
 									console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								});
 							}
@@ -264,9 +268,6 @@ Have fun raiding. :wave:`);
 									if (logimg) logimg.edit(`User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`, image);
 								}
 							}
-							member.send(msgtxt.join(""), {split:true}).catch(() => {
-								console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member.user}`);
-							});
 							saveStats(level);
 							bigResolve((logggString||"") + `. They were given ${(!given30 && !given40 && !given50)?"no roles":""}${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")} ${(!inCommand)?`for an image scanned at ${level}`:""}`);
 							if (inCommand) deleteStuff(message);
@@ -288,7 +289,11 @@ function deleteStuff(message){
 		}, msgDeleteTime);
 	}
 	channel.messages.fetch({limit:10}).then(msgs => {
-		selfMsgs = msgs.filter(msg => ((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0,4) != "Hey,") || ((msg.author.id == id) && !msg.pinned));
-		channel.bulkDelete(selfMsgs);
+		selfMsgs = msgs.filter(msg =>
+			((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0,4) != "Hey,") //bot messages
+			 || ((msg.author.id == id) && !msg.pinned)); //member messages
+		channel.bulkDelete(selfMsgs).catch((err)=>{
+			console.error(`[${execTime}]: Error: Could not bulk delete messages: ${selfMsgs}. Error message: ${err}`);
+		});
 	});
 }

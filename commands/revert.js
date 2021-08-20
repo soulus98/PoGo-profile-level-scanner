@@ -23,7 +23,7 @@ module.exports = {
 				if (args[0].startsWith("<@") && args[0].endsWith(">")) {
 					id = args[0].slice(2,-1);
 					if (id.startsWith("!")){
-						id = args[0].slice(1);
+						id = id.slice(1);
 					}
 				} else {
 					id = args[0];

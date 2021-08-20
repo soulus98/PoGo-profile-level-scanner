@@ -17,6 +17,10 @@ There are likely bugs in this release.
 * Better wording for undefined message
 * Response message for if someone already had roles
 
+#### v1.7.3 (2021-Aug-20)
+* Fixed a typo in approve and revert. I blame discord.js for resolving "@!146247095815372800>" as an id.
+
+
 
 # v1.6 (2021-Aug-6)
 * Readded the welcomeMsg as a dm
