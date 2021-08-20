@@ -19,6 +19,7 @@ There are likely bugs in this release.
 
 #### v1.7.3 (2021-Aug-20)
 * Fixed a typo in approve and revert. I blame discord.js for resolving "@!146247095815372800>" as an id.
+* Fixed a case issue in "saveBlacklist.js". Should now always use camelCase.
 
 
 
