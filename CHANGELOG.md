@@ -21,6 +21,10 @@ There are likely bugs in this release.
 * Fixed a typo in approve and revert. I blame discord.js for resolving "@!146247095815372800>" as an id.
 * Fixed a case issue in "saveBlacklist.js". Should now always use camelCase.
 
+#### v1.7.4 (2021-Aug-??)
+* Added a message reply for uncaught "Entity too large" error. Perhaps 9mB?
+* Removed an unnecessary tag in the failed image message
+
 
 
 # v1.6 (2021-Aug-6)

@@ -456,7 +456,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 			logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent image#${instance}`;
 			try{
 				const logimg = await logs.send(`User: ${message.author}`, image);
-				if(saveLocalCopy){ 																				// this seems to be the cause of the unknown error
+				if(saveLocalCopy){ 															// this seems to be the cause of the unknown error
 					const imageName = image.id + "." + fileType;	// if saveLocalCopy is off, the error is very rare
 					const imageDL = fs.createWriteStream(screensFolder + "/" + imageName); // it must be tesseract not being able to deal
 					const request = https.get(image.url, function(response) {							 // with muliple things happening at once
@@ -474,6 +474,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				message.react("❌").catch(()=>{
 					console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 				});
+				message.lineReply(`<@&${modRole}> I can not scan this image due to an uncaught error. Err: ${error}`);
 				imageLogCount++;
 				currentlyImage--;
 				return;
