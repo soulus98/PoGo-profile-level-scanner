@@ -1,6 +1,7 @@
 # v1.8 (2021-???-??)
 * WIP: Huge optimisation regarding processing multiple images at once
 * Mod: crop.js and saveBuff.js
+* Installed a linter and cleaned up some code based on the rules in ".eslintrc.json"
 
 # v1.7 (2021-Aug-16)
 * Added ]confirm (aka ]c). Use ]c <id> [level-under-30] to reject someone
