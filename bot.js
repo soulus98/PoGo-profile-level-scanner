@@ -1,16 +1,16 @@
-const { createWorker , PSM } = require("tesseract.js");
-const gm = require("gm");
-const {token} = require("./server/keys.json");
+const { createWorker, PSM } = require("tesseract.js");
+const { token } = require("./server/keys.json");
 const fs = require("fs");
 const https = require("https");
 const Discord = require("discord.js");
-const {rect} = require("./func/rect.js");
-const {handleCommand} = require("./handlers/commands.js");
-const {dateToTime} = require("./func/dateToTime.js");
-const {saveStats} = require("./func/saveStats.js");
-const {saveBlacklist} = require("./func/saveBlacklist.js");
-ver = require('./package.json').version;
-require('discord-reply');
+const { crop } = require("./func/crop.js");
+const { saveBuff } = require("./func/saveBuff.js");
+const { handleCommand } = require("./handlers/commands.js");
+const { dateToTime } = require("./func/dateToTime.js");
+const { saveStats } = require("./func/saveStats.js");
+const { saveBlacklist } = require("./func/saveBlacklist.js");
+const ver = require("./package.json").version;
+require("discord-reply");
 
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
@@ -24,7 +24,7 @@ loaded = false;
 currentlyImage = 0;
 screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 config = {};
-module.exports = {loadConfigs, clearBlacklist, cooldowns};
+module.exports = { loadConfigs, clearBlacklist, cooldowns };
 
 // Loads all the variables at program launch
 function load(){
@@ -45,7 +45,6 @@ function loadConfigs(){
 	config = require("./server/config.json");
 	prefix = config.chars.prefix;
 	timeDelay = config.numbers.timeDelay*1000;
-	threshold = config.numbers.threshold;
 	blacklistTime = config.numbers.blacklistTime*86400000;
 	msgDeleteTime = config.numbers.msgDeleteTime*1000;
 	saveLocalCopy = config.toggles.saveLocalCopy;
@@ -463,7 +462,45 @@ Hope to raid with you soon! :wave:`).catch(() => {
 						response.pipe(imageDL);
 					});
 				}
-				crop(image, logimg);
+				crop(message).then((imgBuff)=>{
+					const testSend = new Promise(function(res) {
+						if (testMode){
+							const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
+							channel.send("Test mode. This is the image fed to the OCR system:", imgAttach).then(() => {
+								res();
+							});
+						} else {
+							res();
+						}
+					});
+					const saveCropped = new Promise(function(res) {
+						if (saveLocalCopy) {
+							saveBuff(image, imgBuff).then(() => {
+								res();
+							}).catch((err) => {
+								console.error(`[${dateToTime(postedTime)}]: ${err}`);
+							});
+						} else {
+							res();
+						};
+					});
+					Promise.all([testSend,saveCropped]).then(() => {
+						recog(imgBuff, image, logimg);
+					});
+				}).catch((err)=>{
+					console.log("testo catch");
+
+					if (err == "crash"){
+						console.error(`[${dateToTime(postedTime)}]: Error: An error occured while buffering "imgTwo".`);
+						console.error(`[${dateToTime(postedTime)}]: Some info for soul:`);
+						console.error("\nimage: ");
+						console.error(image);
+						logimg.edit(`User: ${message.author}\nThis image was posted during a crash...`,image);
+						return;
+					} else {
+						console.error(`[${dateToTime(postedTime)}]: Error occured while cropping image: ${err}`);
+					}
+				});
 				if (wasDelayed == true){
 					delayAmount = Math.round((currentTime - postedTime)/1000);
 					logString = logString + `. It was delayed for ${delayAmount}s. There ${(currentlyImage-1 == 1)?"is":"are"} ${currentlyImage-1} more image${(currentlyImage-1 ==1)?"":"s"} to process`;
@@ -478,64 +515,6 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				imageLogCount++;
 				currentlyImage--;
 				return;
-			}
-		}
-		function crop(image, logimg){ // this is another badly named function which should be a seperate module // TODO: Make all these functions modules
-			https.get(image.url, function(response){
-				img = gm(response);
-				img
-				.size((err,size) => {
-					if (err){ // this error has only ever fired once, not sure why
-						console.error(`[${dateToTime(postedTime)}]: Error while sizing.`,image);
-						return;
-					}
-					const cropSize = rect(size); 			// a module that returns a crop size case.
-					cropper(image, logimg, cropSize);	//250 random images were supported so hopefuly that covers most common phone resolutions
-				});
-			});
-			function cropper(image, logimg, cropSize) { // I don't know why, but I can't use img twice. I have to call https.get each time. annoying
-				https.get(image.url, function(response){
-					imgTwo = gm(response);
-					imgTwo
-					.blackThreshold(threshold)
-					.whiteThreshold(threshold+1)
-					.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
-					.flatten()
-					.toBuffer((err, imgBuff) => {
-						if (err){
-							console.error(`[${dateToTime(postedTime)}]: Error: An error occured while buffering "imgTwo".`);
-							console.error(`[${dateToTime(postedTime)}]: Some info for soul:`);
-							console.error("\nimage: ");
-							console.error(image);
-							console.error("imgBuff: ");
-							console.error(imgBuff); 			//testo
-							console.error("imgTwo: ");
-							console.error(imgTwo); 			//testo
-							logimg.edit(`User: ${message.author}\nThis image was posted during a crash...`,image);
-							throw err;
-							return;
-						}
-						if (testMode){
-							const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
-							message.channel.send("Test mode. This is the image fed to the OCR system:", imgAttach);
-						}
-
-						//This is for seeing the cropped version
-						if (saveLocalCopy) {
-							const imageName = image.id + "crop." + image.url.split(".").pop();
-							fs.writeFile(`${screensFolder}/${imageName}`,imgBuff, (err) =>{
-								if (err){
-									console.error(`[${dateToTime(postedTime)}]: Error: An error occured while writing "imgTwo".`);
-									throw err;
-									return;
-								}
-								//console.log("Written"); //testo ??
-							});
-						}
-						setTimeout(()=>{recog(imgBuff, image, logimg);},timeDelay*(4/5));
-						//recog(imgBuff);
-					});
-				});
 			}
 		}
 		async function recog(imgBuff, image, logimg){
