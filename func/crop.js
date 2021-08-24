@@ -6,19 +6,11 @@ function crop(message){
 	const image = message.attachments.first();
   return new Promise ((bigResolve, reject) => {
     new Promise ((resolve) => {
-			https.get(image.url, (response) => {
-				const img = gm(response);
-				img
-				.size((err, size) => {
-					if (err){ // this error has only ever fired once, not sure why
-						reject(`Sizing error: ${err} Image: ${image}`);
-						return;
-					} else {
-						rect(size).then((cropSize) => {
-							resolve(cropSize);
-						});
-					}
-				});
+			const size = { };
+			size.width = image.width;
+			size.height = image.height;
+			rect(size).then((cropSize) => {
+				resolve(cropSize);
 			});
     }).then((cropSize) => {
 			https.get(image.url, function(response){

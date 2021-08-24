@@ -14,7 +14,7 @@ require("discord-reply");
 
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
-blacklist = new Discord.Collection();
+let blacklist = new Discord.Collection();
 stats = new Discord.Collection();
 lastImageTimestamp = Date.now();
 imageAttempts = 0;
@@ -24,12 +24,13 @@ loaded = false;
 currentlyImage = 0;
 screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 config = {};
-module.exports = { loadConfigs, clearBlacklist, cooldowns };
+module.exports = { loadConfigs, clearBlacklist, cooldowns, blacklist};
+
 
 // Loads all the variables at program launch
 function load(){
 	console.log("======================================================================================");
-	console.log(`Server starting...`);
+	console.log("Server starting...");
 		loadConfigs();
 		checkDateFolder(launchDate);
 		loadCommands();
@@ -488,8 +489,6 @@ Hope to raid with you soon! :wave:`).catch(() => {
 						recog(imgBuff, image, logimg);
 					});
 				}).catch((err)=>{
-					console.log("testo catch");
-
 					if (err == "crash"){
 						console.error(`[${dateToTime(postedTime)}]: Error: An error occured while buffering "imgTwo".`);
 						console.error(`[${dateToTime(postedTime)}]: Some info for soul:`);
@@ -612,19 +611,19 @@ If there was a different cause, a moderator will be able to help manually approv
 
 process.on("unhandledRejection", (err, promise) => {
 	try {
-		if (err.substr(0,35) == "Error: UNKNOWN: unknown error, open"){
+		if (err.substr(0, 35) == "Error: UNKNOWN: unknown error, open"){
 			// do nothing
 		} else {
-			console.error(`[${dateToTime(new Date())}]: Unhandled rejection at ${promise} reason: ${err}`);
+			console.error(`[${dateToTime(new Date())}]: Unhandled rejection at `, promise, `reason: ${err}`);
 		}
 	} catch (e) {
-		console.error(`[${dateToTime(new Date())}]: Unhandled rejection at ${promise} reason: ${err}`);
+		console.error(`[${dateToTime(new Date())}]: Unhandled rejection at `, promise, `reason: ${err}`);
 	}
 });
 
-process.on("SIGINT", signal => {
+process.on("SIGINT", (signal) => {
   console.log(`Process ${process.pid} has been interrupted`);
-	channel.send("The bot is sleeping now. Goodbye :wave:").then(()=>{
+	channel.send("The bot is sleeping now. Goodbye :wave:").then(() => {
 		process.exit(1);
 	});
 });
