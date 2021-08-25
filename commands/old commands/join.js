@@ -2,7 +2,7 @@ module.exports = {
 	name: "join",
 	description: "new person test",
   aliases: [""],
-  usage: `${prefix}join`,
+  usage: `${ops.prefix}join`,
   cooldown: 5,
 	execute(message, args) {
 		return new Promise(function(resolve) {

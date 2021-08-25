@@ -3,15 +3,15 @@ const bot = require("../bot.js");
 
 module.exports = {
 	name: "modify-setting",
-	description: `Used to change the value of certain settings. Currently toggles settings for all instances of the bot, as there is only one intended instance. Use \`${prefix}show-options\` to see all current settings.`,
+	description: `Used to change the value of certain settings. Currently toggles settings for all instances of the bot, as there is only one intended instance. Use \`${ops.prefix}show-options\` to see all current settings.`,
   aliases: ["set", "modify"],
-  usage: `\`${prefix}set <setting> <value>\``,
+  usage: `\`${ops.prefix}set <setting> <value>\``,
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
 		return new Promise(function(resolve, reject) {
 			if (args.length != 2){
-				message.lineReply(`You must supply two arguments in the form \`${prefix}set [setting-name] [value]\``);
+				message.lineReply(`You must supply two arguments in the form \`${ops.prefix}set [setting-name] [value]\``);
 				resolve(`, but it failed, as there were an incorrect amount of arguments: ${args}`);
 				return;
 			}
@@ -20,7 +20,7 @@ module.exports = {
 				chars = config.chars;
 				ids = config.ids;
 				if (numbers[args[0]] === undefined && chars[args[0]] === undefined && ids[args[0]] === undefined){
-					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${prefix}show\` to see a list of all settings.`);
+					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${ops.prefix}show\` to see a list of all settings.`);
 					resolve(`, but it failed, as ${args[0]} is not a valid setting.`);
 					return;
 				}

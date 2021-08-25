@@ -6,7 +6,7 @@ module.exports = {
 	name: "revert-screenshot-role",
 	description: "Will revert one member from having the Remote Raids role and both vanity roles. Will also dm and add to blacklist",
 	aliases: ["r","revert", "revert-role"],
-	usage: `\`${prefix}r <@mention/ID>\``,
+	usage: `\`${ops.prefix}r <@mention/ID>\``,
 	guildOnly: true,
 	args: true,
 	permissions: "MANAGE_ROLES",
@@ -65,8 +65,8 @@ module.exports = {
 			idProm.then((member)=>{
 				const logggString = ` and tagged ${member.user.username}${member.user}`;
 				let had30 = new Promise(function(had) {
-					if(level30Role && member.roles.cache.has(level30Role)){
-							member.roles.remove(level30Role).then(()=>{
+					if(ops.level30Role && member.roles.cache.has(ops.level30Role)){
+							member.roles.remove(ops.level30Role).then(()=>{
 								had(true);
 							}).catch((err)=>{
 								console.error(`[${execTime}]: Error: Could not take RR from ${member.user.username}. Error: ${err}`);
@@ -75,8 +75,8 @@ module.exports = {
 					} else had(false);
 				});
 				let had40 = new Promise(function(had) {
-					if(level40Role && member.roles.cache.has(level40Role)){
-							member.roles.remove(level40Role).then(()=>{
+					if(ops.level40Role && member.roles.cache.has(ops.level40Role)){
+							member.roles.remove(ops.level40Role).then(()=>{
 								had(true);
 							}).catch((err)=>{
 								console.error(`[${execTime}]: Error: Could not take Level 40 from ${member.user.username}. Error: ${err}`);
@@ -85,8 +85,8 @@ module.exports = {
 					} else had(false);
 				});
 				let had50 = new Promise(function(had) {
-					if(level50Role && member.roles.cache.has(level50Role)){
-							member.roles.remove(level50Role).then(()=>{
+					if(ops.level50Role && member.roles.cache.has(ops.level50Role)){
+							member.roles.remove(ops.level50Role).then(()=>{
 								had(true);
 							}).catch((err)=>{
 								console.error(`[${execTime}]: Error: Could not take Level 50 from ${member.user.username}. Error: ${err}`);
@@ -114,7 +114,7 @@ https://discord.gg/bTJxQNKJH2`);
 						saveStats("revert");
 						bigResolve(logggString + `. I removed ${(took30?"RR":"")}${(took40?`${took30?", ":""}Level 40`:"")}${(took50?`${took30||took40?", ":""}Level 50`:"")}`);
 					} else {
-						message.lineReply(`That member had none of the roles that \`${prefix}revert\` can remove. Perhaps you wanted \`${prefix}c\` aka \`${prefix}confirm\``);
+						message.lineReply(`That member had none of the roles that \`${ops.prefix}revert\` can remove. Perhaps you wanted \`${ops.prefix}c\` aka \`${ops.prefix}confirm\``);
 						bigResolve(logggString + `, but that member had none of the roles that I can remove.`);
 					}
 				});

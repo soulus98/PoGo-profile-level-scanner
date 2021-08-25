@@ -16,15 +16,16 @@ const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
 let blacklist = new Discord.Collection();
 stats = new Discord.Collection();
-lastImageTimestamp = Date.now();
+let lastImageTimestamp = Date.now();
 imageAttempts = 0;
 imageLogCount = 0;
 launchDate = new Date();
 loaded = false;
 currentlyImage = 0;
 screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
-config = {};
-module.exports = { loadConfigs, clearBlacklist, cooldowns, blacklist};
+let config = {};
+ops = {};
+module.exports = { loadConfigs, clearBlacklist, cooldowns, blacklist };
 
 
 // Loads all the variables at program launch
@@ -44,27 +45,31 @@ function loadConfigs(){
 	config = {};
 	delete require.cache[require.resolve("./server/config.json")];
 	config = require("./server/config.json");
-	prefix = config.chars.prefix;
-	timeDelay = config.numbers.timeDelay*1000;
-	blacklistTime = config.numbers.blacklistTime*86400000;
-	msgDeleteTime = config.numbers.msgDeleteTime*1000;
-	saveLocalCopy = config.toggles.saveLocalCopy;
-	deleteScreens = config.toggles.deleteScreens;
-	welcomeMsg = config.toggles.welcomeMsg;
-	testMode = config.toggles.testMode;
-	screenshotChannel = config.ids.screenshotChannel;
-	logsChannel = config.ids.logsChannel;
-	profileChannel = config.ids.profileChannel;
-	level30Role = config.ids.level30Role;
-	level40Role = config.ids.level40Role;
-	level50Role = config.ids.level50Role;
-	modRole = config.ids.modRole;
-	serverID = config.ids.serverID;
-	blacklistRole = config.ids.blacklistRole;
-	channel = client.channels.cache.get(screenshotChannel);
-	logs = client.channels.cache.get(logsChannel);
-	profile = client.channels.cache.get(profileChannel);
-	server = client.guilds.cache.get(serverID);
+	for (const cat in config) for (const item in config[cat]) ops[item] = config[cat][item];
+	ops.timeDelay = config.numbers.timeDelay*1000;
+	ops.blacklistTime = config.numbers.blacklistTime*86400000;
+	ops.msgDeleteTime = config.numbers.msgDeleteTime*1000;
+	// prefix = config.chars.prefix;
+	// timeDelay = config.numbers.timeDelay*1000;
+	// blacklistTime = config.numbers.blacklistTime*86400000;
+	// msgDeleteTime = config.numbers.msgDeleteTime*1000;
+	// saveLocalCopy = config.toggles.saveLocalCopy;
+	// deleteScreens = config.toggles.deleteScreens;
+	// welcomeMsg = config.toggles.welcomeMsg;
+	// testMode = config.toggles.testMode;
+	// screenshotChannel = config.ids.screenshotChannel;
+	// logsChannel = config.ids.logsChannel;
+	// profileChannel = config.ids.profileChannel;
+	// level30Role = config.ids.level30Role;
+	// level40Role = config.ids.level40Role;
+	// level50Role = config.ids.level50Role;
+	// modRole = config.ids.modRole;
+	// serverID = config.ids.serverID;
+	// blacklistRole = config.ids.blacklistRole;
+	channel = client.channels.cache.get(ops.screenshotChannel);
+	logs = client.channels.cache.get(ops.logsChannel);
+	profile = client.channels.cache.get(ops.profileChannel);
+	server = client.guilds.cache.get(ops.serverID);
 	if (!loaded){
 		console.log("\nLoading configs...");
 		console.log("\nConfigs:",config);
@@ -77,7 +82,7 @@ function loadConfigs(){
 // Checks whether the date folder exists for the images to be saved to and creates it if not.
 // This should probably not run if "saveLocalCopy" is off, but I'm too worried to change it.
 function checkDateFolder(checkDate){
-	if (saveLocalCopy) {
+	if (ops.saveLocalCopy) {
 		newFolder = `./screens/Auto/${checkDate.toDateString()}`
 		console.log(`\nChecking for ${newFolder}...`);
 		fs.access(newFolder, (err) => {
@@ -114,7 +119,7 @@ function loadCommands(){
 	commandFilesNames = "\nThe currently loaded commands and cooldowns are: \n";
 	for (const file of commandFiles) {		//Loads commands
 		const command = require(`./commands/${file}`);
-		commandFilesNames = commandFilesNames + prefix + command.name;
+		commandFilesNames = commandFilesNames + ops.prefix + command.name;
 		if (command.cooldown){
 			commandFilesNames = commandFilesNames + ":\t" + command.cooldown + " seconds \n";
 		} else {
@@ -154,7 +159,7 @@ function loadBlacklist(){
 				if (!blackJson[0]) return console.log(`Blacklist loaded (empty).`);
 				let x = 0;
 				for (item of blackJson){
-					if (lastImageTimestamp-item[1]>blacklistTime){
+					if (lastImageTimestamp-item[1]>ops.blacklistTime){
 						x = x+1;
 					} else {
 						blacklist.set(item[0],item[1]);
@@ -213,7 +218,7 @@ function loadStats() {
 // TODO: Make different settings for different servers. It is not necessary, but would be good practice
 function checkServer(message){
 	// 216412752120381441
-	if (serverID === undefined) return;
+	if (ops.serverID === undefined) return;
 	if (message){
 		message.lineReply("This is not the intended server. Goodbye forever :wave:").then(()=>{
 			message.guild.leave().then(s => {
@@ -225,7 +230,7 @@ function checkServer(message){
 	}
 	activeServers = client.guilds.cache;
 	activeServers.each(serv => {
-		if(serv.id != serverID){
+		if(serv.id != ops.serverID){
 			serv.leave().then(s => {
 				console.log(`Left: ${s}, as it is not the intended server.`);
 				dev.send(`**Dev message: **Left: ${s}#${s.id}`).catch(console.error);
@@ -237,10 +242,10 @@ function checkServer(message){
 load();
 
 client.once("ready", async () => {
-	channel = await client.channels.cache.get(screenshotChannel);
-	logs = await client.channels.cache.get(logsChannel);
-	profile = await client.channels.cache.get(profileChannel);
-	server = await client.guilds.cache.get(serverID);
+	channel = await client.channels.cache.get(ops.screenshotChannel);
+	logs = await client.channels.cache.get(ops.logsChannel);
+	profile = await client.channels.cache.get(ops.profileChannel);
+	server = await client.guilds.cache.get(ops.serverID);
 	dev = await client.users.fetch("146186496448135168",false,true);
 	checkServer();
 	client.user.setActivity(`${ver}`);
@@ -262,12 +267,12 @@ client.once("ready", async () => {
 	};
 	setTimeout(() => {
 		channel.send("The bot has awoken, Hello :wave:").then(msg => {
-			if (msgDeleteTime && !msg.deleted){
+			if (ops.msgDeleteTime && !msg.deleted){
 				setTimeout(() => {
 					msg.delete().catch(()=>{
 						console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
 					});
-				},msgDeleteTime);
+				},ops.msgDeleteTime);
 			}
 		});
 		channel.messages.fetch({limit:20}).then(msgs => {
@@ -279,27 +284,27 @@ client.once("ready", async () => {
 		dev.send(`**Dev message: **Loaded in guild: "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
 		console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in guild: "${server.name}"#${server.id} in channel: "${channel.name}"#${channel.id}`);
 		console.log("======================================================================================");
-	},timeDelay);
+	}, ops.timeDelay);
 });
 
 
-client.on("guildMemberAdd", member => { //dave, dm when a member joins
-	//console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
-  if (!welcomeMsg) return;
+client.on("guildMemberAdd", member => { // dave, dm when a member joins
+	// console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
+  if (!ops.welcomeMsg) return;
   member.send(`Hey ${member}, welcome to Pokémon GO Raids!
 
 In order to gain access to our server we kindly ask you to post a screenshot of your trainer page that shows your trainer level.
 
-Please post your screenshot in: <#740670778516963339>
+Please post your screenshot in: <#${ops.screenshotChannel}>
 
 You’ll then be given the required roles.
 
-Then type \`$verify\` in <#740262255584739391> and follow the instructions, please.
+Then type \`$verify\` in <#${ops.profileChannel}> and follow the instructions, please.
 
 Good luck, trainer!
 
 We will only grant access to our server to trainers level 30 and up!
-If you are under 30, you will be direct messaged with a link to our sister server, with no level requirement.`).catch(()=>{
+If you are under 30, you will be direct messaged with a link to our sister server, with no level requirement.`).catch(() => {
 		console.error(`[${dateToTime(new Date())}]: Error: Could not send welcomeMsg DM to ${member.user.username}${member}`);
 	});
 });
@@ -312,7 +317,7 @@ function clearBlacklist(message, idToDelete){
 		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
 		saveBlacklist();
 	} else {
-		fs.writeFile("./server/blacklist.json","[]",(err)=>{
+		fs.writeFile("./server/blacklist.json", "[]", (err) => {
 			if (err){
 				console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
 				return;
@@ -333,26 +338,26 @@ client.on("message", message => {
 	if (message.channel.type === "dm") { // This section may be mail code, one day
 		console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent a message in a dm for some reason.${(message.attachments.size > 0)?"\nMessage contained a file":""}${(message.content)?`\nMessage content: ${message.content}`:""}`);
 		if (message.content.startsWith("$")) {
-			message.lineReply(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${profileChannel}> once you have confirmed you are above level 30 by sending a screenshot in <#${screenshotChannel}>.`);
+			message.lineReply(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you have confirmed you are above level 30 by sending a screenshot in <#${ops.screenshotChannel}>.`);
 		} else {
-			message.lineReply(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${screenshotChannel}>.`);
+			message.lineReply(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${ops.screenshotChannel}>.`);
 		}
 		return;
 	}
-	if (message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
+	if (message.channel.type !== "dm" && message.guild.id != ops.serverID && ops.serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
 	}
 	var wasDelayed = false;
 	currentTime = Date.now();
-	if (saveLocalCopy && screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
+	if (ops.saveLocalCopy && screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
 		screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
 		checkDateFolder(postedTime);
 	}
 	//image handler
 	if (message.attachments.size > 0) { //checks for an attachment TODO: Check that the attachment is actually an image... how...? idk lol
 		if (channel == undefined){
-			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix}set screenshotChannel <id>\``);
+			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``);
 		};
 		if (message.channel == logs) {
 			return;
@@ -364,7 +369,7 @@ client.on("message", message => {
 // This is no longer necessary, especially since other channels might be mail channels. Still should stress the importance of security
 // 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
 // 			message.lineReply(`I cannot scan an image in this channel. Please send it in ${channel}.
-// <@&${modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`).catch(()=>{
+// <@&${ops.modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`).catch(()=>{
 // 				console.error(`[${dateToTime(postedTime)}]: Error: I can not send a message in ${message.channel.name}${message.channel}`);
 // 			});
 			return;
@@ -392,30 +397,30 @@ client.on("message", message => {
 			saveStats("left");
 			return;
 		}
-		if (message.member.roles.cache.has(blacklistRole) && blacklistRole){
-			message.lineReplyNoMention(`<@&${modRole}> This message was not scanned due to the manual blacklist.`).catch(()=>{
+		if (message.member.roles.cache.has(ops.blacklistRole) && ops.blacklistRole){
+			message.lineReplyNoMention(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`).catch(()=>{
 				console.error(`[${dateToTime(postedTime)}]: Error: I can not send a message in ${message.channel.name}${message.channel}`);
 			});
-			logs.send(`User: ${message.author}\nNot scanned due to manual blacklist:\n<@&${blacklistRole}>`,image);
+			logs.send(`User: ${message.author}\nNot scanned due to manual blacklist:\n<@&${ops.blacklistRole}>`,image);
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the auto blacklist`);
 			saveStats("black");
 			return;
 		}
-		if (message.member.roles.cache.has(level50Role) && message.member.roles.cache.has(level40Role) && message.member.roles.cache.has(level30Role)){
+		if (message.member.roles.cache.has(ops.level50Role) && message.member.roles.cache.has(ops.level40Role) && message.member.roles.cache.has(ops.level30Role)){
 			message.author.send("You already have all available roles.").catch(()=>{
 				console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 			});
 			logs.send(`User: ${message.author}\nRoles: All 3 already possessed`,image);
 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
-			if (deleteScreens && !message.deleted) message.delete().catch(()=>{
+			if (ops.deleteScreens && !message.deleted) message.delete().catch(()=>{
 				console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 			});
 			saveStats("all");
 			return;
 		}
-		if (blacklistTime>0){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
+		if (ops.blacklistTime>0){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
 			if (blacklist.has(message.author.id)){
-				if (currentTime-blacklist.get(message.author.id)<blacklistTime){
+				if (currentTime-blacklist.get(message.author.id)<ops.blacklistTime){
 					saveStats("black"); //dave, dm when a member is blacklisted
 					message.author.send(`Hey, ${message.author}.
 We are sorry, but you are currently prohibited from using the automated system due to a recent screenshot that was scanned under level 30.
@@ -424,8 +429,8 @@ Otherwise, keep leveling up, and post your screenshot when you have reached that
 Hope to raid with you soon! :wave:`).catch(() => {
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 					});
-					logs.send(`User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((blacklistTime-(currentTime-blacklist.get(message.author.id)))/3600000).toFixed(1)} hours`,image);
-					if (deleteScreens && !message.deleted) message.delete().catch(()=>{
+					logs.send(`User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((ops.blacklistTime-(currentTime-blacklist.get(message.author.id)))/3600000).toFixed(1)} hours`,image);
+					if (ops.deleteScreens && !message.deleted) message.delete().catch(()=>{
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
 					console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the auto blacklist`);
@@ -446,17 +451,17 @@ Hope to raid with you soon! :wave:`).catch(() => {
 			const intervalID = setInterval(function () {
 				if(imageLogCount+1 == instance){					// a better queue system might involve adding the image to a collection. not sure how I would do that
 					currentTime = Date.now();								// anyway, this definitely caused half of my issues when developing
-					setTimeout(imageWrite,timeDelay*(1/5));	// hopefully it is bodged well enough to be stable
+					setTimeout(imageWrite,ops.timeDelay*(1/5));	// hopefully it is bodged well enough to be stable
 					clearInterval(intervalID);
 				}
-			}, timeDelay);
+			}, ops.timeDelay);
 		}
 		async function imageWrite(){ // this is just the next step in processing. I should make the write stream - and most of these functions - different modules
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
 			logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent image#${instance}`;
 			try{
 				const logimg = await logs.send(`User: ${message.author}`, image);
-				if(saveLocalCopy){ 															// this seems to be the cause of the unknown error
+				if(ops.saveLocalCopy){ 															// this seems to be the cause of the unknown error
 					const imageName = image.id + "." + fileType;	// if saveLocalCopy is off, the error is very rare
 					const imageDL = fs.createWriteStream(screensFolder + "/" + imageName); // it must be tesseract not being able to deal
 					const request = https.get(image.url, function(response) {							 // with muliple things happening at once
@@ -465,7 +470,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				}
 				crop(message).then((imgBuff)=>{
 					const testSend = new Promise(function(res) {
-						if (testMode){
+						if (ops.testMode){
 							const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
 							channel.send("Test mode. This is the image fed to the OCR system:", imgAttach).then(() => {
 								res();
@@ -475,7 +480,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 						}
 					});
 					const saveCropped = new Promise(function(res) {
-						if (saveLocalCopy) {
+						if (ops.saveLocalCopy) {
 							saveBuff(image, imgBuff).then(() => {
 								res();
 							}).catch((err) => {
@@ -510,7 +515,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				message.react("❌").catch(()=>{
 					console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 				});
-				message.lineReply(`<@&${modRole}> I can not scan this image due to an uncaught error. Err: ${error}`);
+				message.lineReply(`<@&${ops.modRole}> I can not scan this image due to an uncaught error. Err: ${error}`);
 				imageLogCount++;
 				currentlyImage--;
 				return;
@@ -541,19 +546,19 @@ Hope to raid with you soon! :wave:`).catch(() => {
 					failed = true;
 					level = "Failure";
 				}
-				if (testMode){
+				if (ops.testMode){
 					message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `).catch(()=>{
 						message.channel.send(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
 					});
 				}
 				if (isNaN(level) || level >50 || level <1){
 					logimg.edit(`User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``,image);
-					message.lineReply(`<@&${modRole}> There was an issue scanning this image.`);
+					message.lineReply(`<@&${ops.modRole}> There was an issue scanning this image.`);
 					message.react("❌").catch(()=>{
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 					}); //dave, dm when image fails to scan
 					message.author.send(`Sorry, ${message.author}, but there was an issue scanning your profile screenshot.
-Make sure you follow the example at the top of <#740670778516963339>.
+Make sure you follow the example at the top of <#${ops.screenshotChannel}>.
 If part of your buddy is close to the level number, try rotating it out of the way.
 If there was a different cause, a moderator will be able to help manually approve you.`).catch(() => {
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
@@ -570,7 +575,7 @@ If there was a different cause, a moderator will be able to help manually approv
 					imageLogCount++;
 					currentlyImage--;
 					if (imageLogCount>0 && imageLogCount % 30 === 0) loadBlacklist();
-					if (deleteScreens && !message.deleted) message.delete().catch(()=>{
+					if (ops.deleteScreens && !message.deleted) message.delete().catch(()=>{
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
 				}
@@ -592,17 +597,17 @@ If there was a different cause, a moderator will be able to help manually approv
 			 console.error(`[${dateToTime(new Date())}]: Error: Known imageWrite crash. Consider turning off saveLocalCopy. This error should be handled correctly.`);
 			 const errorMessage = channel.send(`An internal error occured. Please retry sending the screenshot(s) that failed.`);
 			 errorMessage.then((errorMessage)=>{setTimeout(()=>{
-				 if (errorMessage && msgDeleteTime>0){
+				 if (errorMessage && ops.msgDeleteTime>0){
 					 errorMessage.delete().catch(()=>{
 						 console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${errorMessage.url}\nContent of mesage: "${errorMessage.content}"`);
 					 });
 				 }
-			 },msgDeleteTime);});
+			 },ops.msgDeleteTime);});
 		 }
 	 } else {
 		 if (err != null) {
 			 console.error(`Uncaught Exception: ${err}${err.stack}`);
-			 channel.send(`<@&${modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
+			 channel.send(`<@&${ops.modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
 		 } else {
 			 console.error(err);
 		 }

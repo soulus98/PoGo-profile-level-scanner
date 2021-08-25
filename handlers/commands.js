@@ -1,28 +1,27 @@
-const prefix = require("../server/config.json").chars.prefix;
 const {dateToTime} = require("../func/dateToTime.js");
 
 function handleCommand(message,postedTime){
   const client = message.client;
-  if (!message.content.startsWith(prefix) || message.author.bot) return; //No prefix? Bot? Cancel
+  if (!message.content.startsWith(ops.prefix) || message.author.bot) return; //No prefix? Bot? Cancel
   //finangling the command and argument vars
-  const args = message.content.slice(prefix.length).trim().split(" ");
+  const args = message.content.slice(ops.prefix.length).trim().split(" ");
   const commandName = args.shift().toLowerCase();
   const command = client.commands.get(commandName)
     || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName)); //this searches aliases
   //a bunch of checking
   if (!command) return; 																						//is it a command
-  logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} used ${prefix}${commandName}`;
+  logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} used ${ops.prefix}${commandName}`;
   if (command.guildOnly && message.channel.type === "dm") { 				//dm checking
-    logString = logString + `, but it failed, as ${prefix}${commandName} cannot be used in a DM`;
+    logString = logString + `, but it failed, as ${ops.prefix}${commandName} cannot be used in a DM`;
     console.log(logString);
     return message.lineReply("This command cannot be used in a DM");
   }
   if (command.permissions) {																				//Permission checking
     const authorPerms = message.channel.permissionsFor(message.author);
     if (!authorPerms || !authorPerms.has(command.permissions)) {
-      logString = logString + `, but it failed, as ${prefix}${commandName} requires ${command.permissions}, and the user does not possess it.`;
+      logString = logString + `, but it failed, as ${ops.prefix}${commandName} requires ${command.permissions}, and the user does not possess it.`;
       console.log(logString);
-      return message.lineReply(`You must possess the ${command.permissions} permission to execute \`${prefix}${commandName}\``);
+      return message.lineReply(`You must possess the ${command.permissions} permission to execute \`${ops.prefix}${commandName}\``);
     }
   }
   if (command.args && !args.length) {																//Checking for arguments if an argument is required

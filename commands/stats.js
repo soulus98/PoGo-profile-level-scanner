@@ -4,7 +4,7 @@ module.exports = {
 	name: "statistics",
 	description: "Show the current stats for the bot",
   aliases: ["stats","stat","analytics","analytic","anals"],
-  usage: `\`${prefix}stats\``,
+  usage: `\`${ops.prefix}stats\``,
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {

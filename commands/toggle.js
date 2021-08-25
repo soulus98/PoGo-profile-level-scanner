@@ -3,23 +3,23 @@ const {loadConfigs} = require("../bot.js");
 
 module.exports = {
 	name: "toggle-setting",
-	description: `Used to toggle bot settings. Currently toggles settings for all instances of the bot, as there is only one intended instance. Use \`${prefix}show-options\` to see all current settings.`,
+	description: `Used to toggle bot settings. Currently toggles settings for all instances of the bot, as there is only one intended instance. Use \`${ops.prefix}show-options\` to see all current settings.`,
   aliases: ["toggle", "tog"],
-  usage: `\`${prefix}toggle <setting>\``,
+  usage: `\`${ops.prefix}toggle <setting>\``,
   args: true,
 	guildOnly:true,
   permissions: "MANAGE_GUILD",
 	execute(message, args) {
 		return new Promise(function(resolve, reject) {
 			if (args.length != 1){
-				message.lineReply(`You must supply only one argument in the form \`${prefix}toggle [setting-name]\``);
+				message.lineReply(`You must supply only one argument in the form \`${ops.prefix}toggle [setting-name]\``);
 				resolve(`, but it failed, as there were no arguments provided`);
 				return;
 			}
 			try{
 				toggles = config.toggles;
 				if (toggles[args[0]] === undefined){
-					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${prefix}show\` to see a list of all settings.`);
+					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${ops.prefix}show\` to see a list of all settings.`);
 					resolve(` but it failed, as ${args} is not a valid setting.`);
 					return;
 				}

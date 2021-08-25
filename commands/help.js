@@ -3,7 +3,7 @@ module.exports = {
 	name: "help",
 	description: "Displays all commands and information for specific commands.",
   aliases: ["command", "commands"],
-  usage: `\`${prefix}help [command name]\``,
+  usage: `\`${ops.prefix}help [command name]\``,
 	execute(message, args) {
 		return new Promise(function(resolve) {
 			const data = [];
@@ -26,8 +26,8 @@ module.exports = {
 			} else {
 				if (!args.length) {
 					data.push("Here's a list of all my commands:");
-					data.push(commands.map(command => "\`" + prefix + command.name).join("\`\n"));
-					data.push(`\`\nYou can use \`${prefix}help [command name]\` for information on a specific command.`);
+					data.push(commands.map(command => "\`" + ops.prefix + command.name).join("\`\n"));
+					data.push(`\`\nYou can use \`${ops.prefix}help [command name]\` for information on a specific command.`);
 					message.lineReplyNoMention(data, { split: true });
 					resolve(`, and it was successful.`);
 					return;
@@ -35,8 +35,8 @@ module.exports = {
 				const name = args[0].toLowerCase();
 				const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
 				if (!command) {
-					message.lineReply(`\`${prefix}${name}\` is not a valid command.`);
-					resolve(`, but it failed, as ${prefix}${name} not a valid command.`);
+					message.lineReply(`\`${ops.prefix}${name}\` is not a valid command.`);
+					resolve(`, but it failed, as ${ops.prefix}${name} not a valid command.`);
 					return;
 				}
 				try {

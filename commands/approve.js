@@ -6,7 +6,7 @@ module.exports = {
 	name: "confirm",
 	description: "Manually approve/reject a user by telling the bot the user's level. `level` can be omitted, the bot will still approve.",
   aliases: ["c", "con"],
-  usage: `\`${prefix}c <@mention/ID> [level]\``,
+  usage: `\`${ops.prefix}c <@mention/ID> [level]\``,
 	guildOnly:true,
   args: true,
 	permissions: "MANAGE_ROLES",
@@ -87,7 +87,6 @@ module.exports = {
 			// role id === undefined
 			// any other mistype === undefined
 			return prom.then(function([inCommand, message, image, logimg, level, id, member]) {
-				const msgDeleteTime = config.numbers.msgDeleteTime*1000;
 				if (member === null){
 					console.error(`[${execTime}]: Error: #${id} left the server before they could be processed.`);
 					if (inCommand) {
@@ -119,12 +118,12 @@ module.exports = {
 						if (!inCommand) member.send(`I'll be honest, this is weird.
 Why would you send a screenshot of an account under level when you already have the role that means you are above the gate level...???
 I am honestly curious as to why, so please shoot me a dm at <@146186496448135168>. It is soulus#3935 if that tag doesn't work.`);
-							else message.lineReply(`Ya silly, they already have Remote Raids. You probably want \`${prefix}revert\`. That or you did a typo.`);
+							else message.lineReply(`Ya silly, they already have Remote Raids. You probably want \`${ops.prefix}revert\`. That or you did a typo.`);
 							if (!inCommand) logimg.edit(`User: ${member}\nResult: \`${level}\`\nAlready had RR, no action taken.`, image);
 						bigResolve((logggString || "") + ", but it failed, since that member already has RR, so they could not be rejected.");
 						return;
 					}
-					if (!inCommand && !config.toggles.deleteScreens && !message.deleted) message.react("👎").catch(() => {
+					if (!inCommand && !ops.deleteScreens && !message.deleted) message.react("👎").catch(() => {
 						console.error(`[${execTime}]: Error: Could not react 👎 (thumbsdown) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
 					if (inCommand && !message.deleted) message.react("👍").catch(() => {
@@ -146,14 +145,14 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 					const { blacklist } = require("../bot.js");
 					blacklist.set(id, Date.now());
 					saveBlacklist();
-					bigResolve((logggString || "") + `. They were added to the blacklist for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime == 1) ? "" : "s"} for an image scanned at ${level}`);
-					if (!inCommand) logimg.edit(`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${config.numbers.blacklistTime} day${(config.numbers.blacklistTime == 1) ? "" : "s"}`, image);
+					bigResolve((logggString || "") + `. They were added to the blacklist for ${ops.blacklistTime} day${(ops.blacklistTime == 1) ? "" : "s"} for an image scanned at ${level}`);
+					if (!inCommand) logimg.edit(`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime} day${(ops.blacklistTime == 1) ? "" : "s"}`, image);
 					if (inCommand) deleteStuff(message, execTime, id);
 					saveStats(level);
 					return;
 				} else {
 					new Promise(function(resolve) {
-						if (member.roles.cache.has(level30Role)){ //dave, over 30 msg in dm
+						if (member.roles.cache.has(ops.level30Role)){ //dave, over 30 msg in dm
 							if (inCommand){
 								resolve(false);
 							} else {
@@ -163,15 +162,15 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 						} else { //dave, over 30 msg in PYS
 							channel.send(`Hey, ${member}. Welcome to the server. :partying_face:
 
- • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.`).then(msg => {
+ • Start by typing \`$verify\` in <#${ops.profileChannel}>. The bot will then ask for your Trainer Code, so have it ready.`).then(msg => {
 								setTimeout(()=>{
 									msg.delete().catch(()=>{
 										console.error(`[${execTime}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
 									});
-								},msgDeleteTime);
+								},ops.msgDeleteTime);
 							});
 							setTimeout(()=>{
-								member.roles.add(server.roles.cache.get(level30Role)).catch(console.error);
+								member.roles.add(server.roles.cache.get(ops.level30Role)).catch(console.error);
 							},250);
 							resolve(true);
 							setTimeout(()=>{ //dave, over 30 msg in profile-setup
@@ -189,7 +188,7 @@ Have fun raiding. :wave:`);
 							//dave, over 30 msg in dms
 							msgtxt.push(`Hey, ${member}. Welcome to the server. :partying_face:
 
- • Start by typing \`$verify\` in <#740262255584739391>. The bot will then ask for your Trainer Code, so have it ready.
+ • Start by typing \`$verify\` in <#${ops.profileChannel}>. The bot will then ask for your Trainer Code, so have it ready.
 
  • Extra commands such as \`$team <team-name>\` and \`$level <no>\` are pinned in that channel. Just ask if you can't find them.
 
@@ -201,9 +200,9 @@ Have fun raiding. :wave:`);
 					}).then((given30) => {
 						g40 = new Promise((resolve) => {
 							if (give40) {
-								if (!(level40Role == "0")) {
-									if (!member.roles.cache.has(level40Role)) {
-										member.roles.add(server.roles.cache.get(level40Role)).catch(console.error);
+								if (!(ops.level40Role == "0")) {
+									if (!member.roles.cache.has(ops.level40Role)) {
+										member.roles.add(server.roles.cache.get(ops.level40Role)).catch(console.error);
 										resolve(true);
 									} else {
 										resolve(false);
@@ -217,9 +216,9 @@ Have fun raiding. :wave:`);
 						});
 						g50 = new Promise((resolve) => {
 							if (give50) {
-								if (!(level50Role == "0")) {
-									if (!member.roles.cache.has(level50Role)) {
-										member.roles.add(server.roles.cache.get(level50Role)).catch(console.error);
+								if (!(ops.level50Role == "0")) {
+									if (!member.roles.cache.has(ops.level50Role)) {
+										member.roles.add(server.roles.cache.get(ops.level50Role)).catch(console.error);
 										resolve(true);
 									} else {
 										resolve(false);
@@ -240,7 +239,7 @@ Have fun raiding. :wave:`);
 									console.error(err);
 									console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member.user}`);
 								});
-								if ((!deleteScreens || inCommand) && !message.deleted) message.react("👍").catch(()=>{
+								if ((!ops.deleteScreens || inCommand) && !message.deleted) message.react("👍").catch(()=>{
 									console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								});
 							}
@@ -250,12 +249,12 @@ Have fun raiding. :wave:`);
 								});
 								message.lineReply("That person already had the roles you asked me to give them. Check the command or the user and try again.").then((msg) => {
 									setTimeout(() => {
-										if (msgDeleteTime){
+										if (ops.msgDeleteTime){
 											msg.delete().catch(()=>{
 												console.error(`[${execTime}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
 											});
 										}
-									}, msgDeleteTime);
+									}, ops.msgDeleteTime);
 								}).catch(() => {
 									console.error(`[${execTime}]: Error: Could not reply to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								});
@@ -280,13 +279,12 @@ Have fun raiding. :wave:`);
 };
 
 function deleteStuff(message, execTime, id){
-	const msgDeleteTime = config.numbers.msgDeleteTime*1000;
-	if (!message.deleted && msgDeleteTime){
+	if (!message.deleted && ops.msgDeleteTime){
 		setTimeout(function() {
 			message.delete().catch(() => {
 				console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 			});
-		}, msgDeleteTime);
+		}, ops.msgDeleteTime);
 	}
 	channel.messages.fetch({limit:10}).then(msgs => {
 		selfMsgs = msgs.filter(msg =>

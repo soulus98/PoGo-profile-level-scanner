@@ -2,6 +2,7 @@
 * WIP: Huge optimization regarding processing multiple images at once
 * Optimized by only requesting https once, using inbuilt image.width and image.height
 * Mod: crop.js and saveBuff.js
+* Cleaned up a ton of global variables
 * Installed a linter and cleaned up some code based on the rules in ".eslintrc.json"
 
 

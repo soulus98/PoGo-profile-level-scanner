@@ -5,7 +5,7 @@ module.exports = {
 	name: "show-settings",
 	description: "Shows all settings for the current (and only) instance of the bot",
   aliases: ["settings","options","opts","show"],
-  usage: `${prefix}settings`,
+  usage: `${ops.prefix}settings`,
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
@@ -16,7 +16,7 @@ module.exports = {
 			for (const cat in config){
 				embed.addFields(
 					{ name: "\u200B", value: "----------------------------------------------"},
-					{ name: `**${cat.charAt(0).toUpperCase() + cat.slice(1)}:**`, value: `*${configDesc[cat]["self"].replace("{prefix}",prefix)}*`},
+					{ name: `**${cat.charAt(0).toUpperCase() + cat.slice(1)}:**`, value: `*${configDesc[cat]["self"].replace("{ops.prefix}",ops.prefix)}*`},
 				);
 				for (const key in config[cat]){
 					embed.addField(`${key}: *${configDesc[cat][key]}*`,`\`${config[cat][key].toString().replace("true","ON").replace("false","OFF")}\``);

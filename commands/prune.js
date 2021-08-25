@@ -3,7 +3,7 @@ module.exports = {
 	aliases: ["prune", "clear", "purge"],
 	description: "Automatically deletes a specified amount of messages, after a verification.",
 	args: true,
-	usage: `\`${prefix}prune <number>\` (between 1 and 99)`,
+	usage: `\`${ops.prefix}prune <number>\` (between 1 and 99)`,
 	guildOnly:true,
 	permissions: "MANAGE_MESSAGES",
 	execute(message, args) {
