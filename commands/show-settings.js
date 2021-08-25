@@ -9,6 +9,9 @@ module.exports = {
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
+		let config = {};
+		delete require.cache[require.resolve("../server/config.json")];
+		config = require("../server/config.json");
 		return new Promise(function(resolve, reject) {
 			const embed = new Discord.MessageEmbed()
 			.setTitle("Settings")

@@ -9,6 +9,9 @@ module.exports = {
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
 	execute(message, args) {
+		let config = {};
+		delete require.cache[require.resolve("../server/config.json")];
+		config = require("../server/config.json");
 		return new Promise(function(resolve, reject) {
 			if (args.length != 2){
 				message.lineReply(`You must supply two arguments in the form \`${ops.prefix}set [setting-name] [value]\``);

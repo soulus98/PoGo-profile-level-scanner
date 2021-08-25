@@ -114,7 +114,7 @@ module.exports = {
 				const give40 = (level > 39) ? true : false;
 				const give50 = (level == 50) ? true : false;
 				if (!give30) {
-					if (member.roles.cache.has(config.ids.level30Role)){
+					if (member.roles.cache.has(ops.level30Role)){
 						if (!inCommand) member.send(`I'll be honest, this is weird.
 Why would you send a screenshot of an account under level when you already have the role that means you are above the gate level...???
 I am honestly curious as to why, so please shoot me a dm at <@146186496448135168>. It is soulus#3935 if that tag doesn't work.`);

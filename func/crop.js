@@ -14,11 +14,10 @@ function crop(message){
 			});
     }).then((cropSize) => {
 			https.get(image.url, function(response){
-				const threshold = config.numbers.threshold;
 				const img = gm(response);
 				img
-				.blackThreshold(threshold)
-				.whiteThreshold(threshold + 1)
+				.blackThreshold(ops.threshold)
+				.whiteThreshold(ops.threshold + 1)
 				.crop(cropSize.wid, cropSize.hei, cropSize.x, cropSize.y)
 				.flatten()
 				.toBuffer((err, imgBuff) => {

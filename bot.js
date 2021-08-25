@@ -16,17 +16,16 @@ const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
 let blacklist = new Discord.Collection();
 stats = new Discord.Collection();
-let lastImageTimestamp = Date.now();
-imageAttempts = 0;
-imageLogCount = 0;
-launchDate = new Date();
-loaded = false;
-currentlyImage = 0;
-screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
-let config = {};
+let lastImageTimestamp = Date.now(),
+		imageAttempts = 0,
+		imageLogCount = 0,
+		launchDate = new Date(),
+		loaded = false,
+		currentlyImage = 0,
+		screensFolder = `./screens/Auto/${launchDate.toDateString()}`,
+		config = {};
 ops = {};
 module.exports = { loadConfigs, clearBlacklist, cooldowns, blacklist };
-
 
 // Loads all the variables at program launch
 function load(){
@@ -72,7 +71,7 @@ function loadConfigs(){
 	server = client.guilds.cache.get(ops.serverID);
 	if (!loaded){
 		console.log("\nLoading configs...");
-		console.log("\nConfigs:",config);
+		console.log("\nConfigs:", config);
 		loaded = true;
 	} else { // This saves some console spam when reloading
 		console.log("\nReloaded configs\n");
@@ -202,7 +201,7 @@ function loadStats() {
 				console.error(`[${dateToTime(new Date())}]: Error thrown when loading stats (2). Error: ${e}`);
 			}
 		} finally {
-			setTimeout(()=>{
+			setTimeout(() => {
 				for (item of statsJson){
 					stats.set(item[0],item[1]);
 				}
@@ -266,6 +265,10 @@ client.once("ready", async () => {
 		return;
 	};
 	setTimeout(() => {
+		console.log("\nTesto. These are the global variables we need to cut down on:");
+		for (const key in global)
+			if (!(key == "global" || key == "clearInterval" || key == "clearTimeout" || key == "setInterval" || key == "setTimeout" || key == "queueMicrotask" || key == "clearImmediate" || key == "setImmediate" || key == "regeneratorRuntime"))
+				console.log("   ", key);
 		channel.send("The bot has awoken, Hello :wave:").then(msg => {
 			if (ops.msgDeleteTime && !msg.deleted){
 				setTimeout(() => {

@@ -1,5 +1,5 @@
 const fs = require("fs");
-const {loadConfigs} = require("../bot.js");
+const { loadConfigs } = require("../bot.js");
 
 module.exports = {
 	name: "toggle-setting",
@@ -10,6 +10,9 @@ module.exports = {
 	guildOnly:true,
   permissions: "MANAGE_GUILD",
 	execute(message, args) {
+		let config = {};
+		delete require.cache[require.resolve("../server/config.json")];
+		config = require("../server/config.json");
 		return new Promise(function(resolve, reject) {
 			if (args.length != 1){
 				message.lineReply(`You must supply only one argument in the form \`${ops.prefix}toggle [setting-name]\``);
