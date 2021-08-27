@@ -22,7 +22,7 @@ module.exports = {
 			try{
 				toggles = config.toggles;
 				if (toggles[args[0]] === undefined){
-					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${ops.prefix}show\` to see a list of all settings.`);
+					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${ops.prefix}show\` to see a list of all settings. (case-sensitive)`);
 					resolve(` but it failed, as ${args} is not a valid setting.`);
 					return;
 				}

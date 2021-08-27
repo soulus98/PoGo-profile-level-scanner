@@ -23,7 +23,7 @@ module.exports = {
 				chars = config.chars;
 				ids = config.ids;
 				if (numbers[args[0]] === undefined && chars[args[0]] === undefined && ids[args[0]] === undefined){
-					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${ops.prefix}show\` to see a list of all settings.`);
+					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${ops.prefix}show\` to see a list of all settings. (case-sensitive)`);
 					resolve(`, but it failed, as ${args[0]} is not a valid setting.`);
 					return;
 				}

@@ -15,16 +15,16 @@ require("discord-reply");
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
 let blacklist = new Discord.Collection();
+const launchDate = new Date();
 let lastImageTimestamp = Date.now(),
 		imageAttempts = 0,
 		imageLogCount = 0,
-		launchDate = new Date(),
 		loaded = false,
 		currentlyImage = 0,
 		config = {};
 let screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 ops = {};
-module.exports = { loadConfigs, clearBlacklist, cooldowns, blacklist, screensFolder};
+module.exports = { loadConfigs, clearBlacklist, cooldowns, blacklist, screensFolder };
 
 // Loads all the variables at program launch
 async function load(){
