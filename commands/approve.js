@@ -11,12 +11,19 @@ module.exports = {
   args: true,
 	permissions: "MANAGE_ROLES",
 	execute(input, args) {
+		let server = { };
 		return new Promise(function(bigResolve) {
 			const execTime = dateToTime(new Date());
 			const prom = new Promise(function(resolve) {
 				if (input[1] == undefined) {
 					const inCommand = true;
 					const message = input;
+					if (args[2] || isNaN(args[1]) || args[1] > 50 || args[1] < 1){
+						message.lineReply(`Please provide only one user and one level in the format \`${ops.prefix}c <@mention/ID> [level]\``);
+						bigResolve(", but it failed, since the format was wrong.");
+						return;
+					}
+					server = message.guild;
 					const mentions = message.mentions.users;
 					if (mentions.size > 1) {
 						message.lineReply("Sorry, but I cannot confirm more than one user at a time.");
@@ -33,7 +40,7 @@ module.exports = {
 					} else {
 						id = args[0];
 					}
-					server.members.fetch(id).then((memb)=>{
+					server.members.fetch(id).then((memb) => {
 						const info = [inCommand, message, image, logimg, level, id, memb];
 						resolve(info);
 					}).catch((err) => {
@@ -73,6 +80,7 @@ module.exports = {
 				} else {
 					const inCommand = false;
 					const message = input[0];
+					server = message.guild;
 					const image = message.attachments.first();
 					const logimg = input[1];
 					const level = args[1];
@@ -152,28 +160,28 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 					return;
 				} else {
 					new Promise(function(resolve) {
-						if (member.roles.cache.has(ops.level30Role)){ //dave, over 30 msg in dm
+						if (member.roles.cache.has(ops.level30Role)){ // dave, over 30 msg in dm
 							if (inCommand){
 								resolve(false);
 							} else {
 								msgtxt.push("You already have the Remote Raids role");
 								resolve(false);
 							}
-						} else { //dave, over 30 msg in PYS
+						} else { // dave, over 30 msg in PYS
 							channel.send(`Hey, ${member}. Welcome to the server. :partying_face:
 
  • Start by typing \`$verify\` in <#${ops.profileChannel}>. The bot will then ask for your Trainer Code, so have it ready.`).then(msg => {
-								setTimeout(()=>{
-									msg.delete().catch(()=>{
+								setTimeout(() => {
+									msg.delete().catch(() => {
 										console.error(`[${execTime}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
 									});
-								},ops.msgDeleteTime);
+								}, ops.msgDeleteTime);
 							});
-							setTimeout(()=>{
+							setTimeout(() => {
 								member.roles.add(server.roles.cache.get(ops.level30Role)).catch(console.error);
-							},250);
+							}, 250);
 							resolve(true);
-							setTimeout(()=>{ //dave, over 30 msg in profile-setup
+							setTimeout(() => { // dave, over 30 msg in profile-setup
 								profile.send(`Hey, ${member}. Welcome to the server. :partying_face:
 
  • Start by typing \`$verify\` in this channel. The bot will then ask for your Trainer Code, so have it ready.
@@ -185,7 +193,7 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 Feel free to ask any questions you have over in <#733706705560666275>.
 Have fun raiding. :wave:`);
 							}, 3000);
-							//dave, over 30 msg in dms
+							// dave, over 30 msg in dms
 							msgtxt.push(`Hey, ${member}. Welcome to the server. :partying_face:
 
  • Start by typing \`$verify\` in <#${ops.profileChannel}>. The bot will then ask for your Trainer Code, so have it ready.
@@ -198,7 +206,7 @@ Feel free to ask any questions you have over in <#733706705560666275>.
 Have fun raiding. :wave:`);
 						}
 					}).then((given30) => {
-						g40 = new Promise((resolve) => {
+						const g40 = new Promise((resolve) => {
 							if (give40) {
 								if (!(ops.level40Role == "0")) {
 									if (!member.roles.cache.has(ops.level40Role)) {
@@ -214,7 +222,7 @@ Have fun raiding. :wave:`);
 								resolve(false);
 							}
 						});
-						g50 = new Promise((resolve) => {
+						const g50 = new Promise((resolve) => {
 							if (give50) {
 								if (!(ops.level50Role == "0")) {
 									if (!member.roles.cache.has(ops.level50Role)) {
@@ -234,22 +242,22 @@ Have fun raiding. :wave:`);
 							const given40 = vals[0];
 							const given50 = vals[1];
 							if ((given30 || given40 || given50)){
-								if (given40 || given50) msgtxt.push(`${(msgtxt.length == 0) ? `Hey ${member}, ` : (!given30) ? ", however," : "\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the ${(given40)?"\"Level 40\" ":""}${(given50)?(given40)?"and the \"Level 50\" ":"\"Level 50\" ":""}vanity role${(given40 && given50)?"s":""}`);
-								member.send(msgtxt.join(""), {split:true}).catch(() => {
+								if (given40 || given50) msgtxt.push(`${(msgtxt.length == 0) ? `Hey ${member}, ` : (!given30) ? ", however," : "\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the ${(given40) ? "\"Level 40\" " : ""}${(given50) ? (given40) ? "and the \"Level 50\" " : "\"Level 50\" " : ""}vanity role${(given40 && given50) ? "s" : ""}`);
+								member.send(msgtxt.join(""), { split:true }).catch(() => {
 									console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member.user}`);
 								});
-								if ((!ops.deleteScreens || inCommand) && !message.deleted) message.react("👍").catch(()=>{
+								if ((!ops.deleteScreens || inCommand) && !message.deleted) message.react("👍").catch(() => {
 									console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								});
 							}
 							if (!(given30 || given40 || given50) && !message.deleted && inCommand) {
-								message.react("🤷").catch(()=>{
+								message.react("🤷").catch(() => {
 									console.error(`[${execTime}]: Error: Could not react 🤷 (person_shrugging) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								});
 								message.lineReply("That person already had the roles you asked me to give them. Check the command or the user and try again.").then((msg) => {
 									setTimeout(() => {
 										if (ops.msgDeleteTime){
-											msg.delete().catch(()=>{
+											msg.delete().catch(() => {
 												console.error(`[${execTime}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
 											});
 										}
@@ -261,13 +269,10 @@ Have fun raiding. :wave:`);
 							if (!inCommand){
 								if (!given30 && !given40 && !given50){
 									logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`, image);
-								}
-								else {
-									if (logimg) logimg.edit(`User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")}`, image);
-								}
+								} else if (logimg) logimg.edit(`User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}`, image);
 							}
 							saveStats(level);
-							bigResolve((logggString||"") + `. They were given ${(!given30 && !given40 && !given50)?"no roles":""}${(given30?"RR":"")}${(given40?`${given30?", ":""}Level 40`:"")}${(given50?`${given30||given40?", ":""}Level 50`:"")} ${(!inCommand)?`for an image scanned at ${level}`:""}`);
+							bigResolve((logggString || "") + `. They were given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")} ${(!inCommand) ? `for an image scanned at ${level}` : ""}`);
 							if (inCommand) deleteStuff(message, execTime, id);
 						});
 					});
@@ -285,11 +290,11 @@ function deleteStuff(message, execTime, id){
 			});
 		}, ops.msgDeleteTime);
 	}
-	channel.messages.fetch({limit:10}).then(msgs => {
-		selfMsgs = msgs.filter(msg =>
-			((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0,4) != "Hey,") // bot messages
-			|| ((msg.author.id == id) && !msg.pinned)); //member messages
-		channel.bulkDelete(selfMsgs).catch((err)=>{
+	channel.messages.fetch({ limit:10 }).then(msgs => {
+		const selfMsgs = msgs.filter(msg =>
+			((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0, 4) != "Hey,") // bot messages
+			|| ((msg.author.id == id) && !msg.pinned)); // member messages
+		channel.bulkDelete(selfMsgs).catch((err) => {
 			console.error(`[${execTime}]: Error: Could not bulk delete messages: ${selfMsgs}. Error message: ${err}`);
 		});
 	});

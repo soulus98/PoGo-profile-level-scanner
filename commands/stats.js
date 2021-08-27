@@ -3,7 +3,7 @@ const launchDate = Date.now();
 
 module.exports = {
 	name: "statistics",
-	description: "Show the current stats for the bot. Add a \`statistic\` to find that specific stat.",
+	description: "Show the current stats for the bot. Add a `statistic` to find that specific stat.",
   aliases: ["stats", "stat", "analytics", "analytic", "anals"],
   usage: `\`${ops.prefix}stats [statistic]\``,
 	guildOnly:true,

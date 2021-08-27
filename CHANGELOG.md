@@ -1,7 +1,11 @@
 # v1.8 (2021-???-??)
 * WIP: Huge optimization regarding processing multiple images at once
+* ]r now reacts and self-deletes
+* ]c and ]r now check arguments before parsing
+* ]stats now accepts an argument for viewing a specific stat
+* ]stats now tells you how long the bot has been continuously running via "]stats days"
 * Optimized by only requesting https once, using inbuilt image.width and image.height
-* Mod: crop.js and saveBuff.js
+* Mod: saveStats and loadStats into stats.js, crop.js, and saveBuff.js
 * Cleaned up a ton of global variables
 * Installed a linter and cleaned up some code based on the rules in ".eslintrc.json"
 
