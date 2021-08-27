@@ -16,7 +16,6 @@
 		"comma-dangle": ["error", "always-multiline"],
 		"comma-spacing": "error",
 		"comma-style": "error",
-		"curly": ["error", "multi", "consistent"],
 		"dot-location": ["error", "property"],
 		"handle-callback-err": "off",
 		"keyword-spacing": "error",

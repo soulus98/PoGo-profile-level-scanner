@@ -7,7 +7,7 @@ const { crop } = require("./func/crop.js");
 const { saveBuff } = require("./func/saveBuff.js");
 const { handleCommand } = require("./handlers/commands.js");
 const { dateToTime } = require("./func/dateToTime.js");
-const { saveStats } = require("./func/saveStats.js");
+const { saveStats, loadStats } = require("./func/stats.js");
 const { saveBlacklist } = require("./func/saveBlacklist.js");
 const ver = require("./package.json").version;
 require("discord-reply");
@@ -15,86 +15,73 @@ require("discord-reply");
 const client = new Discord.Client();
 const cooldowns = new Discord.Collection();
 let blacklist = new Discord.Collection();
-stats = new Discord.Collection();
 let lastImageTimestamp = Date.now(),
 		imageAttempts = 0,
 		imageLogCount = 0,
 		launchDate = new Date(),
 		loaded = false,
 		currentlyImage = 0,
-		screensFolder = `./screens/Auto/${launchDate.toDateString()}`,
 		config = {};
+let screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 ops = {};
-module.exports = { loadConfigs, clearBlacklist, cooldowns, blacklist };
+module.exports = { loadConfigs, clearBlacklist, cooldowns, blacklist, screensFolder};
 
 // Loads all the variables at program launch
-function load(){
+async function load(){
 	console.log("======================================================================================");
 	console.log("Server starting...");
-		loadConfigs();
+		await loadConfigs();
 		checkDateFolder(launchDate);
 		loadCommands();
 		loadBlacklist();
-		loadStats();
+		loadStats().then((s) => {
+			const { passStats } = require("./commands/stats.js");
+			passStats(s);
+		}).catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
 		client.login(token);
 }
 
 // Loads (or re-loads) the bot settings
 function loadConfigs(){
-	config = {};
-	delete require.cache[require.resolve("./server/config.json")];
-	config = require("./server/config.json");
-	for (const cat in config) for (const item in config[cat]) ops[item] = config[cat][item];
-	ops.timeDelay = config.numbers.timeDelay*1000;
-	ops.blacklistTime = config.numbers.blacklistTime*86400000;
-	ops.msgDeleteTime = config.numbers.msgDeleteTime*1000;
-	// prefix = config.chars.prefix;
-	// timeDelay = config.numbers.timeDelay*1000;
-	// blacklistTime = config.numbers.blacklistTime*86400000;
-	// msgDeleteTime = config.numbers.msgDeleteTime*1000;
-	// saveLocalCopy = config.toggles.saveLocalCopy;
-	// deleteScreens = config.toggles.deleteScreens;
-	// welcomeMsg = config.toggles.welcomeMsg;
-	// testMode = config.toggles.testMode;
-	// screenshotChannel = config.ids.screenshotChannel;
-	// logsChannel = config.ids.logsChannel;
-	// profileChannel = config.ids.profileChannel;
-	// level30Role = config.ids.level30Role;
-	// level40Role = config.ids.level40Role;
-	// level50Role = config.ids.level50Role;
-	// modRole = config.ids.modRole;
-	// serverID = config.ids.serverID;
-	// blacklistRole = config.ids.blacklistRole;
-	channel = client.channels.cache.get(ops.screenshotChannel);
-	logs = client.channels.cache.get(ops.logsChannel);
-	profile = client.channels.cache.get(ops.profileChannel);
-	server = client.guilds.cache.get(ops.serverID);
-	if (!loaded){
-		console.log("\nLoading configs...");
-		console.log("\nConfigs:", config);
-		loaded = true;
-	} else { // This saves some console spam when reloading
-		console.log("\nReloaded configs\n");
-	}
+	return new Promise((resolve) => {
+		config = {};
+		delete require.cache[require.resolve("./server/config.json")];
+		config = require("./server/config.json");
+		for (const cat in config) for (const item in config[cat]) ops[item] = config[cat][item]; // This makes all the options
+		ops.timeDelay = config.numbers.timeDelay * 1000;
+		ops.blacklistTime = config.numbers.blacklistTime * 86400000;
+		ops.msgDeleteTime = config.numbers.msgDeleteTime * 1000;
+		channel = client.channels.cache.get(ops.screenshotChannel);
+		logs = client.channels.cache.get(ops.logsChannel);
+		profile = client.channels.cache.get(ops.profileChannel);
+		let server = client.guilds.cache.get(ops.serverID);
+		if (!loaded){
+			console.log("\nLoading configs...");
+			console.log("\nConfigs:", config);
+			loaded = true;
+		} else { // This saves some console spam when reloading
+			console.log("\nReloaded configs\n");
+		}
+		resolve();
+	});
 }
 
 // Checks whether the date folder exists for the images to be saved to and creates it if not.
-// This should probably not run if "saveLocalCopy" is off, but I'm too worried to change it.
 function checkDateFolder(checkDate){
 	if (ops.saveLocalCopy) {
-		newFolder = `./screens/Auto/${checkDate.toDateString()}`
+		let newFolder = `./screens/Auto/${checkDate.toDateString()}`;
 		console.log(`\nChecking for ${newFolder}...`);
 		fs.access(newFolder, (err) => {
 			if (err){
-				fs.mkdir("./screens",{recursive: true},(err)=>{
+				fs.mkdir("./screens", { recursive: true }, (err) => {
 					if (err) console.error(err);
 					else {
 						console.log("Created/checked Folder: \"screens\"");
-						fs.mkdir("./screens/Auto",{recursive: true},(err)=>{
+						fs.mkdir("./screens/Auto", { recursive: true }, (err) => {
 							if (err) console.error(err);
 							else {
 								console.log("Created/checked Folder: \"Auto\"");
-								fs.mkdir(newFolder,{recursive: true},(err)=>{
+								fs.mkdir(newFolder, { recursive: true }, (err) => {
 									if (err) console.error(err);
 									else {
 										console.log(`Created/checked Folder: ${checkDate.toDateString()}.\n`);
@@ -115,8 +102,8 @@ function checkDateFolder(checkDate){
 function loadCommands(){
 	client.commands = new Discord.Collection();
 	const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
-	commandFilesNames = "\nThe currently loaded commands and cooldowns are: \n";
-	for (const file of commandFiles) {		//Loads commands
+	let commandFilesNames = "\nThe currently loaded commands and cooldowns are: \n";
+	for (const file of commandFiles) {		// Loads commands
 		const command = require(`./commands/${file}`);
 		commandFilesNames = commandFilesNames + ops.prefix + command.name;
 		if (command.cooldown){
@@ -136,17 +123,17 @@ function loadBlacklist(){
 		delete require.cache[require.resolve("./server/blacklist.json")];
 	} catch (e){
 		if (e.code == "MODULE_NOT_FOUND") {
-			//do nothing
+			// do nothing
 		} else {
 			console.error(`[${dateToTime(new Date())}]: Error thrown when loading blacklist. Error: ${e}`);
 		}
 	} finally {
-		var blackJson = "";
+		let blackJson = "";
 		try {
 			blackJson = require("./server/blacklist.json");
 		} catch (e) {
 			if (e.code == "MODULE_NOT_FOUND") {
-				fs.writeFile("./server/blacklist.json","[]",()=>{
+				fs.writeFile("./server/blacklist.json", "[]", () => {
 					console.log("Could not find blacklist.json. Making a new one...");
 					blackJson = require("./server/blacklist.json");
 				});
@@ -154,59 +141,24 @@ function loadBlacklist(){
 				console.error(`[${dateToTime(new Date())}]: Error thrown when loading blacklist (2). Error: ${e}`);
 			}
 		} finally {
-			setTimeout(()=>{
-				if (!blackJson[0]) return console.log(`Blacklist loaded (empty).`);
+			setTimeout(() => {
+				if (!blackJson[0]) return console.log("Blacklist loaded (empty).");
 				let x = 0;
-				for (item of blackJson){
-					if (lastImageTimestamp-item[1]>ops.blacklistTime){
-						x = x+1;
+				for (const item of blackJson){
+					if (lastImageTimestamp - item[1] > ops.blacklistTime){
+						x = x + 1;
 					} else {
-						blacklist.set(item[0],item[1]);
+						blacklist.set(item[0], item[1]);
 					}
 				}
 				if (x){
 					console.log(`Blacklist loaded, and removed ${x} users from it due to time expiration.`);
 					saveBlacklist();
 				} else {
-					let y = blacklist.size;
+					const y = blacklist.size;
 					console.log(`Blacklist loaded from file. It contains ${y} user${(y==1)?"":"s"}`);
 				}
 			},500);
-		}
-	}
-}
-
-// Loads the stats from file
-function loadStats() {
-	stats = new Discord.Collection();
-	try {
-		delete require.cache[require.resolve("./server/stats.json")];
-	} catch (e){
-		if (e.code == "MODULE_NOT_FOUND") {
-			//do nothing
-		} else {
-			console.error(`[${dateToTime(new Date())}]: Error thrown when loading stats. Error: ${e}`);
-		}
-	} finally {
-		var statsJson = "";
-		try {
-			statsJson = require("./server/stats.json");
-		} catch (e) {
-			if (e.code == "MODULE_NOT_FOUND") {
-				fs.writeFile("./server/stats.json","[[\"Attempts\",0],[\"Declined-Blacklist\",0],[\"Declined-Left-Server\",0],[\"Declined-All-Roles\",0],[\"Declined-Wrong-Type\",0],[\"Fails\",0],[\"Under-30\",0],[30,0],[31,0],[32,0],[33,0],[34,0],[35,0],[36,0],[37,0],[38,0],[39,0],[40,0],[41,0],[42,0],[43,0],[44,0],[45,0],[46,0],[47,0],[48,0],[49,0],[50,0]]",()=>{
-					console.log("Could not find stats.json. Making a new one...");
-					statsJson = require("./server/stats.json");
-				});
-			}	else {
-				console.error(`[${dateToTime(new Date())}]: Error thrown when loading stats (2). Error: ${e}`);
-			}
-		} finally {
-			setTimeout(() => {
-				for (item of statsJson){
-					stats.set(item[0],item[1]);
-				}
-				console.log("Stats loaded");
-			},750);
 		}
 	}
 }
@@ -215,21 +167,20 @@ function loadStats() {
 // If it is called from the main event, it sends a reply message
 // This is vital, else someone could change the settings by simply inviting the bot to their server and being admin
 // TODO: Make different settings for different servers. It is not necessary, but would be good practice
-function checkServer(message){
+async function checkServer(message){
+	const dev = await client.users.fetch("146186496448135168", false, true);
 	// 216412752120381441
 	if (ops.serverID === undefined) return;
 	if (message){
-		message.lineReply("This is not the intended server. Goodbye forever :wave:").then(()=>{
-			message.guild.leave().then(s => {
-				console.log(`Left: ${s}#${s.id}, as it is not the intended server.`);
-				dev.send(`**Dev message: **Left: ${s}#${s.id}`).catch(console.error);
-			}).catch(console.error);
+		await message.lineReply("This is not the intended server. Goodbye forever :wave:").catch(console.error);
+		message.guild.leave().then(s => {
+			console.log(`Left: ${s}#${s.id}, as it is not the intended server.`);
+			dev.send(`**Dev message: **Left: ${s}#${s.id}`).catch(console.error);
 		}).catch(console.error);
-		return;
 	}
-	activeServers = client.guilds.cache;
+	const activeServers = client.guilds.cache;
 	activeServers.each(serv => {
-		if(serv.id != ops.serverID){
+		if (serv.id != ops.serverID){
 			serv.leave().then(s => {
 				console.log(`Left: ${s}, as it is not the intended server.`);
 				dev.send(`**Dev message: **Left: ${s}#${s.id}`).catch(console.error);
@@ -245,7 +196,7 @@ client.once("ready", async () => {
 	logs = await client.channels.cache.get(ops.logsChannel);
 	profile = await client.channels.cache.get(ops.profileChannel);
 	server = await client.guilds.cache.get(ops.serverID);
-	dev = await client.users.fetch("146186496448135168",false,true);
+	const dev = await client.users.fetch("146186496448135168", false, true);
 	checkServer();
 	client.user.setActivity(`${ver}`);
 	if (server == undefined){
@@ -354,7 +305,7 @@ client.on("message", message => {
 	var wasDelayed = false;
 	currentTime = Date.now();
 	if (ops.saveLocalCopy && screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
-		screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
+		screensFolder = `./screens/Auto/${(postedTime+86400000).toDateString()}`;
 		checkDateFolder(postedTime);
 	}
 	//image handler
@@ -410,7 +361,7 @@ client.on("message", message => {
 			return;
 		}
 		if (message.member.roles.cache.has(ops.level50Role) && message.member.roles.cache.has(ops.level40Role) && message.member.roles.cache.has(ops.level30Role)){
-			message.author.send("You already have all available roles.").catch(()=>{
+			message.author.send("You already have all available roles.").catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 			});
 			logs.send(`User: ${message.author}\nRoles: All 3 already possessed`,image);
@@ -446,12 +397,12 @@ Hope to raid with you soon! :wave:`).catch(() => {
 		}
 		imageAttempts++;															// This checks whether a new image can be processed every second
 		currentlyImage++;															// It checks the current instance against the total amount of images completed so far
-		var instance = imageAttempts;									// That way, only the next image in row can be processed
-		if (imageLogCount+1 == instance){							// It is probably the most janky part of the bot
+		const instance = imageAttempts;									// That way, only the next image in row can be processed
+		if (imageLogCount + 1 == instance){							// It is probably the most janky part of the bot
 			imageWrite();																// If the instance and the imageLogCount fall out of sync somehow, It breaks
 		} else {																			// an error should be handled properly (as uncaughtException iterates imageLogCount)
 			wasDelayed = true;													// but would break if for example, 2 errors are caused by the same image
-			const intervalID = setInterval(function () {
+			const intervalID = setInterval(function() {
 				if(imageLogCount+1 == instance){					// a better queue system might involve adding the image to a collection. not sure how I would do that
 					currentTime = Date.now();								// anyway, this definitely caused half of my issues when developing
 					setTimeout(imageWrite,ops.timeDelay*(1/5));	// hopefully it is bodged well enough to be stable
@@ -590,11 +541,11 @@ If there was a different cause, a moderator will be able to help manually approv
 	}
 });
 
- process.on("uncaughtException", (err) => {
-	 if (currentlyImage > 0){
-		 imageLogCount++;
-		 currentlyImage--;
-	 }
+process.on("uncaughtException", (err) => {
+	if (currentlyImage > 0){
+		imageLogCount++;
+		currentlyImage--;
+	}
 	 if (err != null) {
 		 if (err.message.substr(0,35) == "Error: UNKNOWN: unknown error, open"){
 			 console.error(`[${dateToTime(new Date())}]: Error: Known imageWrite crash. Consider turning off saveLocalCopy. This error should be handled correctly.`);

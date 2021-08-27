@@ -1,4 +1,4 @@
-const { saveStats } = require("../func/saveStats.js");
+const { saveStats } = require("../func/stats.js");
 const { dateToTime } = require("../func/dateToTime.js");
 const { saveBlacklist } = require("../func/saveBlacklist.js");
 
@@ -235,8 +235,7 @@ Have fun raiding. :wave:`);
 							const given50 = vals[1];
 							if ((given30 || given40 || given50)){
 								if (given40 || given50) msgtxt.push(`${(msgtxt.length == 0) ? `Hey ${member}, ` : (!given30) ? ", however," : "\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the ${(given40)?"\"Level 40\" ":""}${(given50)?(given40)?"and the \"Level 50\" ":"\"Level 50\" ":""}vanity role${(given40 && given50)?"s":""}`);
-								member.send(msgtxt.join(""), {split:true}).catch((err) => {
-									console.error(err);
+								member.send(msgtxt.join(""), {split:true}).catch(() => {
 									console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member.user}`);
 								});
 								if ((!ops.deleteScreens || inCommand) && !message.deleted) message.react("👍").catch(()=>{

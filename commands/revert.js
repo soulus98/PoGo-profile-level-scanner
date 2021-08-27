@@ -1,4 +1,4 @@
-const {saveStats} = require("../func/saveStats.js");
+const {saveStats} = require("../func/stats.js");
 const {dateToTime} = require("../func/dateToTime.js")
 const {saveBlacklist} = require("../func/saveBlacklist.js");
 

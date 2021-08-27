@@ -1,6 +1,6 @@
 const {dateToTime} = require("../func/dateToTime.js");
 
-function handleCommand(message,postedTime){
+function handleCommand(message, postedTime){
   const client = message.client;
   if (!message.content.startsWith(ops.prefix) || message.author.bot) return; //No prefix? Bot? Cancel
   //finangling the command and argument vars
@@ -33,7 +33,7 @@ function handleCommand(message,postedTime){
     console.log(logString);
     return message.lineReply(reply);
   }
-  //command execution
+  // command execution
   try {
 		if (message.channel.type === "dm") {
       logString = logString + " (in a DM)";
@@ -44,7 +44,9 @@ function handleCommand(message,postedTime){
       } else {
         console.log(logString + addToLogString);
       }
-    });
+    }).catch((err) => {
+			console.error(`[${dateToTime(postedTime)}]:`, err);
+		});
   } catch (error) {
     console.error(error);
     message.lineReply("An error occured while trying to run that command.");
