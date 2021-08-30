@@ -15,7 +15,7 @@ module.exports = {
 		return new Promise(function(resolve) {
 			if (args.length != 2){
 				message.lineReply(`You must supply two arguments in the form \`${ops.prefix}set [setting-name] [value]\``);
-				resolve(`, but it failed, as there were an incorrect amount of arguments: ${args}`);
+				resolve(`, but it failed, as there were an incorrect amount of arguments: ${args}.`);
 				return;
 			}
 			try {
@@ -62,7 +62,7 @@ module.exports = {
 				fs.writeFile("./server/config.json", jsonString, err => {
 					if (err) {
 						message.lineReply("An unexpected error occured when editing the config file.");
-						resolve(`, but an unexpected write error occured. Error: ${err}`);
+						resolve(`, but an unexpected write error occured. Error: ${err}.`);
 						return;
 					} else {
 						message.lineReplyNoMention(`"${args[0]}" was successfully changed from \`${was}\` to \`${to}\`.\n Please verify that this is the correct value, as I have no value checking system (yet).`);
@@ -73,7 +73,7 @@ module.exports = {
 				});
 			} catch (err){
 				message.lineReply("An unexpected error occured.");
-				resolve(`, but an unexpected error occured. Error: ${err}`);
+				resolve(`, but an unexpected error occured. Error: ${err}.`);
 				return;
 			}
 		});

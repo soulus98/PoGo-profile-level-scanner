@@ -52,7 +52,7 @@ module.exports = {
 								const memb = mentions.first();
 								if (memb === undefined){
 									message.lineReply("I could not find this member, they may have left the server.");
-									bigResolve(`, but it failed, since I couldn't fetch member ${id}`);
+									bigResolve(`, but it failed, since I couldn't fetch member ${id}.`);
 									return;
 								} else {
 									server.members.fetch(memb.id).then((mem) => {
@@ -110,7 +110,7 @@ module.exports = {
 				} else if (member === undefined) { // this should not be accessable unless using a command
 					if (!inCommand) console.error(`[${execTime}]: Error: member is undefined without being in a command. Impossible error? Tell Soul pls`);
 					message.lineReply("This member may have left the server. If not, then there is a typo, or some other issue, which causes me to not be able to find them.");
-					bigResolve(`, but it failed, due to a typo or some other issue. (This might be an impossible error...? not sure) Id: ${id}`);
+					bigResolve(`, but it failed, due to a typo or some other issue. (This might be an impossible error...? not sure) Id: ${id}.`);
 					return;
 				}
 				let logString;
@@ -156,8 +156,9 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 					});
 					blacklist.set(id, Date.now());
 					saveBlacklist(blacklist);
-					bigResolve((logString || "") + `. They were added to the blacklist for ${ops.blacklistTime * 86400000} day${(ops.blacklistTime == 1) ? "" : "s"} for an image scanned at ${level}`);
-					if (!inCommand) logs.send(`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime * 86400000} day${(ops.blacklistTime == 1) ? "" : "s"}`, image);
+					console.log(blacklist); //testo
+					bigResolve((logString || "") + `. They were added to the blacklist for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"} for an image scanned at ${level}.`);
+					if (!inCommand) logs.send(`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"}`, image);
 					if (inCommand) deleteStuff(message, execTime, id);
 					saveStats(level);
 					return;
@@ -272,14 +273,14 @@ Have fun raiding. :wave:`);
 							if (!inCommand){
 								if (!given30 && !given40 && !given50){
 									logs.send(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`, image).then(() => {
-										if (ops.performanceMode) performanceLogger("Log img posted\t", postedTime.getTime(), Date.now()); // testo?
+										if (ops.performanceMode) performanceLogger("Log img posted\t", postedTime.getTime()); // testo?
 									});
 								} else logs.send(`User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}`, image).then(() => {
-									if (ops.performanceMode) performanceLogger("Log img posted\t", postedTime.getTime(), Date.now()); // testo?
+									if (ops.performanceMode) performanceLogger("Log img posted\t", postedTime.getTime()); // testo?
 								});
 							}
 							saveStats(level);
-							bigResolve((logString || "") + `. They were given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")} ${(!inCommand) ? `for an image scanned at ${level}` : ""}`);
+							bigResolve((logString || "") + `. They were given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")} ${(!inCommand) ? `for level ${level}` : ""}.`);
 							if (inCommand) deleteStuff(message, execTime, id);
 						});
 					});

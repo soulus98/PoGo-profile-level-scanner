@@ -7,7 +7,6 @@
 		"performanceMode":false
   },
   "numbers":{
-    "timeDelay":5,
     "threshold":228,
     "msgDeleteTime":30,
     "blacklistTime":24

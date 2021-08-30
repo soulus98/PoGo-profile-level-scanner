@@ -16,7 +16,7 @@ Message delay: ${sent.createdTimestamp - message.createdTimestamp}ms.`);
 				resolve();
 				return;
 			}	catch (err){
-				resolve(`, but it failed, due to an unexpected error. Error: ${err}`);
+				resolve(`, but it failed, due to an unexpected error. Error: ${err}.`);
 				return;
 			}
 		});

@@ -1,5 +1,5 @@
 module.exports = {
-	performanceLogger(status, first, now){
-		console.log(status, (now - first) / 1000, "s");
+	performanceLogger(status, first){
+		console.log(status, (Date.now() - first) / 1000, "s");
 	},
 }

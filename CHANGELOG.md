@@ -1,9 +1,12 @@
-# v1.8 (2021-???-??)
+# v1.8 (2021-Sep-??)
 * WIP: Huge optimization regarding processing multiple images at once
+* Desynced and reworked logImg for a potential 100% speed increase
+* Added a performanceMode toggle and removed timeDelay. Config files have to be updated to match. See configTemplate for an example
 * ]r now reacts and self-deletes
 * ]c and ]r now check arguments before parsing
 * ]stats now accepts an argument for viewing a specific stat
 * ]stats now tells you how long the bot has been continuously running via "]stats days"
+##### Under-the-hood
 * Optimized by only requesting https once, using inbuilt image.width and image.height
 * Mod: saveStats and loadStats into stats.js, crop.js, and saveBuff.js
 * Cleaned up a ton of global variables
