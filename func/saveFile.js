@@ -1,5 +1,6 @@
 const fs = require("fs");
 const https = require("https");
+const delay = 75;
 
 function saveFile(input) {
 	const screensFolder = `./screens/Auto/${new Date().toDateString()}`;
@@ -15,7 +16,7 @@ function saveFile(input) {
 				} else {
 					setTimeout(() => {
 						resolve();
-					}, 25);
+					}, delay);
 				}
 			});
 		} else {
@@ -28,7 +29,7 @@ function saveFile(input) {
 					response.on("end", () => {
 						setTimeout(() => {
 							resolve();
-						}, 50);
+						}, delay);
 					});
 				}).on("error", (err) => {
 					reject(`Error while writing an image to file. image: ${image}\nError: ${err}`);

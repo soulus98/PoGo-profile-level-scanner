@@ -9,7 +9,6 @@
   },
   "numbers":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a number",
-    "timeDelay":"(How long (in seconds) it takes to process an image. Recommended higher than 5s)",
     "threshold":"(The color level at which all values above will be white and all below with be black. Different for different servers for some reason.)",
     "msgDeleteTime":"(How long (in seconds) error/help messages stick around before self destructing. Set to 0 to disable.)",
     "blacklistTime":"(How long (in days) to prevent someone from posting a screenshot after being scanned at under 30.)"

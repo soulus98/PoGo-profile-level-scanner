@@ -57,7 +57,6 @@ function loadConfigs(){
 		delete require.cache[require.resolve("./server/config.json")];
 		config = require("./server/config.json");
 		for (const cat in config) for (const item in config[cat]) ops[item] = config[cat][item]; // This makes all the options
-		ops.timeDelay = config.numbers.timeDelay * 1000;
 		ops.blacklistTime = config.numbers.blacklistTime * 86400000;
 		ops.msgDeleteTime = config.numbers.msgDeleteTime * 1000;
 		if (!loaded){
@@ -342,12 +341,11 @@ client.on("message", message => {
 		return;
 	}
 	let wasDelayed = false;
-	let currentTime = Date.now();
 	// image handler
 	if (message.attachments.size > 0) { // checks for an attachment
-		if (ops.performanceMode) performanceLogger("\n\n\nImage received\t", postedTime.getTime(), Date.now());
+		if (ops.performanceMode) performanceLogger("\n\n\nImage received\t", postedTime.getTime());
 		if (channel == undefined){
-			message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``);
+			message.lineReply(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``);
 		}
 		if (message.channel == logs) {
 			return;
@@ -414,7 +412,7 @@ client.on("message", message => {
 		}
 		if (ops.blacklistTime > 0){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
 			if (blacklist.has(message.author.id)){
-				if (currentTime - blacklist.get(message.author.id) < ops.blacklistTime){
+				if (postedTime.getTime() - blacklist.get(message.author.id) < ops.blacklistTime){
 					saveStats("black"); // dave, dm when a member is blacklisted
 					message.author.send(`Hey, ${message.author}.
 We are sorry, but you are currently prohibited from using the automated system due to a recent screenshot that was scanned under level 30.
@@ -423,7 +421,7 @@ Otherwise, keep leveling up, and post your screenshot when you have reached that
 Hope to raid with you soon! :wave:`).catch(() => {
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 					});
-					logs.send(`User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((ops.blacklistTime - (currentTime - blacklist.get(message.author.id))) / 3600000).toFixed(1)} hours`, image);
+					logs.send(`User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((ops.blacklistTime - (postedTime.getTime() - blacklist.get(message.author.id))) / 3600000).toFixed(1)} hours`, image);
 					if (ops.deleteScreens && !message.deleted) message.delete().catch(() => {
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
@@ -435,8 +433,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				}
 			}
 		}
-		if (ops.performanceMode) performanceLogger("Checks complete\t", postedTime.getTime(), Date.now());
-
+		if (ops.performanceMode) performanceLogger("Checks complete\t", postedTime.getTime());
 // This checks whether a new image can be processed every second
 // It checks the current instance against the total amount of images completed so far
 // That way, only the next image in row can be processed
@@ -457,19 +454,19 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				wasDelayed = true;
 				const intervalID = setInterval(function() {
 					if (imageLogCount + 1 == instance){
-						currentTime = Date.now();
 						res();
 						clearInterval(intervalID);
 					}
 				}, 250);
 			}
 		}).then(async () => {
-			if (ops.performanceMode) performanceLogger("Queue passed\t", postedTime.getTime(), Date.now());
+			if (ops.performanceMode) performanceLogger("Queue passed\t", postedTime.getTime());
+			let currentTime = Date.now();
 			lastImageTimestamp = Date.now(); // Setting lastImageTimestamp for the next time it runs
 			let logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent image#${instance}`;
 			try {
 				await logs.send(`User: ${message.author} \n Loading...`).then((l) => {
-					if (ops.performanceMode) performanceLogger("Log msg sent\t", postedTime.getTime(), Date.now());
+					if (ops.performanceMode) performanceLogger("Log msg sent\t", postedTime.getTime());
 					logMsg = l;
 				}).catch((err) => {
 					console.error(`[${dateToTime(postedTime)}]: Error: Could not send a message in the logs channel. Err: ${err}`);
@@ -477,7 +474,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				const writeFile = new Promise((res) => {
 					if (ops.saveLocalCopy){
 						saveFile(image).then(() => {
-							if (ops.performanceMode) performanceLogger("Written to disk\t", postedTime.getTime(), Date.now());
+							if (ops.performanceMode) performanceLogger("Written to disk\t", postedTime.getTime());
 							res();
 						}).catch((err) => {
 							console.error(`[${dateToTime(postedTime)}]: Error: ${err}`);
@@ -485,13 +482,13 @@ Hope to raid with you soon! :wave:`).catch(() => {
 					} else res();
 				});
 				writeFile.then(() => {
-					if (ops.performanceMode) performanceLogger("Crop start\t", postedTime.getTime(), Date.now());
+					if (ops.performanceMode) performanceLogger("Crop start\t", postedTime.getTime());
 					crop(message).then((imgBuff) => {
-						if (ops.performanceMode) performanceLogger("Crop finished\t", postedTime.getTime(), Date.now());
+						if (ops.performanceMode) performanceLogger("Crop finished\t", postedTime.getTime());
 						const logAdd = new Promise((res) => {
 							if (wasDelayed == true){
-								const delayAmount = Math.round((currentTime - postedTime) / 1000);
-								logString = logString + `. It was delayed for ${delayAmount}s. There ${(currentlyImage - 1 == 1) ? "is" : "are"} ${currentlyImage - 1} more image${(currentlyImage - 1 == 1) ? "" : "s"} to process`;
+								const delayAmount = Math.round((Date.now() - postedTime) / 1000);
+								logString = logString + `. Delayed for ${delayAmount}s. There ${(currentlyImage - 1 == 1) ? "is" : "are"} ${currentlyImage - 1} more to process`;
 								res();
 							} else res();
 						});
@@ -499,7 +496,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 							if (ops.testMode){
 								const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
 								channel.send("Test mode. This is the image fed to the OCR system:", imgAttach).then(() => {
-									if (ops.performanceMode) performanceLogger("Test msg posted\t", postedTime.getTime(), Date.now());
+									if (ops.performanceMode) performanceLogger("Test msg posted\t", postedTime.getTime());
 									res();
 								});
 							} else {
@@ -509,7 +506,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 						const saveCropped = new Promise(function(res) {
 							if (ops.saveLocalCopy) {
 								saveFile([image, imgBuff]).then(() => {
-									if (ops.performanceMode) performanceLogger("Cropped written\t", postedTime.getTime(), Date.now());
+									if (ops.performanceMode) performanceLogger("Cropped written\t", postedTime.getTime());
 									res();
 								}).catch((err) => {
 									console.error(`[${dateToTime(postedTime)}]: ${err}`);
@@ -519,7 +516,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 							}
 						});
 						Promise.all([testSend, saveCropped, logAdd]).then(() => {
-							if (ops.performanceMode) performanceLogger("Recog starting\t", postedTime.getTime(), Date.now());
+							if (ops.performanceMode) performanceLogger("Recog starting\t", postedTime.getTime());
 							if (!message.deleted) message.react("👀").catch(() => {
 								console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 							});
@@ -574,10 +571,10 @@ Hope to raid with you soon! :wave:`).catch(() => {
 									saveStats("Failure");
 									return;
 								} else { // this is the handler for role adding. It looks messy but is fine
-									if (ops.performanceMode) performanceLogger("Recog finished\t", postedTime.getTime(), Date.now());
+									if (ops.performanceMode) performanceLogger("Recog finished\t", postedTime.getTime());
 									client.commands.get("confirm").execute([message, postedTime], [message.author.id, level]).then((addToLogString) => {
-										if (ops.performanceMode) performanceLogger("Roles confirmed. Total time:", postedTime.getTime(), Date.now());
-										console.log(logString + addToLogString);
+										if (ops.performanceMode) performanceLogger("Roles confirmed. Total time:", postedTime.getTime());
+										console.log(logString + addToLogString + ` Total processing time: ${(Date.now() - currentTime) / 1000}s`);
 										logMsg.delete().catch(() => {
 											console.error(`[${dateToTime(postedTime)}]: Error: Could not delete log message: ${logMsg.url}\nContent of mesage: "${logMsg.content}"`);
 										});
@@ -623,7 +620,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 			}
 		});
 	} else {
-		handleCommand(message, postedTime);
+		handleCommand(message, postedTime); // command handler
 	}
 });
 

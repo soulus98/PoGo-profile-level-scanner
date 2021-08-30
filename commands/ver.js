@@ -5,10 +5,10 @@ module.exports = {
 	description: `Tells you the current version of the bot. (If I have remembered to update it). Current version is \`${ver}\``,
   aliases: ["ver"],
   usage: `\`${ops.prefix}ver\``,
-	execute(message, args) {
-    return new Promise(function(resolve, reject) {
+	execute(message) {
+    return new Promise(function(resolve) {
 			message.lineReplyNoMention(`Current version: \`${ver}\``);
-    	resolve();
+			resolve();
     });
 	},
 };

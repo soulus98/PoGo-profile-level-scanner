@@ -1,14 +1,19 @@
-# v1.8 (2021-???-??)
-* WIP: Huge optimization regarding processing multiple images at once
+# v1.8-pre (2021-Sep-30)
+* WIP: Potentially huge optimization regarding processing multiple images at once
+* Desynced and reworked logImg for a potential 100% speed increase
+* Added performanceMode and removed timeDelay configs. Config files have to be updated to match. See configTemplate for an example
+* Added performanceMode to tell you (in logs) exactly how long each task takes when processing
+* Added a "Total processing time" section to the logs for all images
 * ]r now reacts and self-deletes
 * ]c and ]r now check arguments before parsing
 * ]stats now accepts an argument for viewing a specific stat
 * ]stats now tells you how long the bot has been continuously running via "]stats days"
+##### Under-the-hood
 * Optimized by only requesting https once, using inbuilt image.width and image.height
 * Mod: saveStats and loadStats into stats.js, crop.js, and saveBuff.js
 * Cleaned up a ton of global variables
 * Installed a linter and cleaned up some code based on the rules in ".eslintrc.json"
-
+This pre-release is likely not suitable for a live release
 
 
 # v1.7 (2021-Aug-16)

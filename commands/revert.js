@@ -46,7 +46,7 @@ module.exports = {
 							const memb = mentions.first();
 							if (memb === undefined){
 								message.lineReply("I could not find this member, they may have left the server.");
-								bigResolve(`, but it failed, since I couldn't fetch member ${id}`);
+								bigResolve(`, but it failed, since I couldn't fetch member ${id}.`);
 								return;
 							} else {
 								server.members.fetch(memb.id).then((mem) => {
@@ -127,8 +127,7 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 						blacklist.set(id, Date.now());
 						saveBlacklist(blacklist);
 						saveStats("revert");
-						bigResolve(logggString + `. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}`);
-
+						bigResolve(logggString + `. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}.`);
 						if (!message.deleted && ops.msgDeleteTime){
 							setTimeout(function() {
 								message.delete().catch(() => {
