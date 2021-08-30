@@ -1,6 +1,12 @@
 const { saveStats } = require("../func/stats.js");
 const { dateToTime } = require("../func/dateToTime.js");
 const { saveBlacklist } = require("../func/saveBlacklist.js");
+const { performanceLogger } = require("../func/performanceLogger.js");
+let blacklist = {},
+		server = {},
+		channel = {},
+		profile = {},
+		logs = {};
 
 module.exports = {
 	name: "confirm",
@@ -11,19 +17,17 @@ module.exports = {
   args: true,
 	permissions: "MANAGE_ROLES",
 	execute(input, args) {
-		let server = { };
 		return new Promise(function(bigResolve) {
 			const execTime = dateToTime(new Date());
 			const prom = new Promise(function(resolve) {
 				if (input[1] == undefined) {
 					const inCommand = true;
 					const message = input;
-					if (args[2] || isNaN(args[1]) || args[1] > 50 || args[1] < 1){
+					if (args[2] || args[1] > 50 || args[1] < 1 || (args[1] && isNaN(args[1]))){
 						message.lineReply(`Please provide only one user and one level in the format \`${ops.prefix}c <@mention/ID> [level]\``);
 						bigResolve(", but it failed, since the format was wrong.");
 						return;
 					}
-					server = message.guild;
 					const mentions = message.mentions.users;
 					if (mentions.size > 1) {
 						message.lineReply("Sorry, but I cannot confirm more than one user at a time.");
@@ -31,7 +35,6 @@ module.exports = {
 						return;
 					}
 					const image = message.attachments.first();
-					const logimg = false;
 					const level = args[1] || "missing";
 					let id = 0;
 					if (args[0].startsWith("<@") && args[0].endsWith(">")) {
@@ -41,7 +44,7 @@ module.exports = {
 						id = args[0];
 					}
 					server.members.fetch(id).then((memb) => {
-						const info = [inCommand, message, image, logimg, level, id, memb];
+						const info = [inCommand, message, false, image, level, id, memb];
 						resolve(info);
 					}).catch((err) => {
 						if (err.name == "DiscordAPIError"){
@@ -53,7 +56,7 @@ module.exports = {
 									return;
 								} else {
 									server.members.fetch(memb.id).then((mem) => {
-										const info = [inCommand, message, image, logimg, level, id, mem];
+										const info = [inCommand, message, false, image, level, id, mem];
 										resolve(info);
 										return;
 									}).catch((err) => {
@@ -80,13 +83,13 @@ module.exports = {
 				} else {
 					const inCommand = false;
 					const message = input[0];
+					const postedTime = input[1];
 					server = message.guild;
 					const image = message.attachments.first();
-					const logimg = input[1];
 					const level = args[1];
 					const id = args[0];
 					const memb = message.member;
-					const info = [inCommand, message, image, logimg, level, id, memb];
+					const info = [inCommand, message, postedTime, image, level, id, memb];
 					resolve(info);
 				}
 			});
@@ -94,14 +97,14 @@ module.exports = {
 			// member leaves midway === null
 			// role id === undefined
 			// any other mistype === undefined
-			return prom.then(function([inCommand, message, image, logimg, level, id, member]) {
+			return prom.then(function([inCommand, message, postedTime, image, level, id, member]) {
 				if (member === null){
 					console.error(`[${execTime}]: Error: #${id} left the server before they could be processed.`);
 					if (inCommand) {
 						message.lineReply("That member has just left the server, and can not be processed.");
 						bigResolve(`, but it failed, since the member, #${id}, left the server before they could be processed.`);
 					} else {
-						logimg.edit(`User: ${message.author}\nLeft the server. No roles added.`, image);
+						logs.send(`User: ${message.author}\nLeft the server. No roles added.`, image);
 					}
 					return;
 				} else if (member === undefined) { // this should not be accessable unless using a command
@@ -110,10 +113,11 @@ module.exports = {
 					bigResolve(`, but it failed, due to a typo or some other issue. (This might be an impossible error...? not sure) Id: ${id}`);
 					return;
 				}
-				if (inCommand) var logggString = ` and tagged ${member.user.username}${member.user}`;
+				let logString;
+				if (inCommand) logString = ` and tagged ${member.user.username}${member.user}`;
 				if (!(level == "missing") && (isNaN(level) || level > 50 || level < 1)){
 					console.error(`[${execTime}]: Error: Level - ${level} - is NaN, >50, or <1 despite being checked already... Impossible error? Tell Soul pls`);
-					bigResolve((logggString || "") + ", but it failed, due to an impossible error regarding level checking.");
+					bigResolve((logString || "") + ", but it failed, due to an impossible error regarding level checking.");
 					return;
 				}
 				const msgtxt = [];
@@ -127,8 +131,8 @@ module.exports = {
 Why would you send a screenshot of an account under level when you already have the role that means you are above the gate level...???
 I am honestly curious as to why, so please shoot me a dm at <@146186496448135168>. It is soulus#3935 if that tag doesn't work.`);
 							else message.lineReply(`Ya silly, they already have Remote Raids. You probably want \`${ops.prefix}revert\`. That or you did a typo.`);
-							if (!inCommand) logimg.edit(`User: ${member}\nResult: \`${level}\`\nAlready had RR, no action taken.`, image);
-						bigResolve((logggString || "") + ", but it failed, since that member already has RR, so they could not be rejected.");
+							if (!inCommand) logs.send(`User: ${member}\nResult: \`${level}\`\nAlready had RR, no action taken.`, image);
+						bigResolve((logString || "") + ", but it failed, since that member already has RR, so they could not be rejected.");
 						return;
 					}
 					if (!inCommand && !ops.deleteScreens && !message.deleted) message.react("👎").catch(() => {
@@ -150,11 +154,10 @@ Hope to raid with you soon! :slight_smile:
 https://discord.gg/bTJxQNKJH2`).catch(() => {
 						console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member}`);
 					});
-					const { blacklist } = require("../bot.js");
 					blacklist.set(id, Date.now());
-					saveBlacklist();
-					bigResolve((logggString || "") + `. They were added to the blacklist for ${ops.blacklistTime} day${(ops.blacklistTime == 1) ? "" : "s"} for an image scanned at ${level}`);
-					if (!inCommand) logimg.edit(`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime} day${(ops.blacklistTime == 1) ? "" : "s"}`, image);
+					saveBlacklist(blacklist);
+					bigResolve((logString || "") + `. They were added to the blacklist for ${ops.blacklistTime * 86400000} day${(ops.blacklistTime == 1) ? "" : "s"} for an image scanned at ${level}`);
+					if (!inCommand) logs.send(`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime * 86400000} day${(ops.blacklistTime == 1) ? "" : "s"}`, image);
 					if (inCommand) deleteStuff(message, execTime, id);
 					saveStats(level);
 					return;
@@ -268,16 +271,35 @@ Have fun raiding. :wave:`);
 							}
 							if (!inCommand){
 								if (!given30 && !given40 && !given50){
-									logimg.edit(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`, image);
-								} else if (logimg) logimg.edit(`User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}`, image);
+									logs.send(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`, image).then(() => {
+										if (ops.performanceMode) performanceLogger("Log img posted\t", postedTime.getTime(), Date.now()); // testo?
+									});
+								} else logs.send(`User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}`, image).then(() => {
+									if (ops.performanceMode) performanceLogger("Log img posted\t", postedTime.getTime(), Date.now()); // testo?
+								});
 							}
 							saveStats(level);
-							bigResolve((logggString || "") + `. They were given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")} ${(!inCommand) ? `for an image scanned at ${level}` : ""}`);
+							bigResolve((logString || "") + `. They were given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")} ${(!inCommand) ? `for an image scanned at ${level}` : ""}`);
 							if (inCommand) deleteStuff(message, execTime, id);
 						});
 					});
 				}
 			});
+		});
+	},
+	passAppBlack(b) {
+		return new Promise((res) => {
+			blacklist = b;
+			res();
+		});
+	},
+	passAppServ([c, p, s, l]) {
+		return new Promise((res) => {
+			channel = c;
+			profile = p;
+			server = s;
+			logs = l;
+			res();
 		});
 	},
 };

@@ -87,13 +87,11 @@ function loadStats() {
 					}
 				}
 			}).then(() => {
-				setTimeout(() => {
-					for (const item of statsJson){
-						stats.set(item[0], item[1]);
-					}
-					resolve(stats);
-					console.log("Stats loaded");
-				}, 750);
+				for (const item of statsJson){
+					stats.set(item[0], item[1]);
+				}
+				console.log("\nStats loaded");
+				resolve(stats);
 			});
 		});
 	});

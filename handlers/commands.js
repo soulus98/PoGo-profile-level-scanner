@@ -10,7 +10,7 @@ function handleCommand(message, postedTime){
     || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName)); //this searches aliases
   //a bunch of checking
   if (!command) return; 																						//is it a command
-  logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} used ${ops.prefix}${commandName}`;
+  let logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} used ${ops.prefix}${commandName}`;
   if (command.guildOnly && message.channel.type === "dm") { 				//dm checking
     logString = logString + `, but it failed, as ${ops.prefix}${commandName} cannot be used in a DM`;
     console.log(logString);

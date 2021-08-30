@@ -3,11 +3,10 @@ module.exports = {
 	aliases: ["check-ping", "server-ping", "ping"],
 	usage: `\`${ops.prefix}ping\``,
 	description: "Ping! Tells you the server delay for the message.",
-	execute(message, args) {
-		return new Promise(function(resolve, reject) {
-			client = message.client;
+	execute(message) {
+		return new Promise(function(resolve) {
+			const client = message.client;
 			try {
-				msgdelay = message.createdTimestamp - new Date().getTime();
 				message.lineReply(`Pong!
 Websocket heartbeat: ${client.ws.ping}ms.`).then(sent => {
 					sent.edit(`Pong!

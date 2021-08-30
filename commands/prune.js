@@ -8,22 +8,22 @@ module.exports = {
 	permissions: "MANAGE_MESSAGES",
 	execute(message, args) {
 		return new Promise(function(resolve) {
-			const amount = parseInt(args[0]) +1;
+			const amount = parseInt(args[0]) + 1;
 			if (isNaN(amount)){
 				message.lineReply("You must supply a number of messages to prune.");
-				resolve(`, but it failed, as a number was not provided.`);
+				resolve(", but it failed, as a number was not provided.");
 				return;
 			} else if (amount < 2 || amount > 100) {
 				message.lineReply("You must input a number between 1 and 99.");
-				resolve(`, but it failed, as the number provided was outside the usable range.`);
+				resolve(", but it failed, as the number provided was outside the usable range.");
 				return;
 			} else {
-				message.channel.messages.fetch({limit:amount}).then(allMessages =>{
-					message.lineReply(`${args[0]} messages will be deleted. Type \`yes\` to confirm. This will last 5 seconds.`).then(replyMessage =>{
-						let filter = msg => msg.author.id == message.author.id && msg.content.toLowerCase() == "yes";
-						message.channel.awaitMessages(filter, {max: 1, time: 5000}).then(collectMessages => {
+				message.channel.messages.fetch({ limit:amount }).then(allMessages => {
+					message.lineReply(`${args[0]} messages will be deleted. Type \`yes\` to confirm. This will last 5 seconds.`).then((replyMessage) => {
+						const filter = msg => msg.author.id == message.author.id && msg.content.toLowerCase() == "yes";
+						message.channel.awaitMessages(filter, { max: 1, time: 5000 }).then(collectMessages => {
 							replyMessage.delete();
-							if(collectMessages.size == 0){
+							if (collectMessages.size == 0){
 								resolve();
 								return;
 							}
@@ -38,8 +38,6 @@ module.exports = {
 		});
 	},
 };
-
-
 
 
 // message.reply("All messages in this channel will be deleted. Type \"yes\" to confirm. This will last 10 seconds.").then(replyMessage =>{

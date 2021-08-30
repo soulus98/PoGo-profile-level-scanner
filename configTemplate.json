@@ -3,7 +3,8 @@
     "saveLocalCopy":true,
     "deleteScreens":false,
     "welcomeMsg":true,
-    "testMode":false
+    "testMode":false,
+		"performanceMode":false
   },
   "numbers":{
     "timeDelay":5,

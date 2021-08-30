@@ -4,7 +4,8 @@
     "saveLocalCopy":"(Causes each image to be saved to the server storage)",
     "deleteScreens":"(Deletes the image from the channel after processing it)",
     "welcomeMsg":"(Sends a welcome message tagging new members explaining the screenshot system)",
-    "testMode":"(Provides more information about what is scanned and whatnot)"
+    "testMode":"(Provides more information about what is scanned and whatnot)",
+		"performanceMode":"(Provides more information (in the console) about exectution time and whatnot)"
   },
   "numbers":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a number",

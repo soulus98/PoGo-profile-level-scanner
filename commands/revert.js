@@ -1,6 +1,10 @@
 const { saveStats } = require("../func/stats.js");
 const { dateToTime } = require("../func/dateToTime.js");
 const { saveBlacklist } = require("../func/saveBlacklist.js");
+let blacklist = {},
+		server = {},
+		channel = {},
+		profile = {};
 
 module.exports = {
 	name: "revert-screenshot-role",
@@ -25,7 +29,6 @@ module.exports = {
 				bigResolve(", but it failed, since they tagged two people in the command.");
 				return;
 			}
-			const server = message.guild;
 			const idProm = new Promise(function(resolve) {
 				if (args[0].startsWith("<@") && args[0].endsWith(">")) {
 					id = args[0].slice(2, -1);
@@ -122,9 +125,9 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 							console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member}`);
 						});
 						blacklist.set(id, Date.now());
-						saveBlacklist();
+						saveBlacklist(blacklist);
 						saveStats("revert");
-						bigResolve(logggString + `. I removed ${(took30 ? "R : " : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}`);
+						bigResolve(logggString + `. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}`);
 
 						if (!message.deleted && ops.msgDeleteTime){
 							setTimeout(function() {
@@ -141,13 +144,26 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 								console.error(`[${execTime}]: Error: Could not bulk delete messages: ${selfMsgs}. Error message: ${err}`);
 							});
 						});
-
 					} else {
 						message.lineReply(`That member had none of the roles that \`${ops.prefix}revert\` can remove. Perhaps you wanted \`${ops.prefix}c\` aka \`${ops.prefix}confirm\``);
 						bigResolve(logggString + ", but that member had none of the roles that I can remove.");
 					}
 				});
 			});
+		});
+	},
+	passRevBlack(b) {
+		return new Promise((res) => {
+			blacklist = b;
+			res();
+		});
+	},
+	passRevServ([c, p, s]) {
+		return new Promise((res) => {
+			channel = c;
+			profile = p;
+			server = s;
+			res();
 		});
 	},
 };

@@ -5,12 +5,12 @@ module.exports = {
   usage: `\`${ops.prefix}rs\``,
 	guildOnly:true,
 	permissions: "MANAGE_GUILD",
-	execute(message, args) {
-		return new Promise(function(resolve, reject) {
+	execute(message) {
+		return new Promise(function(resolve) {
 			console.log(`${message.author.username}${message.author} force quit the server at ${message.createdAt.toLocaleString()}.`);
-			message.lineReplyNoMention("Restarting...").then( () => {
+			message.lineReplyNoMention("Restarting...").then(() => {
 				resolve();
-				setTimeout(function () {
+				setTimeout(() => {
 					process.exit(0);
 				}, 10);
 			});

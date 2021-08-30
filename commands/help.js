@@ -1,4 +1,3 @@
-const configDescriptions = require("../configDescriptions.json");
 module.exports = {
 	name: "help",
 	description: "Displays all commands and information for specific commands.",
@@ -26,10 +25,10 @@ module.exports = {
 			} else {
 				if (!args.length) {
 					data.push("Here's a list of all my commands:");
-					data.push(commands.map(command => "\`" + ops.prefix + command.name).join("\`\n"));
+					data.push(commands.map(command => "`" + ops.prefix + command.name).join("`\n"));
 					data.push(`\`\nYou can use \`${ops.prefix}help [command name]\` for information on a specific command.`);
 					message.lineReplyNoMention(data, { split: true });
-					resolve(`, and it was successful.`);
+					resolve(", and it was successful.");
 					return;
 				}
 				const name = args[0].toLowerCase();
@@ -40,24 +39,24 @@ module.exports = {
 					return;
 				}
 				try {
-					dataPush(data);
+					dataPush(data, command);
 					message.lineReplyNoMention(data, { split: true });
-					resolve(`, and it was successful.`);
+					resolve(", and it was successful.");
 					return;
-				} catch(err){
+				} catch (err){
 					resolve(`, but it failed, due to an unexpected error. Error: ${err}
 	Stack: ${err.stack}`);
 					return;
-				}
-				function dataPush(data){
-					data.push(`\n**Name:** ${command.name}`);
-					if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(', ')}`);
-					if (command.description) data.push(`**Description:** ${command.description}`);
-					if (command.usage) data.push(`**Usage:** ${command.usage}`);
-					if (command.cooldown) data.push(`**Cooldown:** ${command.cooldown} second(s)`);
-					return data;
 				}
 			}
 		});
 	},
 };
+function dataPush(data, command){
+	data.push(`\n**Name:** ${command.name}`);
+	if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(", ")}`);
+	if (command.description) data.push(`**Description:** ${command.description}`);
+	if (command.usage) data.push(`**Usage:** ${command.usage}`);
+	if (command.cooldown) data.push(`**Cooldown:** ${command.cooldown} second(s)`);
+	return data;
+}
