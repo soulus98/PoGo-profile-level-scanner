@@ -213,7 +213,10 @@ async function checkServer(message){
 	// 216412752120381441
 	if (ops.serverID === undefined) return;
 	if (message){
-		await message.lineReply("This is not the intended server. Goodbye forever :wave:").catch(console.error);
+		await message.lineReply("This is not the intended server. Goodbye forever :wave:").catch(() => {
+				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send("This is not the intended server. Goodbye forever :wave:");
+			});
 		message.guild.leave().then(s => {
 			console.log(`Left: ${s}#${s.id}, as it is not the intended server.`);
 			dev.send(`**Dev message: **Left: ${s}#${s.id}`).catch(console.error);
@@ -306,7 +309,10 @@ If you are under 30, you will be direct messaged with a link to our sister serve
 function clearBlacklist(message, idToDelete){
 	if (idToDelete){
 		blacklist.delete(idToDelete[0]);
-		message.lineReplyNoMention(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`);
+		message.lineReplyNoMention(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`).catch(() => {
+				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`);
+			});
 		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
 		saveBlacklist(blacklist);
 	} else {
@@ -316,7 +322,10 @@ function clearBlacklist(message, idToDelete){
 				return;
 			}
 			loadBlacklist();
-			message.lineReplyNoMention("Blacklist cleared.");
+			message.lineReplyNoMention("Blacklist cleared.").catch(() => {
+				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send("Blacklist cleared.");
+			});
 		});
 	}
 	return;
@@ -330,9 +339,15 @@ client.on("message", message => {
 	if (message.channel.type === "dm") { // This section may be mail code, one day
 		console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent a message in a dm for some reason.${(message.attachments.size > 0) ? "\nMessage contained a file" : ""}${(message.content) ? `\nMessage content: ${message.content}` : ""}`);
 		if (message.content.startsWith("$")) {
-			message.lineReply(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you have confirmed you are above level 30 by sending a screenshot in <#${ops.screenshotChannel}>.`);
+			message.lineReply(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you have confirmed you are above level 30 by sending a screenshot in <#${ops.screenshotChannel}>.`).catch(() => {
+				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you have confirmed you are above level 30 by sending a screenshot in <#${ops.screenshotChannel}>.`);
+			});
 		} else {
-			message.lineReply(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${ops.screenshotChannel}>.`);
+			message.lineReply(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${ops.screenshotChannel}>.`).catch(() => {
+				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.author.send(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${ops.screenshotChannel}>.`);
+			});
 		}
 		return;
 	}
@@ -345,7 +360,10 @@ client.on("message", message => {
 	if (message.attachments.size > 0) { // checks for an attachment
 		if (ops.performanceMode) performanceLogger("\n\n\nImage received\t", postedTime.getTime());
 		if (channel == undefined){
-			message.lineReply(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``);
+			message.lineReply(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``).catch(() => {
+				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``);
+			});
 		}
 		if (message.channel == logs) {
 			return;
@@ -369,16 +387,22 @@ client.on("message", message => {
 		const image = message.attachments.first();
 		const fileType = image.url.split(".").pop().toLowerCase();
 		if (image.height < 50 || image.width < 50 || fileType.length > 6){ //
-			console.error(`[${dateToTime(postedTime)}]: Error: Empty/Tiny image file`);
-			message.lineReply("I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.");
+			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since it is an Empty/Tiny image file`);
+			message.lineReply("I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.").catch(() => {
+				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send("I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.");
+			});
 			logs.send(`User: ${message.author}\nEmpty/Tiny image file. Not scanned.\n`, image);
 			saveStats("wrong");
 			return;
 		}
 		const acceptedFileTypes = ["png", "jpg", "jpeg", "jfif", "tiff", "bmp"];
 		if (!acceptedFileTypes.includes(fileType)){
-			console.error(`[${dateToTime(postedTime)}]: Error: Invalid file type: ${fileType}`);
-			message.lineReply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`);
+			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, due to an Invalid file type: ${fileType}`);
+			message.lineReply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`).catch(() => {
+				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`);
+			});
 			logs.send(`User: ${message.author}\nFile is not an image. Not scanned.\n`, image);
 			saveStats("wrong");
 			return;
@@ -391,7 +415,8 @@ client.on("message", message => {
 		}
 		if (message.member.roles.cache.has(ops.blacklistRole) && ops.blacklistRole){
 			message.lineReplyNoMention(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`).catch(() => {
-				console.error(`[${dateToTime(postedTime)}]: Error: I can not send a message in ${message.channel.name}${message.channel}`);
+				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`);
 			});
 			logs.send(`User: ${message.author}\nNot scanned due to manual blacklist:\n<@&${ops.blacklistRole}>`, image);
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the auto blacklist`);
@@ -461,7 +486,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 			}
 		}).then(async () => {
 			if (ops.performanceMode) performanceLogger("Queue passed\t", postedTime.getTime());
-			let currentTime = Date.now();
+			const currentTime = Date.now();
 			lastImageTimestamp = Date.now(); // Setting lastImageTimestamp for the next time it runs
 			let logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent image#${instance}`;
 			try {
@@ -495,9 +520,15 @@ Hope to raid with you soon! :wave:`).catch(() => {
 						const testSend = new Promise(function(res) {
 							if (ops.testMode){
 								const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
-								channel.send("Test mode. This is the image fed to the OCR system:", imgAttach).then(() => {
+								message.lineReply("Test mode. This is the image fed to the OCR system:", imgAttach).then(() => {
 									if (ops.performanceMode) performanceLogger("Test msg posted\t", postedTime.getTime());
 									res();
+								}).catch(() => {
+									console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+									message.channel.send("Test mode. This is the image fed to the OCR system:", imgAttach).then(() => {
+										if (ops.performanceMode) performanceLogger("Test msg posted\t", postedTime.getTime());
+										res();
+									});
 								});
 							} else {
 								res();
@@ -544,6 +575,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 								}
 								if (ops.testMode){
 									message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `).catch(() => {
+										console.error(`[${dateToTime(postedTime)}]: Error: Could not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 										message.channel.send(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
 									});
 								}
@@ -598,9 +630,8 @@ Hope to raid with you soon! :wave:`).catch(() => {
 							console.error("\nimage: ");
 							console.error(image);
 							logs.send(`User: ${message.author}\nThis image was posted during a crash...`, image);
-							logMsg.delete().catch(() => {
-								console.error(`[${dateToTime(postedTime)}]: Error: Could not delete log message: ${logMsg.url}\nContent of mesage: "${logMsg.content}"`);
-							});
+							imageLogCount++;
+							currentlyImage--;
 							return;
 						} else {
 							console.error(`[${dateToTime(postedTime)}]: Error occured while cropping image: ${err}`);
@@ -608,12 +639,16 @@ Hope to raid with you soon! :wave:`).catch(() => {
 					});
 				});
 			} catch (error){ // this catch block rarely fires
-				logString = logString + `, but an uncaught error occured. Error: ${error}`;
+				logString = logString + ", but an uncaught error occured.";
 				console.log(logString);
+				console.error(logString + ` Error: ${error}`);
 				message.react("❌").catch(() => {
 					console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 				});
-				message.lineReply(`<@&${ops.modRole}> I can not scan this image due to an uncaught error. Err: ${error}`);
+				message.lineReply(`<@&${ops.modRole}> I can not scan this image due to an uncaught error. Err: ${error}`).catch(() => {
+					console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+					message.channel.send(`<@&${ops.modRole}> I can not scan this image due to an uncaught error. Err: ${error}`);
+				});
 				imageLogCount++;
 				currentlyImage--;
 				return;

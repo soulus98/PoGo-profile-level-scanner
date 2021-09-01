@@ -13,6 +13,7 @@
 * Mod: saveStats and loadStats into stats.js, crop.js, and saveBuff.js
 * Cleaned up a ton of global variables
 * Installed a linter and cleaned up some code based on the rules in ".eslintrc.json"
+* A few silly bug fixes
 This pre-release is likely not suitable for a live release
 
 
