@@ -156,7 +156,6 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 					});
 					blacklist.set(id, Date.now());
 					saveBlacklist(blacklist);
-					console.log(blacklist); //testo
 					bigResolve((logString || "") + `. They were added to the blacklist for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"} for an image scanned at ${level}.`);
 					if (!inCommand) logs.send(`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"}`, image);
 					if (inCommand) deleteStuff(message, execTime, id);
@@ -247,8 +246,13 @@ Have fun raiding. :wave:`);
 							const given50 = vals[1];
 							if ((given30 || given40 || given50)){
 								if (given40 || given50) msgtxt.push(`${(msgtxt.length == 0) ? `Hey ${member}, ` : (!given30) ? ", however," : "\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the ${(given40) ? "\"Level 40\" " : ""}${(given50) ? (given40) ? "and the \"Level 50\" " : "\"Level 50\" " : ""}vanity role${(given40 && given50) ? "s" : ""}`);
-								member.send(msgtxt.join(""), { split:true }).catch(() => {
-									console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member.user}`);
+								member.send(msgtxt.join(""), { split:true }).catch((err) => {
+									if (err.httpStatus == "403") {
+										console.error(`[${execTime}]: Error: Could not send msgtxt DM to ${member.user.username}${member.user}.`);
+									} else {
+										console.error(`[${execTime}]: Error: Could not send msgtxt DM to ${member.user.username}${member.user}. Msgtxt: ${msgtxt}. g30, g40, g50: ${given30}, ${given40}, ${given50}`);
+										console.log(err);
+									}
 								});
 								if ((!ops.deleteScreens || inCommand) && !message.deleted) message.react("👍").catch(() => {
 									console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
