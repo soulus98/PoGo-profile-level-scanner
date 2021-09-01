@@ -8,7 +8,8 @@
 		"ecmaVersion": 2021
 	},
 	"globals": {
-  	"ops": "writable"
+  	"ops": "writable",
+		"imgStats": "writable"
   },
 	"rules": {
 		"arrow-spacing": ["warn", { "before": true, "after": true }],

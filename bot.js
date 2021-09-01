@@ -1,32 +1,31 @@
-const { createWorker, PSM } = require("tesseract.js");
-const { token } = require("./server/keys.json");
-const fs = require("fs");
-const Discord = require("discord.js");
-const { crop } = require("./func/crop.js");
-const { saveFile } = require("./func/saveFile.js");
-const { handleCommand } = require("./handlers/commands.js");
-const { dateToTime } = require("./func/dateToTime.js");
-const { saveStats, loadStats } = require("./func/stats.js");
-const { saveBlacklist } = require("./func/saveBlacklist.js");
-const { performanceLogger } = require("./func/performanceLogger.js");
-const ver = require("./package.json").version;
+const { token } = require("./server/keys.json"),
+			fs = require("fs"),
+			Discord = require("discord.js"),
+			{ handleCommand } = require("./handlers/commands.js"),
+			{ handleImage } = require("./handlers/images.js"),
+			{ dateToTime } = require("./func/dateToTime.js"),
+			{ saveStats, loadStats } = require("./func/stats.js"),
+			{ saveBlacklist } = require("./func/saveBlacklist.js"),
+			{ performanceLogger } = require("./func/performanceLogger.js"),
+			ver = require("./package.json").version;
 require("discord-reply");
 
-const client = new Discord.Client();
-const cooldowns = new Discord.Collection();
-let blacklist = new Discord.Collection();
-const launchDate = new Date();
-let lastImageTimestamp = Date.now(),
-		imageAttempts = 0,
-		imageLogCount = 0,
+const client = new Discord.Client(),
+			cooldowns = new Discord.Collection(),
+			launchDate = new Date();
+imgStats = {
+				imageAttempts : 0,
+				imageLogCount : 0,
+				currentlyImage : 0,
+			};
+let blacklist = new Discord.Collection(),
 		loaded = false,
-		currentlyImage = 0,
 		config = {},
 		channel = {},
 		logs = {},
 		profile = {},
-		server = {};
-let screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
+		server = {},
+		screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 ops = {};
 module.exports = { loadConfigs, clearBlacklist, cooldowns, blacklist, screensFolder };
 
@@ -72,8 +71,10 @@ function loadConfigs(){
 				server = await client.guilds.fetch(ops.serverID);
 				const { passAppServ } = require("./commands/approve.js");
 				const { passRevServ } = require("./commands/revert.js");
+				const { passImgServ } = require("./handlers/images.js");
 				passAppServ([channel, profile, server, logs]);
 				passRevServ([channel, profile, server]);
+				passImgServ(logs);
 				console.log("\nReloaded configs\n");
 				resolve();
 			})();
@@ -185,7 +186,7 @@ function loadBlacklist(){
 				}
 				let x = 0;
 				for (const item of blackJson){
-					if (lastImageTimestamp - item[1] > ops.blacklistTime){
+					if (Date.now() - item[1] > ops.blacklistTime){
 						x = x + 1;
 					} else {
 						blacklist.set(item[0], item[1]);
@@ -242,8 +243,10 @@ client.once("ready", async () => {
 	server = await client.guilds.fetch(ops.serverID);
 	const { passAppServ } = require("./commands/approve.js");
 	const { passRevServ } = require("./commands/revert.js");
+	const { passImgServ } = require("./handlers/images.js");
 	passAppServ([channel, profile, server, logs]);
 	passRevServ([channel, profile, server]);
+	passImgServ(logs);
 	const dev = await client.users.fetch("146186496448135168", false, true);
 	checkServer();
 	client.user.setActivity(`${ver}`);
@@ -280,7 +283,7 @@ client.once("ready", async () => {
 	});
 	dev.send(`**Dev message: **Loaded in guild: "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
 	console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in guild: "${server.name}"#${server.id} in channel: "${channel.name}"#${channel.id}`);
-	console.log("======================================================================================");
+	console.log("\n======================================================================================");
 });
 
 
@@ -331,8 +334,25 @@ function clearBlacklist(message, idToDelete){
 	return;
 }
 
+// TODO: figure out the fucking launch queue checker
+
+function processImage(message, postedTime, wasDelayed){ // This checks the queue once the image is finshed recognising
+	handleImage(message, postedTime, wasDelayed).then(() => {
+		imgStats.imageLogCount++;
+		imgStats.currentlyImage--;
+		if (imgStats.imageLogCount > 0 && imgStats.imageLogCount % 30 === 0) loadBlacklist();
+    // todo: check queue
+		// todo: fetch message from queue id
+		// processImage(message, message.createdTimestamp, true);
+	}).catch((err) => {
+			imgStats.imageLogCount++;
+			imgStats.currentlyImage--;
+			if (err == "Fail") saveStats("Failure");
+	});
+}
+
 client.on("message", message => {
-	let logMsg = {}; // testo
+
 	if (message.channel == profile) return;
 	if (message.author.bot) return; // Bot? Cancel
 	const postedTime = new Date();
@@ -469,190 +489,25 @@ Hope to raid with you soon! :wave:`).catch(() => {
 // a better queue system might involve adding the image to a collection. not sure how I would do that
 // anyway, this definitely caused half of my issues when developing
 // hopefully it is bodged well enough to be stable
-		imageAttempts++;
-		currentlyImage++;
-		const instance = imageAttempts;
+		imgStats.imageAttempts++;
+		imgStats.currentlyImage++;
+		const instance = imgStats.imageAttempts;
 		new Promise((res) => {
-			if (imageLogCount + 1 == instance){
+			if (imgStats.imageLogCount + 1 == instance){
 				res();
 			} else {
 				wasDelayed = true;
 				const intervalID = setInterval(function() {
-					if (imageLogCount + 1 == instance){
+					if (imgStats.imageLogCount + 1 == instance){
 						res();
 						clearInterval(intervalID);
 					}
 				}, 250);
 			}
-		}).then(async () => {
+		}).then(() => {
 			if (ops.performanceMode) performanceLogger("Queue passed\t", postedTime.getTime());
-			const currentTime = Date.now();
-			lastImageTimestamp = Date.now(); // Setting lastImageTimestamp for the next time it runs
-			let logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent image#${instance}`;
-			try {
-				await logs.send(`User: ${message.author} \n Loading...`).then((l) => {
-					if (ops.performanceMode) performanceLogger("Log msg sent\t", postedTime.getTime());
-					logMsg = l;
-				}).catch((err) => {
-					console.error(`[${dateToTime(postedTime)}]: Error: Could not send a message in the logs channel. Err: ${err}`);
-				});
-				const writeFile = new Promise((res) => {
-					if (ops.saveLocalCopy){
-						saveFile(image).then(() => {
-							if (ops.performanceMode) performanceLogger("Written to disk\t", postedTime.getTime());
-							res();
-						}).catch((err) => {
-							console.error(`[${dateToTime(postedTime)}]: Error: ${err}`);
-						});
-					} else res();
-				});
-				writeFile.then(() => {
-					if (ops.performanceMode) performanceLogger("Crop start\t", postedTime.getTime());
-					crop(message).then((imgBuff) => {
-						if (ops.performanceMode) performanceLogger("Crop finished\t", postedTime.getTime());
-						const logAdd = new Promise((res) => {
-							if (wasDelayed == true){
-								const delayAmount = Math.round((Date.now() - postedTime) / 1000);
-								logString = logString + `. Delayed for ${delayAmount}s. There ${(currentlyImage - 1 == 1) ? "is" : "are"} ${currentlyImage - 1} more to process`;
-								res();
-							} else res();
-						});
-						const testSend = new Promise(function(res) {
-							if (ops.testMode){
-								const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
-								message.lineReply("Test mode. This is the image fed to the OCR system:", imgAttach).then(() => {
-									if (ops.performanceMode) performanceLogger("Test msg posted\t", postedTime.getTime());
-									res();
-								}).catch(() => {
-									console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-									message.channel.send("Test mode. This is the image fed to the OCR system:", imgAttach).then(() => {
-										if (ops.performanceMode) performanceLogger("Test msg posted\t", postedTime.getTime());
-										res();
-									});
-								});
-							} else {
-								res();
-							}
-						});
-						const saveCropped = new Promise(function(res) {
-							if (ops.saveLocalCopy) {
-								saveFile([image, imgBuff]).then(() => {
-									if (ops.performanceMode) performanceLogger("Cropped written\t", postedTime.getTime());
-									res();
-								}).catch((err) => {
-									console.error(`[${dateToTime(postedTime)}]: ${err}`);
-								});
-							} else {
-								res();
-							}
-						});
-						Promise.all([testSend, saveCropped, logAdd]).then(() => {
-							if (ops.performanceMode) performanceLogger("Recog starting\t", postedTime.getTime());
-							if (!message.deleted) message.react("👀").catch(() => {
-								console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-							});
-							const worker = createWorker({
-								// logger: m => console.log(m)
-							});
-							(async () => {
-								await worker.load();
-								// console.log(`Recognising: i#${instance}. iLC: ${imageLogCount}.`); //testo??
-								await worker.loadLanguage("eng");
-								await worker.initialize("eng");
-								await worker.setParameters({
-									tessedit_pageseg_mode: PSM.AUTO,
-								});
-								const { data: { text } } = await worker.recognize(imgBuff);
-								await worker.terminate();
-								// console.log("Image recognised. Result:" + text);
-								let failed = false;
-								let level = 0;
-								try {
-									level = text.match(/(\d\d)/)[0];
-								} catch (err){
-									failed = true;
-									level = "Failure";
-								}
-								if (ops.testMode){
-									message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `).catch(() => {
-										console.error(`[${dateToTime(postedTime)}]: Error: Could not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-										message.channel.send(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
-									});
-								}
-								if (failed || level > 50 || level < 1){
-									logs.send(`User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``, image);
-									logMsg.delete().catch(() => {
-										console.error(`[${dateToTime(postedTime)}]: Error: Could not delete log message: ${logMsg.url}\nContent of mesage: "${logMsg.content}"`);
-									});
-									message.lineReply(`<@&${ops.modRole}> There was an issue scanning this image.`).catch(() => {
-										console.error(`[${dateToTime(postedTime)}]: Error: Could not reply to message: ${message.url}\nContent of mesage: "${message.content}"`);
-										message.channel.send(`<@&${ops.modRole}> There was an issue scanning this image.`);
-									});
-									message.react("❌").catch(() => {
-										console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-									}); // dave, dm when image fails to scan
-									message.author.send(`Sorry, ${message.author}, but there was an issue scanning your profile screenshot.
-				Make sure you follow the example at the top of <#${ops.screenshotChannel}>.
-				If part of your buddy is close to the level number, try rotating it out of the way.
-				If there was a different cause, a moderator will be able to help manually approve you.`).catch(() => {
-										console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
-									});
-									console.log(logString + `. I failed to find a number. Scanned text: ${text}.`);
-									imageLogCount++;
-									currentlyImage--;
-									saveStats("Failure");
-									return;
-								} else { // this is the handler for role adding. It looks messy but is fine
-									if (ops.performanceMode) performanceLogger("Recog finished\t", postedTime.getTime());
-									client.commands.get("confirm").execute([message, postedTime], [message.author.id, level]).then((addToLogString) => {
-										if (ops.performanceMode) performanceLogger("Roles confirmed. Total time:", postedTime.getTime());
-										console.log(logString + addToLogString + ` Total processing time: ${(Date.now() - currentTime) / 1000}s`);
-										logMsg.delete().catch(() => {
-											console.error(`[${dateToTime(postedTime)}]: Error: Could not delete log message: ${logMsg.url}\nContent of mesage: "${logMsg.content}"`);
-										});
-									});
-									imageLogCount++;
-									currentlyImage--;
-									if (imageLogCount > 0 && imageLogCount % 30 === 0) loadBlacklist();
-									if (ops.deleteScreens && !message.deleted) message.delete().catch(() => {
-										console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
-									});
-									// for (const key in global) // testo
-									// 	if (!(key == "global" || key == "clearInterval" || key == "clearTimeout" || key == "setInterval" || key == "setTimeout" || key == "queueMicrotask" || key == "clearImmediate" || key == "setImmediate" || key == "regeneratorRuntime"))
-									// 		console.log("   ", key);
-								}
-							})();
-						});
-					}).catch((err) => {
-						if (err == "crash"){
-							console.error(`[${dateToTime(postedTime)}]: Error: An error occured while buffering "imgTwo".`);
-							console.error(`[${dateToTime(postedTime)}]: Some info for soul:`);
-							console.error("\nimage: ");
-							console.error(image);
-							logs.send(`User: ${message.author}\nThis image was posted during a crash...`, image);
-							imageLogCount++;
-							currentlyImage--;
-							return;
-						} else {
-							console.error(`[${dateToTime(postedTime)}]: Error occured while cropping image: ${err}`);
-						}
-					});
-				});
-			} catch (error){ // this catch block rarely fires
-				logString = logString + ", but an uncaught error occured.";
-				console.log(logString);
-				console.error(logString + ` Error: ${error}`);
-				message.react("❌").catch(() => {
-					console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-				});
-				message.lineReply(`<@&${ops.modRole}> I can not scan this image due to an uncaught error. Err: ${error}`).catch(() => {
-					console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-					message.channel.send(`<@&${ops.modRole}> I can not scan this image due to an uncaught error. Err: ${error}`);
-				});
-				imageLogCount++;
-				currentlyImage--;
-				return;
-			}
+
+			processImage(message, postedTime, wasDelayed); // handles the image, then checks the queue for more images
 		});
 	} else {
 		handleCommand(message, postedTime); // command handler
@@ -660,9 +515,9 @@ Hope to raid with you soon! :wave:`).catch(() => {
 });
 
 process.on("uncaughtException", (err) => {
-	if (currentlyImage > 0){
-		imageLogCount++;
-		currentlyImage--;
+	if (imgStats.currentlyImage > 0){
+		imgStats.imageLogCount++;
+		imgStats.currentlyImage--;
 	}
 	if (err != null) {
 		if (err.message.substr(0, 35) == "Error: UNKNOWN: unknown error, open"){
