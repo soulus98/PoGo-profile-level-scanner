@@ -132,7 +132,7 @@ Why would you send a screenshot of an account under level when you already have 
 I am honestly curious as to why, so please shoot me a dm at <@146186496448135168>. It is soulus#3935 if that tag doesn't work.`);
 							else message.lineReply(`Ya silly, they already have Remote Raids. You probably want \`${ops.prefix}revert\`. That or you did a typo.`);
 							if (!inCommand) logs.send(`User: ${member}\nResult: \`${level}\`\nAlready had RR, no action taken.`, image);
-						bigResolve((logString || "") + ", but it failed, since that member already has RR, so they could not be rejected.");
+						bigResolve((logString || "") + `, but it failed. They already have RR, so cannot be rejected${(!inCommand)?` for level ${level}`:""}.`);
 						return;
 					}
 					if (!inCommand && !ops.deleteScreens && !message.deleted) message.react("👎").catch(() => {
@@ -277,10 +277,10 @@ Have fun raiding. :wave:`);
 							if (!inCommand){
 								if (!given30 && !given40 && !given50){
 									logs.send(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`, image).then(() => {
-										if (ops.performanceMode) performanceLogger("Log img posted\t", postedTime.getTime()); // testo?
+										if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Log img posted\t`, postedTime.getTime()); // testo?
 									});
 								} else logs.send(`User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}`, image).then(() => {
-									if (ops.performanceMode) performanceLogger("Log img posted\t", postedTime.getTime()); // testo?
+									if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Log img posted\t`, postedTime.getTime()); // testo?
 								});
 							}
 							saveStats(level);

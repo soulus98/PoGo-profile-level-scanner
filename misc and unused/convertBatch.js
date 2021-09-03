@@ -1,8 +1,7 @@
-const tesseract = require('tesseract.js');
-const gm = require('gm');
-const fs = require('fs');
+const gm = require("gm");
+const fs = require("fs");
 
-path = "screens/Manual";
+const path = "Training";
 fs.readdir(path, (err, files) => {
   if (err) {
     console.log(`An error occured: ${err}`);

@@ -336,12 +336,14 @@ function clearBlacklist(message, idToDelete){
 
 // TODO: figure out the fucking launch queue checker
 
-function processImage(message, postedTime, wasDelayed){ // This checks the queue once the image is finshed recognising
-	handleImage(message, postedTime, wasDelayed).then(() => {
+function processImage(message, postedTime, wasDelayed){
+	handleImage(message, postedTime, wasDelayed).then(() => { // This runs after the recognition is finished
 		imgStats.imageLogCount++;
 		imgStats.currentlyImage--;
 		if (imgStats.imageLogCount > 0 && imgStats.imageLogCount % 30 === 0) loadBlacklist();
-    // todo: check queue
+
+		// Potential future queue optimisation here. Currently not neccesary
+		// todo: check queue
 		// todo: fetch message from queue id
 		// processImage(message, message.createdTimestamp, true);
 	}).catch((err) => {
@@ -378,7 +380,7 @@ client.on("message", message => {
 	let wasDelayed = false;
 	// image handler
 	if (message.attachments.size > 0) { // checks for an attachment
-		if (ops.performanceMode) performanceLogger("\n\n\nImage received\t", postedTime.getTime());
+		if (ops.performanceMode) performanceLogger(`\n\n\n#${imgStats.imageLogCount + 1}: Image received\t`, postedTime.getTime());
 		if (channel == undefined){
 			message.lineReply(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``).catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
@@ -389,7 +391,7 @@ client.on("message", message => {
 			return;
 		}
 		if (ops.saveLocalCopy && screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
-			screensFolder = `./screens/Auto/${(postedTime + 86400000).toDateString()}`;
+			screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
 			checkDateFolder(postedTime);
 		}
 		if (message.channel != channel) {
@@ -407,8 +409,9 @@ client.on("message", message => {
 		const image = message.attachments.first();
 		const fileType = image.url.split(".").pop().toLowerCase();
 		if (image.height < 50 || image.width < 50 || fileType.length > 6){ //
+			console.log(image, fileType.length); // testo
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since it is an Empty/Tiny image file`);
-			message.lineReply("I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.").catch(() => {
+			message.lineReply("I cannot scan tiny images or images with no size information.\nIf you think this is in error, please tell a moderator.").catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send("I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.");
 			});
@@ -478,7 +481,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				}
 			}
 		}
-		if (ops.performanceMode) performanceLogger("Checks complete\t", postedTime.getTime());
+		if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Checks complete\t`, postedTime.getTime());
 // This checks whether a new image can be processed every second
 // It checks the current instance against the total amount of images completed so far
 // That way, only the next image in row can be processed
@@ -505,7 +508,7 @@ Hope to raid with you soon! :wave:`).catch(() => {
 				}, 250);
 			}
 		}).then(() => {
-			if (ops.performanceMode) performanceLogger("Queue passed\t", postedTime.getTime());
+			if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Queue passed\t`, postedTime.getTime());
 
 			processImage(message, postedTime, wasDelayed); // handles the image, then checks the queue for more images
 		});

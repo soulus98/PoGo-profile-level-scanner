@@ -8,21 +8,10 @@ let logs = {};
 
 function handleImage(message, postedTime, wasDelayed){
 	return new Promise((resolve, reject) => {
-		let logMsg = {}; // testo
 		const image = message.attachments.first();
 		const currentTime = Date.now();
 		let logString = `[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent image#${imgStats.imageLogCount + 1}`;
 		try {
-			const logSend = new Promise((res) => {
-				logs.send(`User: ${message.author} \n Loading...`).then((l) => {
-					if (ops.performanceMode) performanceLogger("Log msg sent\t", postedTime.getTime());
-					logMsg = l;
-					res();
-				}).catch((err) => {
-					console.error(`[${dateToTime(postedTime)}]: Error: Could not send a message in the logs channel. Err: ${err}`);
-					res();
-				});
-			});
 			const logAdd = new Promise((res) => {
 				if (wasDelayed == true){
 					const delayAmount = Math.round((Date.now() - postedTime) / 1000);
@@ -30,11 +19,11 @@ function handleImage(message, postedTime, wasDelayed){
 					res();
 				} else res();
 			});
-			Promise.all([logAdd, logSend]).then(() => {
+			logAdd.then(() => {
 				const writeFile = new Promise((res) => {
 					if (ops.saveLocalCopy){
 						saveFile(image).then(() => {
-							if (ops.performanceMode) performanceLogger("Written to disk\t", postedTime.getTime());
+							if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Written to disk\t`, postedTime.getTime());
 							res();
 						}).catch((err) => {
 							console.error(`[${dateToTime(postedTime)}]: Error writing to disk: ${err}`);
@@ -43,19 +32,19 @@ function handleImage(message, postedTime, wasDelayed){
 					} else res();
 				});
 				writeFile.then(() => {
-				if (ops.performanceMode) performanceLogger("Crop start\t", postedTime.getTime());
+				if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Crop started\t`, postedTime.getTime());
 				crop(message).then((imgBuff) => {
-					if (ops.performanceMode) performanceLogger("Crop finished\t", postedTime.getTime());
+					if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Crop finished\t`, postedTime.getTime());
 					const testSend = new Promise(function(res) {
 						if (ops.testMode){
 							const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
 							message.lineReply("Test mode. This is the image fed to the OCR system:", imgAttach).then(() => {
-								if (ops.performanceMode) performanceLogger("Test msg posted\t", postedTime.getTime());
+								if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Test msg posted\t`, postedTime.getTime());
 								res();
 							}).catch(() => {
 								console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 								message.channel.send("Test mode. This is the image fed to the OCR system:", imgAttach).then(() => {
-									if (ops.performanceMode) performanceLogger("Test msg posted\t", postedTime.getTime());
+									if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Test msg posted\t`, postedTime.getTime());
 									res();
 								});
 							});
@@ -66,7 +55,7 @@ function handleImage(message, postedTime, wasDelayed){
 					const saveCropped = new Promise(function(res) {
 						if (ops.saveLocalCopy) {
 							saveFile([image, imgBuff]).then(() => {
-								if (ops.performanceMode) performanceLogger("Cropped written\t", postedTime.getTime());
+								if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Cropped written\t`, postedTime.getTime());
 								res();
 							}).catch((err) => {
 								console.error(`[${dateToTime(postedTime)}]: ${err}`);
@@ -75,9 +64,9 @@ function handleImage(message, postedTime, wasDelayed){
 							res();
 						}
 					});
-					Promise.all([testSend, saveCropped]).then(() => {
-						if (ops.performanceMode) performanceLogger("Recog starting\t", postedTime.getTime());
-						if (!message.deleted) message.react("👀").catch(() => {
+					Promise.all([testSend, saveCropped]).then(async () => {
+						if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Recog starting\t`, postedTime.getTime());
+						if (!message.deleted) await message.react("👀").catch(() => {
 							console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 						});
 						const worker = createWorker({
@@ -86,8 +75,8 @@ function handleImage(message, postedTime, wasDelayed){
 						(async () => {
 							await worker.load();
 							// console.log(`Recognising: i#${instance}. iLC: ${imageLogCount}.`); //testo??
-							await worker.loadLanguage("eng");
-							await worker.initialize("eng");
+							await worker.loadLanguage("pogo");
+							await worker.initialize("pogo");
 							await worker.setParameters({
 								tessedit_pageseg_mode: PSM.AUTO,
 							});
@@ -103,16 +92,13 @@ function handleImage(message, postedTime, wasDelayed){
 								level = "Failure";
 							}
 							if (ops.testMode){
-								message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `).catch(() => {
+								await message.lineReplyNoMention(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `).catch(() => {
 									console.error(`[${dateToTime(postedTime)}]: Error: Could not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 									message.channel.send(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
 								});
 							}
 							if (failed || level > 50 || level < 1){
 								logs.send(`User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``, image);
-								logMsg.delete().catch(() => {
-									console.error(`[${dateToTime(postedTime)}]: Error: Could not delete log message: ${logMsg.url}\nContent of mesage: "${logMsg.content}"`);
-								});
 								message.lineReply(`<@&${ops.modRole}> There was an issue scanning this image.`).catch(() => {
 									console.error(`[${dateToTime(postedTime)}]: Error: Could not reply to message: ${message.url}\nContent of mesage: "${message.content}"`);
 									message.channel.send(`<@&${ops.modRole}> There was an issue scanning this image.`);
@@ -130,13 +116,10 @@ function handleImage(message, postedTime, wasDelayed){
 									reject("Fail");
 									return;
 								} else { // this is the handler for role adding. It looks messy but is fine
-									if (ops.performanceMode) performanceLogger("Recog finished\t", postedTime.getTime());
+									if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Recog finished\t`, postedTime.getTime());
 									message.client.commands.get("confirm").execute([message, postedTime], [message.author.id, level]).then((addToLogString) => {
-										if (ops.performanceMode) performanceLogger("Roles confirmed. Total time:", postedTime.getTime());
+										if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Roles confirmed. Total time:`, postedTime.getTime());
 										console.log(logString + addToLogString + ` Total processing time: ${(Date.now() - currentTime) / 1000}s`);
-										logMsg.delete().catch(() => {
-											console.error(`[${dateToTime(postedTime)}]: Error: Could not delete log message: ${logMsg.url}\nContent of mesage: "${logMsg.content}"`);
-										});
 									});
 									resolve();
 									if (ops.deleteScreens && !message.deleted) message.delete().catch(() => {
