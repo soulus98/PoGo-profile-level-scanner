@@ -1,4 +1,4 @@
-# v1.8 (2021-Sep-09)
+# v1.8 (2021-Sep-10)
 * Desynced and reworked logImg for a potential 100% speed increase
 * Added configurable message text in ./server/messagetxt.js
 * Added targetLevel setting, which allows for easy gate level modification
