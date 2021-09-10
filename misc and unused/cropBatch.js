@@ -1,37 +1,42 @@
 const fs = require("fs");
 const gm = require("gm");
-const {rect} = require("./rect.js");
+const { rect } = require("../func/rect.js");
 
-path = "screens/Manual/jpgs";
+const path = "Training/jpgs";
 fs.readdir(path, (err, files) => {
   if (err) {
     console.log(`An error occured: ${err}`);
     return;
   }
-  for (const file of files) {
-    const img = gm(`${path}/${file}`);
+	process(0, 0);
+	function process(imgNo, fileNo){
+		const img = gm(`${path}/${files[fileNo]}`);
     img
-    .size((err,size) => {
+    .size((err, size) => {
       if (err){
         console.log(`An error occured: ${err}`);
         return;
       }
-      cropSize = rect(size);
-      crop(cropSize, file, img);
+      rect(size).then(cropSize => {
+				img
+				.blackThreshold("225")
+				.whiteThreshold("226")
+				.crop(cropSize.wid, cropSize.hei, cropSize.x, cropSize.y)
+				.flatten()
+				.write(`Training/cropped/pogo.idk.exp${imgNo}.jpg`, (err) => {
+					if (err){
+						console.log(`An error occured: ${err}`);
+						return;
+					}
+					console.log(`Cropped file: ${files[fileNo]} imgNo: ${imgNo}`);
+					if (fileNo < files.length) {
+						process(imgNo + 1, fileNo + 1);
+					} else {
+						return;
+					}
+				});
+			});
+      // crop(cropSize, file, img);
     });
-  }
+	}
 });
-function crop(cropSize, file, img){
-  img
-  .blackThreshold("57000")
-  .whiteThreshold("57001")
-  .crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
-  .flatten()
-  .write(`screens/Manual/cropped/${file}`, (err) => {
-    if (err){
-      console.log(`An error occured: ${err}`);
-      return;
-    }
-    console.log(`Cropped file: ${file}`);
-  });
-}
