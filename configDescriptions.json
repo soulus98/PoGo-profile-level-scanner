@@ -5,13 +5,16 @@
     "deleteScreens":"(Deletes the image from the channel after processing it)",
     "welcomeMsg":"(Sends a welcome message tagging new members explaining the screenshot system)",
     "testMode":"(Provides more information about what is scanned and whatnot)",
-		"performanceMode":"(Provides more information (in the console) about exectution time and whatnot)"
+		"performanceMode":"(Provides more information (in the console) about exectution time and whatnot)",
+		"blacklistOneOff":"(Whether to blacklist off-by-one screenshots e.g. level 29. Turning this off allows them to repost immediately)",
+		"tagModOneOff":"(Whether to tag modRole in logs when a off-by-one screenshot is posted, e.g. level 29)"
   },
   "numbers":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a number",
     "threshold":"(The color level at which all values above will be white and all below with be black. Different for different servers for some reason.)",
     "msgDeleteTime":"(How long (in seconds) error/help messages stick around before self destructing. Set to 0 to disable.)",
-    "blacklistTime":"(How long (in days) to prevent someone from posting a screenshot after being scanned at under 30.)"
+    "blacklistTime":"(How long (in days) to prevent someone from posting a screenshot after being scanned at under 30.)",
+		"targetLevel":"(The level for the gate role.)"
   },
   "chars":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a string of characters",
@@ -22,11 +25,12 @@
     "screenshotChannel":"(The channel to scan for screenshots)",
     "logsChannel":"(The channel where the logs are posted. Leave blank for no logs)",
     "profileChannel":"(The channel where the user is tagged afterwards. Leave blank for no tag)",
-    "level30Role":"(The role for successful scans. i.e. level 30+)",
+    "targetLevelRole":"(The role for successful scans at targetLevel. e.g. level 30+)",
     "level40Role":"(The role for level 40+ screenshots)",
     "level50Role":"(The role for level 50+ screenshots)",
     "modRole":"(The mod role intended to be notified when an issue occurs)",
     "serverID":"(The server that the bot is intended to be used in)",
-    "blacklistRole":"(The role used to force the bot to ignore certain members. Leave blank to stop the bot from checking)"
+    "blacklistRole":"(The role used to force the bot to ignore certain members. Leave blank to stop the bot from checking)",
+		"verifiedRole":"(The Verfied Host role, if you want ]r to remove it)"
   }
 }

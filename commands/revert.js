@@ -1,10 +1,11 @@
-const { saveStats } = require("../func/stats.js");
-const { dateToTime } = require("../func/dateToTime.js");
-const { saveBlacklist } = require("../func/saveBlacklist.js");
+const { saveStats } = require("../func/stats.js"),
+			{ dateToTime } = require("../func/dateToTime.js"),
+			{ saveBlacklist } = require("../func/saveBlacklist.js"),
+			messagetxt = require("../server/messagetxt.js"),
+			{ messagetxtReplace } = require("../func/messagetxtReplace.js");
 let blacklist = {},
 		server = {},
-		channel = {},
-		profile = {};
+		channel = {};
 
 module.exports = {
 	name: "revert-screenshot-role",
@@ -75,11 +76,11 @@ module.exports = {
 			idProm.then((member) => {
 				const logggString = ` and tagged ${member.user.username}${member.user}`;
 				const had30 = new Promise((had) => {
-					if (ops.level30Role && member.roles.cache.has(ops.level30Role)){
-							member.roles.remove(ops.level30Role).then(() => {
+					if (ops.targetLevelRole && member.roles.cache.has(ops.targetLevelRole)){
+							member.roles.remove(ops.targetLevelRole).then(() => {
 								had(true);
 							}).catch((err) => {
-								console.error(`[${execTime}]: Error: Could not take RR from ${member.user.username}. Error: ${err}`);
+								console.error(`[${execTime}]: Error: Could not take RR role from ${member.user.username}. Error: ${err}`);
 								bigResolve(logggString + ", but an error occured.");
 							});
 					} else had(false);
@@ -89,7 +90,7 @@ module.exports = {
 							member.roles.remove(ops.level40Role).then(() => {
 								had(true);
 							}).catch((err) => {
-								console.error(`[${execTime}]: Error: Could not take Level 40 from ${member.user.username}. Error: ${err}`);
+								console.error(`[${execTime}]: Error: Could not take Level 40 role from ${member.user.username}. Error: ${err}`);
 								bigResolve(logggString + ", but an error occured.");
 							});
 					} else had(false);
@@ -99,35 +100,37 @@ module.exports = {
 							member.roles.remove(ops.level50Role).then(() => {
 								had(true);
 							}).catch((err) => {
-								console.error(`[${execTime}]: Error: Could not take Level 50 from ${member.user.username}. Error: ${err}`);
+								console.error(`[${execTime}]: Error: Could not take Level 50 role from ${member.user.username}. Error: ${err}`);
 								bigResolve(logggString + ", but an error occured.");
 							});
 					} else had(false);
 				});
-				Promise.all([had30, had40, had50]).then((vals) => {
+				const hadVH = new Promise((had) => {
+					if (ops.verfiedRole && member.roles.cache.has(ops.verfiedRole)){
+							member.roles.remove(ops.verfiedRole).then(() => {
+								had(true);
+							}).catch((err) => {
+								console.error(`[${execTime}]: Error: Could not take verified host role from ${member.user.username}. Error: ${err}`);
+								bigResolve(logggString + ", but an error occured.");
+							});
+					} else had(false);
+				});
+				Promise.all([had30, had40, had50, hadVH]).then((vals) => {
 					const took30 = vals[0];
 					const took40 = vals[1];
 					const took50 = vals[2];
-					if (took30 || took40 || took50) { // dave, reversion dm.
+					const tookVH = vals[3];
+					if (took30 || took40 || took50 || tookVH) { // dave, reversion dm.
 						message.react("👍").catch(() => {
 							console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 						});
-						member.send(`Hey ${member}!
-Please do not try to trick the screenshot bot.
-As I am sure you are aware, we have a level requirement of 30 to gain full access.
-Gaining xp is very easy to do now with friendships, events, lucky eggs and so much more! Please stay and hang out with us here.
-You can use <#733418314222534826> to connect with other trainers and get the xp you need to hit level 30!
-Once you've reached that point, please repost your screenshot, or message <@575252669443211264> if you have to be let in manually.
-
-In the meantime please join our sister server with this link.
-Hope to raid with you soon! :slight_smile:
-https://discord.gg/bTJxQNKJH2`).catch(() => {
+						member.send(messagetxtReplace(messagetxt.revert, member)).catch(() => {
 							console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member}`);
 						});
 						blacklist.set(id, Date.now());
 						saveBlacklist(blacklist);
 						saveStats("revert");
-						bigResolve(logggString + `. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}.`);
+						bigResolve(logggString + `. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}${(tookVH ? `${took30 || took40 || took50 ? ", " : ""}VH` : "")}.`);
 						if (!message.deleted && ops.msgDeleteTime){
 							setTimeout(function() {
 								message.delete().catch(() => {
@@ -157,10 +160,9 @@ https://discord.gg/bTJxQNKJH2`).catch(() => {
 			res();
 		});
 	},
-	passRevServ([c, p, s]) {
+	passRevServ([c, s]) {
 		return new Promise((res) => {
 			channel = c;
-			profile = p;
 			server = s;
 			res();
 		});

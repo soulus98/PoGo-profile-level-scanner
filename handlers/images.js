@@ -107,9 +107,9 @@ function handleImage(message, postedTime, wasDelayed){
 									console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								}); // dave, dm when image fails to scan
 								message.author.send(`Sorry, ${message.author}, but there was an issue scanning your profile screenshot.
-									Make sure you follow the example at the top of <#${ops.screenshotChannel}>.
-									If part of your buddy is close to the level number, try rotating it out of the way.
-									If there was a different cause, a moderator will be able to help manually approve you.`).catch(() => {
+Make sure you follow the example at the top of <#${ops.screenshotChannel}>.
+If part of your buddy is close to the level number (such as gyarados whiskers or giratina feet), try rotating it out of the way.
+If there was a different cause, a @moderator will be able to help manually approve you.`).catch(() => {
 										console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 									});
 									console.log(logString + `. I failed to find a number. Scanned text: ${text}.`);

@@ -1,10 +1,11 @@
 const fs = require("fs");
 const Discord = require("discord.js");
 let stats = new Discord.Collection();
+const dateToTime = require("../func/dateToTime.js");
 
 // Updates the stats and saves the stats to file
 function saveStats(level) {
-	return new Promise(function(resolve, reject) {
+	return new Promise(function(resolve) {
 		if (isNaN(level) || level > 50 || level < 1){
 			if (level == "Failure"){
 				stats.set("Attempts", stats.get("Attempts") + 1);
@@ -29,11 +30,11 @@ function saveStats(level) {
 				console.error(`[${dateToTime(new Date())}]: Error while saving the stats. Literally impossible to get to this, so if we have, something weird has happened.`);
 			}
 		} else if (level < 30) {
-			stats.set("Attempts",stats.get("Attempts")+1);
-			stats.set("Under-30",stats.get("Under-30")+1);
+			stats.set("Attempts", stats.get("Attempts") + 1);
+			stats.set("Under-30", stats.get("Under-30") + 1);
 		} else {
-			stats.set("Attempts",stats.get("Attempts")+1);
-			stats.set(parseFloat(level),stats.get(parseFloat(level))+1);
+			stats.set("Attempts", stats.get("Attempts") + 1);
+			stats.set(parseFloat(level), stats.get(parseFloat(level)) + 1);
 		}
 		fs.writeFile("./server/stats.json", JSON.stringify(Array.from(stats)), (err) => {
 			if (err){

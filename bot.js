@@ -1,12 +1,14 @@
 const { token } = require("./server/keys.json"),
 			fs = require("fs"),
 			Discord = require("discord.js"),
+			messagetxt = require("./server/messagetxt.js"),
 			{ handleCommand } = require("./handlers/commands.js"),
 			{ handleImage } = require("./handlers/images.js"),
 			{ dateToTime } = require("./func/dateToTime.js"),
 			{ saveStats, loadStats } = require("./func/stats.js"),
 			{ saveBlacklist } = require("./func/saveBlacklist.js"),
 			{ performanceLogger } = require("./func/performanceLogger.js"),
+			{ messagetxtReplace } = require("./func/messagetxtReplace.js"),
 			ver = require("./package.json").version;
 require("discord-reply");
 
@@ -73,7 +75,7 @@ function loadConfigs(){
 				const { passRevServ } = require("./commands/revert.js");
 				const { passImgServ } = require("./handlers/images.js");
 				passAppServ([channel, profile, server, logs]);
-				passRevServ([channel, profile, server]);
+				passRevServ([channel, server]);
 				passImgServ(logs);
 				console.log("\nReloaded configs\n");
 				resolve();
@@ -245,7 +247,7 @@ client.once("ready", async () => {
 	const { passRevServ } = require("./commands/revert.js");
 	const { passImgServ } = require("./handlers/images.js");
 	passAppServ([channel, profile, server, logs]);
-	passRevServ([channel, profile, server]);
+	passRevServ([channel, server]);
 	passImgServ(logs);
 	const dev = await client.users.fetch("146186496448135168", false, true);
 	checkServer();
@@ -266,7 +268,7 @@ client.once("ready", async () => {
 		console.log("\nOops the profile setup channel is broken.");
 		return;
 	}
-	channel.send("The bot has awoken, Hello :wave:").then(msg => {
+	channel.send(messagetxtReplace(messagetxt.load)).then(msg => {
 		if (ops.msgDeleteTime && !msg.deleted){
 			setTimeout(() => {
 				msg.delete().catch(() => {
@@ -287,23 +289,10 @@ client.once("ready", async () => {
 });
 
 
-client.on("guildMemberAdd", member => { // dave, dm when a member joins
+client.on("guildMemberAdd", member => {
 	// console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
   if (!ops.welcomeMsg) return;
-  member.send(`Hey ${member}, welcome to Pokémon GO Raids!
-
-In order to gain access to our server we kindly ask you to post a screenshot of your trainer page that shows your trainer level.
-
-Please post your screenshot in: <#${ops.screenshotChannel}>
-
-You’ll then be given the required roles.
-
-Then type \`$verify\` in <#${ops.profileChannel}> and follow the instructions, please.
-
-Good luck, trainer!
-
-We will only grant access to our server to trainers level 30 and up!
-If you are under 30, you will be direct messaged with a link to our sister server, with no level requirement.`).catch(() => {
+  member.send(messagetxtReplace(messagetxt.newMember, member)).catch(() => {
 		console.error(`[${dateToTime(new Date())}]: Error: Could not send welcomeMsg DM to ${member.user.username}${member}`);
 	});
 });
@@ -446,7 +435,7 @@ client.on("message", message => {
 			saveStats("black");
 			return;
 		}
-		if (message.member.roles.cache.has(ops.level50Role) && message.member.roles.cache.has(ops.level40Role) && message.member.roles.cache.has(ops.level30Role)){
+		if (message.member.roles.cache.has(ops.level50Role) && message.member.roles.cache.has(ops.level40Role) && message.member.roles.cache.has(ops.targetLevelRole)){
 			message.author.send("You already have all available roles.").catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 			});
@@ -461,12 +450,8 @@ client.on("message", message => {
 		if (ops.blacklistTime > 0){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
 			if (blacklist.has(message.author.id)){
 				if (postedTime.getTime() - blacklist.get(message.author.id) < ops.blacklistTime){
-					saveStats("black"); // dave, dm when a member is blacklisted
-					message.author.send(`Hey, ${message.author}.
-We are sorry, but you are currently prohibited from using the automated system due to a recent screenshot that was scanned under level 30.
-If you have surpassed level 30, tag @moderator or message <@575252669443211264> to ask to be let in manually.
-Otherwise, keep leveling up, and post your screenshot when you have reached that point.
-Hope to raid with you soon! :wave:`).catch(() => {
+					saveStats("black");
+					message.author.send(messagetxtReplace(messagetxt.denyBlacklist, message.author)).catch(() => {
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 					});
 					logs.send(`User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((ops.blacklistTime - (postedTime.getTime() - blacklist.get(message.author.id))) / 3600000).toFixed(1)} hours`, image);
