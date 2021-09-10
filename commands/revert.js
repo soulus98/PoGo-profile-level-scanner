@@ -106,8 +106,8 @@ module.exports = {
 					} else had(false);
 				});
 				const hadVH = new Promise((had) => {
-					if (ops.verfiedRole && member.roles.cache.has(ops.verfiedRole)){
-							member.roles.remove(ops.verfiedRole).then(() => {
+					if (ops.verifiedRole && member.roles.cache.has(ops.verifiedRole)){
+							member.roles.remove(ops.verifiedRole).then(() => {
 								had(true);
 							}).catch((err) => {
 								console.error(`[${execTime}]: Error: Could not take verified host role from ${member.user.username}. Error: ${err}`);

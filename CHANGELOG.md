@@ -20,6 +20,8 @@
 * Installed a linter and cleaned up some code based on the rules in ".eslintrc.json"
 * Fixed a few silly bug fixes
 
+I had originally intended to make an optimisation regarding multiple screenshot processing, but it seems to be unnecessary  
+This release probably needs either some testing or monitoring for a bit, a lot of stuff moved around.
 
 
 # v1.7 (2021-Aug-16)
