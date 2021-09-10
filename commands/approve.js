@@ -150,9 +150,15 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 						saveBlacklist(blacklist);
 						bigResolve((logString || "") + `. They were added to the blacklist for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"} for level ${level}.`);
 						if (!inCommand) logs.send(`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"}`, image);
-					} else {
+					} else { // Due to the if logic, this block is only accessable if level is one less than targetLevel AND blacklistOneOff is false
 						bigResolve((logString || "") + `. No action was taken for level: ${level}.`);
-						if (!inCommand) logs.send(`User: ${member}\nResult: \`${level}\`\nNo action taken.\nManual review, <@&${ops.modRole}>?`, image);
+						if (!inCommand) {
+							if (ops.tagModOneOff) {
+								logs.send(`User: ${member}\nResult: \`${level}\`\nNo action taken.\nManual review, <@&${ops.modRole}>?`, image);
+							} else {
+								logs.send(`User: ${member}\nResult: \`${level}\`\nNo action taken.`, image);
+							}
+						}
 					}
 					if (inCommand) deleteStuff(message, execTime, id);
 					saveStats(level);
@@ -251,7 +257,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 							}
 							if (!inCommand){
 								if (!given30 && !given40 && !given50){
-									logs.send(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR possessed. None added.`, image).then(() => {
+									logs.send(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR already possessed. None added.`, image).then(() => {
 										if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Log img posted\t`, postedTime.getTime()); // testo?
 									});
 								} else logs.send(`User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}`, image).then(() => {
