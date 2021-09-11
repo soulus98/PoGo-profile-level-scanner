@@ -2,19 +2,17 @@
 
 This is a template for new commands:
 
-const config = require("../server/config.json");
-const prefix = config.chars.prefix;
-
 module.exports = {
 	name: "",
 	description: "",
   aliases: [""],
-  usage: `\`${prefix}\``,
-  cooldown: 5,
+  usage: `\`${ops.prefix}\``,
 	guildOnly:true,
-	permissions: "ADMINISTRATOR",
+	permissions: "MANAGE_GUILD",
 	execute(message, args) {
+		return new Promise(function(resolve,reject) {
 
+		});
 	},
 };
 

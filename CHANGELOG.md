@@ -1,3 +1,58 @@
+# v1.8 (2021-Sep-10)
+* Desynced and reworked logImg for a potential 100% speed increase
+* Added configurable message text in ./server/messagetxt.js
+* Added targetLevel setting, which allows for easy gate level modification
+* Added blacklistOneOff toggle, which, if set to false/off, will stop the level 29 images from being blacklisted. This allows them to quickly level up and repost
+* Added tagModOneOff toggle, which, if set to true/on, will tag moderator in the logs channel every time a level 29
+* Added performanceMode toggle to tell you (in logs) exactly how long each task takes when processing
+* Renamed level30Role to targetLevelRole
+* In regards to the above, config files have to be updated to match. See configTemplate for an example
+* Added a "Total processing time" section to the logs for all images
+* ]r now reacts and self-deletes
+* ]r now removes verifiedRole, if it is set
+* ]c and ]r now check arguments before parsing
+* ]stats now accepts an argument for viewing a specific stat
+* ]stats now tells you how long the bot has been continuously running via "]stats days"
+##### Under-the-hood
+* Optimized by only requesting https once, using inbuilt image.width and image.height
+* Mod: saveStats and loadStats into stats.js, crop.js, and saveBuff.js
+* Cleaned up a ton of global variables
+* Installed a linter and cleaned up some code based on the rules in ".eslintrc.json"
+* Fixed a few silly bug fixes
+
+I had originally intended to make an optimisation regarding multiple screenshot processing, but it seems to be unnecessary  
+This release probably needs either some testing or monitoring for a bit, a lot of stuff moved around.
+
+
+# v1.7 (2021-Aug-16)
+* Added ]confirm (aka ]c). Use ]c <id> [level-under-30] to reject someone
+* Added ]revert (aka ]r).
+* Moved all the approval code to commands/approve.js, so ]a actually functions exactly the same as when an image has been scanned
+* Fixed up most command's console logs so they are one-liners by promisifying all commands
+
+There are likely bugs in this release.
+
+#### v1.7.1 (2021-Aug-16)
+* Fetch member instead of getting from cache
+* A typo in the delete logic
+
+#### v1.7.2 (2021-Aug-19)
+* Reactions and deletions for ]c under30
+* Made mentions work better and cleaned up id code
+* Added an autoresponder for dm messages
+* Better wording for undefined message
+* Response message for if someone already had roles
+
+#### v1.7.3 (2021-Aug-20)
+* Fixed a typo in approve and revert. I blame discord.js for resolving "@!146247095815372800>" as an id.
+* Fixed a case issue in "saveBlacklist.js". Should now always use camelCase.
+
+#### v1.7.4 (2021-Aug-20)
+* Added a message reply for uncaught "Entity too large" error. Perhaps 9mB?
+* Removed an unnecessary tag in the failed image message
+
+
+
 # v1.6 (2021-Aug-6)
 * Readded the welcomeMsg as a dm
 * Removed the welcomeMsg console message, as it was very annoying

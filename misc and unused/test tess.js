@@ -1,7 +1,5 @@
 const { createWorker, PSM } = require('tesseract.js');
 const { rect } = require("./fun/rect.js");
-const configs = require('./server/config.json');
-const threshold = configs.numbers.threshold;
 const gm = require('gm');
 const https = require('https');
 const fs = require('fs');
@@ -26,8 +24,8 @@ function crop(){
 			imageName = imagePath.split("/").pop();
 			imgTwo = gm(response);
 			await imgTwo
-			.blackThreshold(threshold)
-			.whiteThreshold(threshold+1)
+			.blackThreshold(ops.threshold)
+			.whiteThreshold(ops.threshold + 1)
 			.crop(cropSize.wid,cropSize.hei,cropSize.x,cropSize.y)
 			.flatten()
 			.toBuffer((err, imgBuff) => {
