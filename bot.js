@@ -1,3 +1,5 @@
+console.log("Ree");
+
 const { token } = require("./server/keys.json"),
 			fs = require("fs"),
 			Discord = require("discord.js"),
@@ -345,7 +347,7 @@ client.on("message", message => {
 		mail.mailDM(message);
 		return;
 	}
-	if (message.channel.type !== "dm" && message.guild.id != serverID && serverID){ // If we are in the wrong server
+	if (message.channel.type !== "dm" && message.guild.id != ops.serverID && ops.serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
 	}
