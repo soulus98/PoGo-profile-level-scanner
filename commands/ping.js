@@ -7,7 +7,7 @@ module.exports = {
 		return new Promise(function(resolve) {
 			const client = message.client;
 			try {
-				message.lineReply(`Pong!
+				message.reply(`Pong!
 Websocket heartbeat: ${client.ws.ping}ms.`).then(sent => {
 					sent.edit(`Pong!
 Websocket heartbeat: ${client.ws.ping}ms.

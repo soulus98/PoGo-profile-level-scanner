@@ -1,5 +1,6 @@
 let stats = {};
-const launchDate = Date.now();
+const launchDate = Date.now(),
+			{ replyNoMention } = require("../func/misc.js");
 
 module.exports = {
 	name: "statistics",
@@ -12,20 +13,20 @@ module.exports = {
 		return new Promise((resolve) => {
 			if (args[0]){
 				if (stats.get(args[0])){
-					message.lineReplyNoMention(`The value of \`${args[0]}\` is \`${stats.get(args[0])}\``);
+					replyNoMention(message, `The value of \`${args[0]}\` is \`${stats.get(args[0])}\``);
 				} else if (args[0] == "Successes") {
 					const fails = stats.get("Fails");
 					const trueAttempts = stats.get("Attempts") - stats.get("Declined-Blacklist") - stats.get("Declined-Left-Server") - stats.get("Declined-All-Roles") - stats.get("Declined-Wrong-Type");
 					const successes = trueAttempts - fails;
-					message.lineReplyNoMention(`The value of \`Successes\` is ${successes}`);
+					replyNoMention(message, `The value of \`Successes\` is ${successes}`);
 				} else if (args[0] == "Failure-Rate") {
 					const fails = stats.get("Fails");
 					const trueAttempts = stats.get("Attempts") - stats.get("Declined-Blacklist") - stats.get("Declined-Left-Server") - stats.get("Declined-All-Roles") - stats.get("Declined-Wrong-Type");
-					message.lineReplyNoMention(`The value of \`Failure-Rate\` is ${(fails / trueAttempts * 100).toFixed(2)}%`);
+					replyNoMention(message, `The value of \`Failure-Rate\` is ${(fails / trueAttempts * 100).toFixed(2)}%`);
 				} else if (args[0] == "Days") {
-					message.lineReplyNoMention(`Bot has been running for ${((Date.now() - launchDate) / 86400000).toFixed(1)} days straight.`);
+					replyNoMention(message, `Bot has been running for ${((Date.now() - launchDate) / 86400000).toFixed(1)} days straight.`);
 				} else {
-					message.lineReply(`Sorry, but ${args[0]} is not a valid stat. Use \`${ops.prefix}stats\` to see a list of all stats. (case-sensitive)`);
+					message.reply(`Sorry, but ${args[0]} is not a valid stat. Use \`${ops.prefix}stats\` to see a list of all stats. (case-sensitive)`);
 					resolve(`, but it failed, as ${args[0]} is not a valid stat.`);
 					return;
 				}
@@ -47,7 +48,7 @@ module.exports = {
 			data.push(`Successes: ${successes}`);
 			data.push(`Failure-Rate: ${(fails / trueAttempts * 100).toFixed(2)}%`);
 			data.push(`Days: Bot has been running for ${((Date.now() - launchDate) / 86400000).toFixed(1)} days straight.`);
-			message.lineReplyNoMention(data, { split: true });
+			replyNoMention(message, data.join("\n"));
 			resolve();
 			return;
 		});

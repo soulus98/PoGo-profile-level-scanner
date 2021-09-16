@@ -1,10 +1,9 @@
 const { saveStats } = require("../func/stats.js"),
-			{ dateToTime } = require("../func/dateToTime.js"),
+			{ dateToTime } = require("../func/misc.js"),
 			{ saveBlacklist } = require("../func/saveBlacklist.js"),
 			messagetxt = require("../server/messagetxt.js"),
 			{ messagetxtReplace } = require("../func/messagetxtReplace.js");
-let blacklist = {},
-		server = {},
+let server = {},
 		channel = {};
 
 module.exports = {
@@ -18,7 +17,7 @@ module.exports = {
 	execute(message, args) {
 		return new Promise(function(bigResolve) {
 		if (args[1]){
-			message.lineReply(`Please provide only one user in the format \`${ops.prefix}r <@mention/ID>\``);
+			message.reply(`Please provide only one user in the format \`${ops.prefix}r <@mention/ID>\``);
 			bigResolve(", but it failed, since the format was wrong.");
 			return;
 		}
@@ -26,7 +25,7 @@ module.exports = {
 		const execTime = dateToTime(new Date());
 		const mentions = message.mentions.users;
 			if (mentions.size > 1) {
-				message.lineReply("Sorry, but I cannot revert more than one user at a time.");
+				message.reply("Sorry, but I cannot revert more than one user at a time.");
 				bigResolve(", but it failed, since they tagged two people in the command.");
 				return;
 			}
@@ -46,7 +45,7 @@ module.exports = {
 						if (mentions.size == 1) {
 							const memb = mentions.first();
 							if (memb === undefined){
-								message.lineReply("I could not find this member, they may have left the server.");
+								message.reply("I could not find this member, they may have left the server.");
 								bigResolve(`, but it failed, since I couldn't fetch member ${id}.`);
 								return;
 							} else {
@@ -54,19 +53,19 @@ module.exports = {
 									resolve(mem);
 									return;
 								}).catch((err) => {
-									message.lineReply("I could not find this member for an exceptionally unexpected reason. Tell the developer please.");
+									message.reply("I could not find this member for an exceptionally unexpected reason. Tell the developer please.");
 									console.error(`[${execTime}]: Error: An (exceptionally!) unexpected error occured when trying to fetch ${id}. Err:${err}`);
 									bigResolve(`, but it failed, due to an unexpected error when trying to fetch ${id}.`);
 									return;
 								});
 							}
 						} else {
-							message.lineReply("There may be a typo, or some other issue, which causes me to not be able to find this member.");
+							message.reply("There may be a typo, or some other issue, which causes me to not be able to find this member.");
 							bigResolve(`, but it failed, due to a typo or some other issue. Id: ${id}.`);
 							return;
 						}
 					} else {
-						message.lineReply("I could not find this member for an unexpected reason. Tell the developer please.");
+						message.reply("I could not find this member for an unexpected reason. Tell the developer please.");
 						console.error(`[${execTime}]: Error: An unexpected error occured when trying to fetch ${id}.  Err:${err}`);
 						bigResolve(`, but it failed, due to an unexpected error when trying to fetch ${id}.`);
 						return;
@@ -127,7 +126,9 @@ module.exports = {
 						member.send(messagetxtReplace(messagetxt.revert, member)).catch(() => {
 							console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member}`);
 						});
+						console.log(blacklist);
 						blacklist.set(id, Date.now());
+						console.log(blacklist);
 						saveBlacklist(blacklist);
 						saveStats("revert");
 						bigResolve(logggString + `. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}${(tookVH ? `${took30 || took40 || took50 ? ", " : ""}VH` : "")}.`);
@@ -147,17 +148,11 @@ module.exports = {
 							});
 						});
 					} else {
-						message.lineReply(`That member had none of the roles that \`${ops.prefix}revert\` can remove. Perhaps you wanted \`${ops.prefix}c\` aka \`${ops.prefix}confirm\``);
+						message.reply(`That member had none of the roles that \`${ops.prefix}revert\` can remove. Perhaps you wanted \`${ops.prefix}c\` aka \`${ops.prefix}confirm\``);
 						bigResolve(logggString + ", but that member had none of the roles that I can remove.");
 					}
 				});
 			});
-		});
-	},
-	passRevBlack(b) {
-		return new Promise((res) => {
-			blacklist = b;
-			res();
 		});
 	},
 	passRevServ([c, s]) {

@@ -1,7 +1,7 @@
 const fs = require("fs");
 const Discord = require("discord.js");
 let stats = new Discord.Collection();
-const dateToTime = require("../func/dateToTime.js");
+const { dateToTime } = require("../func/misc.js");
 
 // Updates the stats and saves the stats to file
 function saveStats(level) {

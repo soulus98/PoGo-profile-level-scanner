@@ -12,24 +12,27 @@ module.exports = {
 		let config = {};
 		delete require.cache[require.resolve("../server/config.json")];
 		config = require("../server/config.json");
-		return new Promise(function(resolve) {
-			const embed = new Discord.MessageEmbed()
+		const embArr = [
+			new Discord.MessageEmbed()
 			.setTitle("Settings")
-			.setDescription("These are the settings that apply to (every/the only) instance of the bot.");
+			.setDescription("These are the settings that apply to (every/the only) instance of the bot.")];
+		return new Promise(function(resolve) {
 			for (const cat in config){
-				embed.addFields(
-					{ name: "\u200B", value: "----------------------------------------------" },
-					{ name: `**${cat.charAt(0).toUpperCase() + cat.slice(1)}:**`, value: `*${configDesc[cat]["self"].replace("{ops.prefix}", ops.prefix)}*` },
-				);
+				const embed = new Discord.MessageEmbed()
+				.setTitle(`${cat.charAt(0).toUpperCase() + cat.slice(1)}:`)
+				.setDescription(`*${configDesc[cat]["self"].replace("{ops.prefix}", ops.prefix)}*`)
+				;
 				for (const key in config[cat]){
 					embed.addField(`${key}: *${configDesc[cat][key]}*`, `\`${config[cat][key].toString().replace("true", "ON").replace("false", "OFF")}\``);
 					// data.push(`${key}: \`${config[cat][key]}\`   ${configDesc[cat][key]}`);
 				}
+				embArr.push(embed);
+				console.log(Object.keys(config).length);
 			}
-			message.lineReplyNoMention(embed).then(() => {
+			message.channel.send({ embeds: embArr }).then(() => {
 				resolve();
 			}).catch((err) => {
-				console.error(`An error occured when sending settings to ${message.author.username}. Error: ${err}`);
+				console.error(`An error occured when sending setting. Error: ${err}`);
 			});
 		});
 	},

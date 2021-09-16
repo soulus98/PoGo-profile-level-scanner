@@ -1,11 +1,9 @@
 const { saveStats } = require("../func/stats.js"),
-			{ dateToTime } = require("../func/dateToTime.js"),
+			{ dateToTime, performanceLogger } = require("../func/misc.js"),
 			{ saveBlacklist } = require("../func/saveBlacklist.js"),
-			{ performanceLogger } = require("../func/performanceLogger.js"),
 			messagetxt = require("../server/messagetxt.js"),
 			{ messagetxtReplace } = require("../func/messagetxtReplace.js");
-let blacklist = {},
-		server = {},
+let server = {},
 		channel = {},
 		profile = {},
 		logs = {};
@@ -19,6 +17,7 @@ module.exports = {
   args: true,
 	permissions: "MANAGE_ROLES",
 	execute(input, args) {
+		console.log("testo A1", blacklist);
 		return new Promise(function(bigResolve) {
 			const execTime = dateToTime(new Date());
 			const prom = new Promise(function(resolve) {
@@ -26,13 +25,13 @@ module.exports = {
 					const inCommand = true;
 					const message = input;
 					if (args[2] || args[1] > 50 || args[1] < 1 || (args[1] && isNaN(args[1]))){
-						message.lineReply(`Please provide only one user and one level in the format \`${ops.prefix}c <@mention/ID> [level]\``);
+						message.reply(`Please provide only one user and one level in the format \`${ops.prefix}c <@mention/ID> [level]\``);
 						bigResolve(", but it failed, since the format was wrong.");
 						return;
 					}
 					const mentions = message.mentions.users;
 					if (mentions.size > 1) {
-						message.lineReply("Sorry, but I cannot confirm more than one user at a time.");
+						message.reply("Sorry, but I cannot confirm more than one user at a time.");
 						bigResolve(", but it failed, since they tagged two people in the command.");
 						return;
 					}
@@ -53,7 +52,7 @@ module.exports = {
 							if (mentions.size == 1) {
 								const memb = mentions.first();
 								if (memb === undefined){
-									message.lineReply("I could not find this member, they may have left the server.");
+									message.reply("I could not find this member, they may have left the server.");
 									bigResolve(`, but it failed, since I couldn't fetch member ${id}.`);
 									return;
 								} else {
@@ -62,19 +61,19 @@ module.exports = {
 										resolve(info);
 										return;
 									}).catch((err) => {
-										message.lineReply("I could not find this member for an exceptionally unexpected reason. Tell the developer please.");
+										message.reply("I could not find this member for an exceptionally unexpected reason. Tell the developer please.");
 										console.error(`[${execTime}]: Error: An (exceptionally!) unexpected error occured when trying to fetch ${id}. Err:${err}`);
 										bigResolve(`, but it failed, due to an unexpected error when trying to fetch ${id}.`);
 										return;
 									});
 								}
 							} else {
-								message.lineReply("There may be a typo, or some other issue, which causes me to not be able to find this member.");
+								message.reply("There may be a typo, or some other issue, which causes me to not be able to find this member.");
 								bigResolve(`, but it failed, due to a typo or some other issue. Id: ${id}.`);
 								return;
 							}
 						} else {
-							message.lineReply("I could not find this member for an unexpected reason. Tell the developer please.");
+							message.reply("I could not find this member for an unexpected reason. Tell the developer please.");
 							console.error(`[${execTime}]: Error: An unexpected error occured when trying to fetch ${id}.  Err:${err}`);
 							bigResolve(`, but it failed, due to an unexpected error when trying to fetch ${id}.`);
 							return;
@@ -103,15 +102,15 @@ module.exports = {
 				if (member === null){
 					console.error(`[${execTime}]: Error: #${id} left the server before they could be processed.`);
 					if (inCommand) {
-						message.lineReply("That member has *just* left the server, and can not be processed.");
+						message.reply("That member has *just* left the server, and can not be processed.");
 						bigResolve(`, but it failed, since the member, #${id}, left the server before they could be processed.`);
 					} else {
-						logs.send(`User: ${message.author}\nLeft the server. No roles added.`, image);
+						logs.send({ content : `User: ${message.author}\nLeft the server. No roles added.`, files: [image] });
 					}
 					return;
 				} else if (member === undefined) { // this should not be accessable unless using a command
 					if (!inCommand) console.error(`[${execTime}]: Error: member is undefined without being in a command. Impossible error? Tell Soul pls`);
-					message.lineReply("This member may have left the server. If not, then there is a typo, or some other issue, which causes me to not be able to find them.");
+					message.reply("This member may have left the server. If not, then there is a typo, or some other issue, which causes me to not be able to find them.");
 					bigResolve(`, but it failed, due to a typo or some other issue. (This might be an impossible error...? not sure) Id: ${id}.`);
 					return;
 				}
@@ -131,8 +130,8 @@ module.exports = {
 						if (!inCommand) member.send(`I'll be honest, this is weird.
 Why would you send a screenshot of an account under level when you already have the role that means you are above the gate level...???
 I am honestly curious as to why, so please shoot me a dm at <@146186496448135168>. It is soulus#3935 if that tag doesn't work.`);
-							else message.lineReply(`Ya silly, they already have Remote Raids. You probably want \`${ops.prefix}revert\`. That or you did a typo.`);
-							if (!inCommand) logs.send(`User: ${member}\nResult: \`${level}\`\nAlready had RR, no action taken.`, image);
+							else message.reply(`Ya silly, they already have Remote Raids. You probably want \`${ops.prefix}revert\`. That or you did a typo.`);
+							if (!inCommand) logs.send({ content : `User: ${member}\nResult: \`${level}\`\nAlready had RR, no action taken.`, files: [image] });
 						bigResolve((logString || "") + `, but it failed. They already have RR, so cannot be rejected${(!inCommand) ? ` for level ${level}` : ""}.`);
 						return;
 					}
@@ -154,9 +153,9 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 						bigResolve((logString || "") + `. No action was taken for level: ${level}.`);
 						if (!inCommand) {
 							if (ops.tagModOneOff) {
-								logs.send(`User: ${member}\nResult: \`${level}\`\nNo action taken.\nManual review, <@&${ops.modRole}>?`, image);
+								logs.send({ content : `User: ${member}\nResult: \`${level}\`\nNo action taken.\nManual review, <@&${ops.modRole}>?`, files: [image] });
 							} else {
-								logs.send(`User: ${member}\nResult: \`${level}\`\nNo action taken.`, image);
+								logs.send({ content : `User: ${member}\nResult: \`${level}\`\nNo action taken.`, files: [image] });
 							}
 						}
 					}
@@ -227,7 +226,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 							const given50 = vals[1];
 							if ((given30 || given40 || given50)){
 								if (given40 || given50) msgtxt.push(`${(msgtxt.length == 0) ? `Hey ${member}, ` : (!given30) ? ", however," : "\nAlso,"} we congratulate you on achieving such a high level.\nFor this you have been given the ${(given40) ? "\"Level 40\" " : ""}${(given50) ? (given40) ? "and the \"Level 50\" " : "\"Level 50\" " : ""}vanity role${(given40 && given50) ? "s" : ""}`);
-								member.send(msgtxt.join(""), { split:true }).catch((err) => {
+								member.send(msgtxt.join("")).catch((err) => {
 									if (err.httpStatus == "403") {
 										console.error(`[${execTime}]: Error: Could not send msgtxt DM to ${member.user.username}${member.user}.`);
 									} else {
@@ -243,7 +242,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 								message.react("🤷").catch(() => {
 									console.error(`[${execTime}]: Error: Could not react 🤷 (person_shrugging) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								});
-								message.lineReply("That person already had the roles you asked me to give them. Check the command or the user and try again.").then((msg) => {
+								message.reply("That person already had the roles you asked me to give them. Check the command or the user and try again.").then((msg) => {
 									setTimeout(() => {
 										if (ops.msgDeleteTime){
 											msg.delete().catch(() => {
@@ -257,26 +256,20 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 							}
 							if (!inCommand){
 								if (!given30 && !given40 && !given50){
-									logs.send(`User: ${message.author}\nResult: \`${level}\`\nRoles: RR already possessed. None added.`, image).then(() => {
+									logs.send({ content : `User: ${message.author}\nResult: \`${level}\`\nRoles: RR already possessed. None added.`, files: [image] }).then(() => {
 										if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Log img posted\t`, postedTime.getTime()); // testo?
 									});
-								} else logs.send(`User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}`, image).then(() => {
+								} else logs.send({ content : `User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}`, files: [image] }).then(() => {
 									if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Log img posted\t`, postedTime.getTime()); // testo?
 								});
 							}
 							saveStats(level);
-							bigResolve((logString || "") + `. They were given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")} ${(!inCommand) ? `for level ${level}` : ""}.`);
+							bigResolve((logString || "") + `. Given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}. ${(!inCommand) ? `Level ${level}` : ""}.`);
 							if (inCommand) deleteStuff(message, execTime, id);
 						});
 					});
 				}
 			});
-		});
-	},
-	passAppBlack(b) {
-		return new Promise((res) => {
-			blacklist = b;
-			res();
 		});
 	},
 	passAppServ([c, p, s, l]) {

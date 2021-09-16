@@ -1,4 +1,4 @@
-const { dateToTime } = require("../func/dateToTime.js");
+const { dateToTime } = require("../func/misc.js");
 
 function handleCommand(message, postedTime){
   const client = message.client;
@@ -14,14 +14,14 @@ function handleCommand(message, postedTime){
   if (command.guildOnly && message.channel.type === "dm") { 				// dm checking
     logString = logString + `, but it failed, as ${ops.prefix}${commandName} cannot be used in a DM`;
     console.log(logString);
-    return message.lineReply("This command cannot be used in a DM");
+    return message.reply("This command cannot be used in a DM");
   }
   if (command.permissions) {																				// Permission checking
     const authorPerms = message.channel.permissionsFor(message.author);
     if (!authorPerms || !authorPerms.has(command.permissions)) {
       logString = logString + `, but it failed, as ${ops.prefix}${commandName} requires ${command.permissions}, and the user does not possess it.`;
       console.log(logString);
-      return message.lineReply(`You must possess the ${command.permissions} permission to execute \`${ops.prefix}${commandName}\``);
+      return message.reply(`You must possess the ${command.permissions} permission to execute \`${ops.prefix}${commandName}\``);
     }
   }
   if (command.args && !args.length) {																// Checking for arguments if an argument is required
@@ -31,7 +31,7 @@ function handleCommand(message, postedTime){
     }
     logString = logString + ", but it failed, as it requires arguments, and none were provided.";
     console.log(logString);
-    return message.lineReply(reply);
+    return message.reply(reply);
   }
   // command execution
   try {
@@ -47,7 +47,7 @@ function handleCommand(message, postedTime){
     });
   } catch (error) {
     console.error(error);
-    message.lineReply("An error occured while trying to run that command.");
+    message.reply("An error occured while trying to run that command.");
   }
 }
 

@@ -1,4 +1,5 @@
 const ver = require("../package.json").version;
+const { replyNoMention } = require("../func/misc.js");
 
 module.exports = {
 	name: "version",
@@ -7,7 +8,7 @@ module.exports = {
   usage: `\`${ops.prefix}ver\``,
 	execute(message) {
     return new Promise(function(resolve) {
-			message.lineReplyNoMention(`Current version: \`${ver}\``);
+			replyNoMention(message, `Current version: \`${ver}\``);
 			resolve();
     });
 	},

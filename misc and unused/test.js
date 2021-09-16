@@ -42,7 +42,7 @@ function test(){
   });
 
   //const imgAttach = new Discord.MessageAttachment(imgCanv.toBuffer(), "reeeee.jpg");
-  //message.channel.send("Reeeeee", imgAttach);
+  //message.channel.send({ content: "Reeeeee", files:[imgAttach] });
   /*
 		function imageWrite(message){
 			imageLogCount++;
