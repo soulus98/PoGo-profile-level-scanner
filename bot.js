@@ -1,5 +1,6 @@
 const { token } = require("./server/keys.json"),
 			fs = require("fs"),
+			path = require("path"),
 			Discord = require("discord.js"),
 			messagetxt = require("./server/messagetxt.js"),
 			{ handleCommand } = require("./handlers/commands.js"),
@@ -122,7 +123,7 @@ function checkDateFolder(checkDate){
 function loadCommands(){
 	return new Promise((resolve) => {
 		client.commands = new Discord.Collection();
-		const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
+		const commandFiles = fs.readdirSync(path.resolve(__dirname, "./commands")).filter(file => file.endsWith(".js"));
 		let commandFilesNames = "\nThe currently loaded commands and cooldowns are:\n";
 		for (const file of commandFiles) {		// Loads commands
 			const command = require(`./commands/${file}`);
@@ -396,7 +397,6 @@ client.on("messageCreate", message => {
 		const image = message.attachments.first();
 		const fileType = image.url.split(".").pop().toLowerCase();
 		if (image.height < 50 || image.width < 50 || fileType.length > 6){ //
-			console.log(image, fileType.length); // testo
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since it is an Empty/Tiny image file`);
 			message.reply("I cannot scan tiny images or images with no size information.\nIf you think this is in error, please tell a moderator.").catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
@@ -406,8 +406,18 @@ client.on("messageCreate", message => {
 			saveStats("wrong");
 			return;
 		}
+		if (image.size / 1048576 > 15){ //
+			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since it is over 15mb`);
+			message.reply("I cannot handle such a large file.\nIf you think this is in error, please tell a moderator.").catch(() => {
+				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send("I cannot handle such a large file.\nIf you think this is in error, please tell a moderator.");
+			});
+			logs.send({ content : `User: ${message.author}\nLarge file over 15MB: ${(image.size / 1048576).toFixed(2)}MB. Not scanned.\nFile url: ${image.url}` });
+			saveStats("wrong");
+			return;
+		}
 		const acceptedFileTypes = ["png", "jpg", "jpeg", "jfif", "tiff", "bmp"];
-		if (!acceptedFileTypes.includes(fileType)){
+		if (!acceptedFileTypes.includes(fileType) && !(image.contentType.split("/")[0] == "image")){
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, due to an Invalid file type: ${fileType}`);
 			message.reply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`).catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);

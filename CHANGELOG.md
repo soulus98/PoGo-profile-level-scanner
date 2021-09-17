@@ -23,7 +23,7 @@
 I had originally intended to make an optimization regarding multiple screenshot processing, but it seems to be unnecessary  
 This release probably needs either some testing or monitoring for a bit, a lot of stuff moved around.
 
-#### v1.8.1
+#### v1.8.1 (2021-Sep-19)
 * Updated to discord.js v13, use `npm update` to make your local copy match
 * This also deprecated "discord-reply". Run `npm uninstall discord-reply` if you want to save space I guess
 * Split `]show` into multiple embeds
@@ -32,6 +32,12 @@ This release probably needs either some testing or monitoring for a bit, a lot o
 * Made blacklist a global variable
 * Formatted changelog.md a little
 
+#### v1.8.2 (2021-Sep-17)
+* Added a recrop-retry functionality for certain failed images. Should make a slight increase
+* Fell back to eng.traineddata instead of pogo.traineddata temporarily
+* Added a "wrong-file" case for huge files over 15MB, to save bandwidth
+* Fixed an ubuntu path resolve issue
+* Mod: recog.js
 
 
 

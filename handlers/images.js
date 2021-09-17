@@ -1,7 +1,7 @@
-const { createWorker, PSM } = require("tesseract.js"),
-Discord = require("discord.js"),
+const Discord = require("discord.js"),
 			{ crop } = require("../func/crop.js"),
 			{ saveFile } = require("../func/saveFile.js"),
+			{ recog } = require("../func/recog.js"),
 			{ dateToTime, performanceLogger, replyNoMention } = require("../func/misc.js");
 let logs = {};
 
@@ -14,7 +14,7 @@ function handleImage(message, postedTime, wasDelayed){
 			const logAdd = new Promise((res) => {
 				if (wasDelayed == true){
 					const delayAmount = Math.round((Date.now() - postedTime) / 1000);
-					logString = logString + `. Delayed ${delayAmount}s. ${imgStats.currentlyImage-1} more to process`;
+					logString = logString + `. Delayed ${delayAmount}s. ${imgStats.currentlyImage - 1} more to process`;
 					res();
 				} else res();
 			});
@@ -68,30 +68,10 @@ function handleImage(message, postedTime, wasDelayed){
 						if (!message.deleted) await message.react("👀").catch(() => {
 							console.error(`[${dateToTime(postedTime)}]: Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 						});
-						const worker = createWorker({
-							// logger: m => console.log(m)
-						});
-						(async () => {
-							await worker.load();
-							// console.log(`Recognising: i#${instance}. iLC: ${imageLogCount}.`); //testo??
-							await worker.loadLanguage("eng");
-							await worker.initialize("eng");
-							await worker.setParameters({
-								tessedit_pageseg_mode: PSM.AUTO,
-							});
-							const { data: { text } } = await worker.recognize(imgBuff);
-							await worker.terminate();
-							// console.log("Image recognised. Result:" + text);
-							let failed = false;
-							let level = 0;
-							try {
-								level = text.match(/(\d\d)/)[0];
-							} catch (err){
-								failed = true;
-								level = "Failure";
-							}
+						// console.log("Image recognised. Result:" + text);
+						recog(imgBuff, message).then(([level, failed, text]) => {
 							if (ops.testMode){
-								await replyNoMention(message, `Test mode. This image ${(failed) ? `failed. Scanned text: ${text}` : `was scanned at level: ${level}.`} `).catch(() => {
+								replyNoMention(message, `Test mode. This image ${(failed) ? `failed. Scanned text: ${text}` : `was scanned at level: ${level}.`} `).catch(() => {
 									console.error(`[${dateToTime(postedTime)}]: Error: Could not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 									message.channel.send(`Test mode. This image ${(failed) ? "failed." : `was scanned at level: ${level}.`} `);
 								});
@@ -106,9 +86,9 @@ function handleImage(message, postedTime, wasDelayed){
 									console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								}); // dave, dm when image fails to scan
 								message.author.send(`Sorry, ${message.author}, but there was an issue scanning your profile screenshot.
-Make sure you follow the example at the top of <#${ops.screenshotChannel}>.
-If part of your buddy is close to the level number (such as gyarados whiskers or giratina feet), try rotating it out of the way.
-If there was a different cause, a @moderator will be able to help manually approve you.`).catch(() => {
+									Make sure you follow the example at the top of <#${ops.screenshotChannel}>.
+									If part of your buddy is close to the level number (such as gyarados whiskers or giratina feet), try rotating it out of the way.
+									If there was a different cause, a @moderator will be able to help manually approve you.`).catch(() => {
 										console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 									});
 									console.log(logString + `. I failed to find a number. Scanned text: ${text}.`);
@@ -125,7 +105,7 @@ If there was a different cause, a @moderator will be able to help manually appro
 										console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 									});
 								}
-							})();
+							});
 						});
 					}).catch((err) => {
 						if (err == "crash"){

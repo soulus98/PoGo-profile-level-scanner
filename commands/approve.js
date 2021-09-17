@@ -17,7 +17,6 @@ module.exports = {
   args: true,
 	permissions: "MANAGE_ROLES",
 	execute(input, args) {
-		console.log("testo A1", blacklist);
 		return new Promise(function(bigResolve) {
 			const execTime = dateToTime(new Date());
 			const prom = new Promise(function(resolve) {
@@ -118,6 +117,7 @@ module.exports = {
 				if (inCommand) logString = ` and tagged ${member.user.username}${member.user}`;
 				if (!(level == "missing") && (isNaN(level) || level > 50 || level < 1)){
 					console.error(`[${execTime}]: Error: Level - ${level} - is NaN, >50, or <1 despite being checked already... Impossible error? Tell Soul pls`);
+					message.reply("Impossible error. Please tell the developer");
 					bigResolve((logString || "") + ", but it failed, due to an impossible error regarding level checking.");
 					return;
 				}
