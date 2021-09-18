@@ -39,6 +39,9 @@ This release probably needs either some testing or monitoring for a bit, a lot o
 * Fixed an ubuntu path resolve issue
 * Mod: recog.js
 
+#### v1.8.3 (2021-Sep-18)
+* Fixed more ubuntu path stuff. I use node-path now so should work on any OS
+
 
 
 # v1.7 (2021-Aug-16)
