@@ -87,22 +87,24 @@ function loadConfigs(){
 function checkDateFolder(checkDate){
 	return new Promise((resolve, reject) => {
 		if (ops.saveLocalCopy) {
-			let newFolder = `./screens/Auto/${checkDate.toDateString()}`; // eslint-disable-line prefer-const
-			console.log(`\nChecking for ${newFolder}...`);
-			fs.access(newFolder, (err) => {
+			const folder = path.resolve(__dirname, `./screens/Auto/${checkDate.toDateString()}`),
+						folderParent = path.dirname(folder),
+						folderParentParent = path.dirname(folderParent);
+			console.log(`\nChecking for ${folder}...`);
+			fs.access(folder, (err) => {
 				if (err){
-					fs.mkdir("./screens", { recursive: true }, (err) => {
-						if (err) return reject(`Error occured when making/checking "./screens". Error: ${err}`);
+					fs.mkdir(folderParentParent, { recursive: true }, (err) => {
+						if (err) reject(`Error occured when making/checking ${folderParentParent}. Error: ${err}`);
 						else {
-							console.log("Created/checked Folder: \"screens\"");
-							fs.mkdir("./screens/Auto", { recursive: true }, (err) => {
-								if (err) return reject(`Error occured when making/checking "./screens/Auto". Error: ${err}`);
+							console.log(`Created/checked Folder: ${folderParentParent}`);
+							fs.mkdir(folderParent, { recursive: true }, (err) => {
+								if (err) reject(`Error occured when making/checking ${folderParent}. Error: ${err}`);
 								else {
-									console.log("Created/checked Folder: \"Auto\"");
-									fs.mkdir(newFolder, { recursive: true }, (err) => {
-										if (err) return reject(`Error occured when making/checking "${newFolder}". Error: ${err}`);
+									console.log(`Created/checked Folder: ${folderParent}`);
+									fs.mkdir(folder, { recursive: true }, (err) => {
+										if (err) reject(`Error occured when making/checking "${folder}". Error: ${err}`);
 										else {
-											console.log(`Created/checked Folder: ${checkDate.toDateString()}.`);
+											console.log(`Created/checked Folder: ${folder}.`);
 											resolve();
 										}
 									});
@@ -111,10 +113,11 @@ function checkDateFolder(checkDate){
 						}
 					});
 				} else {
-					console.log(`Folder: ${checkDate.toDateString()} already existed.`);
+					console.log(`Folder: ${folder} already existed.`);
 					resolve();
 				}
 			});
+			return;
 		} else resolve();
 	});
 }
@@ -165,9 +168,9 @@ function loadBlacklist(){
 					res();
 				} catch (e) {
 					if (e.code == "MODULE_NOT_FOUND") {
-						fs.writeFile("./server/blacklist.json", "[]", (err) => {
+						fs.writeFile(path.resolve(__dirname, "./server/blacklist.json"), "[]", (err) => {
 							if (err){
-								reject(`Error thrown when writing stats file. Error: ${err}`);
+								reject(`Error thrown when writing new blacklist file. Error: ${err}`);
 								return;
 							}
 							console.log("Could not find blacklist.json. Making a new one...");
@@ -309,7 +312,7 @@ function clearBlacklist(message, idToDelete){
 		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
 		saveBlacklist(blacklist);
 	} else {
-		fs.writeFile("./server/blacklist.json", "[]", (err) => {
+		fs.writeFile(path.resolve(__dirname, "./server/blacklist.json"), "[]", (err) => {
 			if (err){
 				console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
 				return;

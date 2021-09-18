@@ -33,7 +33,7 @@ This release probably needs either some testing or monitoring for a bit, a lot o
 * Formatted changelog.md a little
 
 #### v1.8.2 (2021-Sep-17)
-* Added a recrop-retry functionality for certain failed images. Should make a slight increase
+* Added a recrop-retry functionality for certain failed images. Should make a slight increase in success rate
 * Fell back to eng.traineddata instead of pogo.traineddata temporarily
 * Added a "wrong-file" case for huge files over 15MB, to save bandwidth
 * Fixed an ubuntu path resolve issue

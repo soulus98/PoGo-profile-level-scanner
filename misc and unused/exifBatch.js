@@ -2,6 +2,7 @@ const tesseract = require('tesseract.js');
 const https = require('https');
 const gm = require('imagemagick');
 const fs = require('fs');
+//broken need to add path
 
 path = "screens/Manual/jpgs";
 fs.readdir(path, (err, files) => {

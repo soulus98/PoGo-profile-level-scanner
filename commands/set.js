@@ -1,6 +1,7 @@
 const fs = require("fs"),
 			bot = require("../bot.js"),
-			{ replyNoMention } = require("../func/misc.js");
+			{ replyNoMention } = require("../func/misc.js"),
+			path = require("path");
 
 module.exports = {
 	name: "modify-setting",
@@ -60,7 +61,7 @@ module.exports = {
 					to = ids[args[0]];
 				}
 				const jsonString = JSON.stringify(config);
-				fs.writeFile("./server/config.json", jsonString, err => {
+				fs.writeFile(path.resolve(__dirname, "../server/config.json"), jsonString, err => {
 					if (err) {
 						message.reply("An unexpected error occured when editing the config file.");
 						resolve(`, but an unexpected write error occured. Error: ${err}.`);

@@ -1,7 +1,8 @@
-const fs = require("fs");
-const Discord = require("discord.js");
+const fs = require("fs"),
+			path = require("path"),
+			Discord = require("discord.js"),
+			{ dateToTime } = require("../func/misc.js");
 let stats = new Discord.Collection();
-const { dateToTime } = require("../func/misc.js");
 
 // Updates the stats and saves the stats to file
 function saveStats(level) {
@@ -36,7 +37,7 @@ function saveStats(level) {
 			stats.set("Attempts", stats.get("Attempts") + 1);
 			stats.set(parseFloat(level), stats.get(parseFloat(level)) + 1);
 		}
-		fs.writeFile("./server/stats.json", JSON.stringify(Array.from(stats)), (err) => {
+		fs.writeFile(path.resolve(__dirname, "../server/stats.json"), JSON.stringify(Array.from(stats)), (err) => {
 			if (err){
 				console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving stats. Err:${err}`);
 				return;
@@ -73,7 +74,7 @@ function loadStats() {
 					res();
 				} catch (e) {
 					if (e.code == "MODULE_NOT_FOUND") {
-						fs.writeFile("./server/stats.json", "[[\"Attempts\",0],[\"Declined-Blacklist\",0],[\"Declined-Left-Server\",0],[\"Declined-All-Roles\",0],[\"Declined-Wrong-Type\",0],[\"Manual-Unknown\",0],[\"Manual-Reversions\",0],[\"Fails\",0],[\"Under-30\",0],[30,0],[31,0],[32,0],[33,0],[34,0],[35,0],[36,0],[37,0],[38,0],[39,0],[40,0],[41,0],[42,0],[43,0],[44,0],[45,0],[46,0],[47,0],[48,0],[49,0],[50,0]]", (err) => {
+						fs.writeFile(path.resolve(__dirname, "../server/stats.json"), "[[\"Attempts\",0],[\"Declined-Blacklist\",0],[\"Declined-Left-Server\",0],[\"Declined-All-Roles\",0],[\"Declined-Wrong-Type\",0],[\"Manual-Unknown\",0],[\"Manual-Reversions\",0],[\"Fails\",0],[\"Under-30\",0],[30,0],[31,0],[32,0],[33,0],[34,0],[35,0],[36,0],[37,0],[38,0],[39,0],[40,0],[41,0],[42,0],[43,0],[44,0],[45,0],[46,0],[47,0],[48,0],[49,0],[50,0]]", (err) => {
 							if (err){
 								reject(`Error thrown when writing stats file. Error: ${err}`);
 								return;

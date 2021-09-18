@@ -1,6 +1,7 @@
 const fs = require("fs"),
 			{ loadConfigs } = require("../bot.js"),
-			{ replyNoMention } = require("../func/misc.js");
+			{ replyNoMention } = require("../func/misc.js"),
+			path = require("path");
 
 module.exports = {
 	name: "toggle-setting",
@@ -31,7 +32,7 @@ module.exports = {
 				toggles[args[0]] = !toggles[args[0]];
 				config.toggles = toggles;
 				const jsonString = JSON.stringify(config);
-				fs.writeFile("./server/config.json", jsonString, err => {
+				fs.writeFile(path.resolve(__dirname, "../server/config.json"), jsonString, err => {
 					if (err) {
 						message.reply("An unexpected error occured when editing the config file.");
 						resolve(`, but an unexpected write error occured. Error: ${err}.`);
