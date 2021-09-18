@@ -148,7 +148,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 						blacklist.set(id, Date.now());
 						saveBlacklist(blacklist);
 						bigResolve((logString || "") + `. They were added to the blacklist for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"} for level ${level}.`);
-						if (!inCommand) logs.send(`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"}`, image);
+						if (!inCommand) logs.send({ content:`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"}`, files:[image] });
 					} else { // Due to the if logic, this block is only accessable if level is one less than targetLevel AND blacklistOneOff is false
 						bigResolve((logString || "") + `. No action was taken for level: ${level}.`);
 						if (!inCommand) {
