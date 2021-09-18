@@ -2,7 +2,9 @@ const Discord = require("discord.js"),
 			{ crop } = require("../func/crop.js"),
 			{ saveFile } = require("../func/saveFile.js"),
 			{ recog } = require("../func/recog.js"),
-			{ dateToTime, performanceLogger, replyNoMention } = require("../func/misc.js");
+			{ dateToTime, performanceLogger, replyNoMention } = require("../func/misc.js"),
+			messagetxt = require("../server/messagetxt.js"),
+			{ messagetxtReplace } = require("../func/messagetxtReplace.js");
 let logs = {};
 
 function handleImage(message, postedTime, wasDelayed){
@@ -78,17 +80,14 @@ function handleImage(message, postedTime, wasDelayed){
 							}
 							if (failed || level > 50 || level < 1){
 								logs.send({ content: `User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``, files: [image] });
-								message.reply(`<@&${ops.modRole}> There was an issue scanning this image.`).catch(() => {
+								message.reply(messagetxtReplace(messagetxt.fail, message.author)).catch(() => {
 									console.error(`[${dateToTime(postedTime)}]: Error: Could not reply to message: ${message.url}\nContent of mesage: "${message.content}"`);
-									message.channel.send(`<@&${ops.modRole}> There was an issue scanning this image.`);
+									message.channel.send(messagetxtReplace(messagetxt.fail, message.author));
 								});
 								message.react("❌").catch(() => {
 									console.error(`[${dateToTime(postedTime)}]: Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								}); // dave, dm when image fails to scan
-								message.author.send(`Sorry, ${message.author}, but there was an issue scanning your profile screenshot.
-Make sure you follow the example at the top of <#${ops.screenshotChannel}>.
-If part of your buddy is close to the level number (such as gyarados whiskers or giratina feet), try rotating it out of the way.
-If there was a different cause, a @moderator will be able to help manually approve you.`).catch(() => {
+								message.author.send(messagetxtReplace(messagetxt.failDm, message.author)).catch(() => {
 										console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 									});
 									console.log(logString + `. I failed to find a number. Scanned text: ${text}.`);

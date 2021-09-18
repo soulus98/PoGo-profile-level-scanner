@@ -43,8 +43,10 @@ This release probably needs either some testing or monitoring for a bit, a lot o
 * Fixed more ubuntu path stuff. I use node-path now so should work on any OS
 
 #### v1.8.4 (2021-Sep-1?)
+* Added failed message to messagetxt
 * Fixed blacklist logs issue
 * Removed some big unnecessary traineddata files
+
 
 
 
