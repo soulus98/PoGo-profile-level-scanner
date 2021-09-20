@@ -15,7 +15,7 @@ module.exports = {
 				resolve();
 				return;
 			}
-			if (!message.channel.permissionsFor(message.author).has("MANAGE_GUILD")){
+			if (!message.member.permissionsIn(ops.logsChannel).has("VIEW_CHANNEL")){
 				replyNoMention(message, `Hey trainer,
 
 	Welcome to the server!
