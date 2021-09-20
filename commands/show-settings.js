@@ -26,7 +26,6 @@ module.exports = {
 					// data.push(`${key}: \`${config[cat][key]}\`   ${configDesc[cat][key]}`);
 				}
 				embArr.push(embed);
-				console.log(Object.keys(config).length);
 			}
 			message.channel.send({ embeds: embArr }).then(() => {
 				resolve();
