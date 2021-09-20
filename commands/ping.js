@@ -3,6 +3,7 @@ module.exports = {
 	aliases: ["check-ping", "server-ping", "ping"],
 	usage: `\`${ops.prefix}ping\``,
 	description: "Ping! Tells you the server delay for the message.",
+	permissions: "VIEW_CHANNEL",
 	execute(message) {
 		return new Promise(function(resolve) {
 			const client = message.client;

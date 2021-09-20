@@ -22,16 +22,20 @@ async function recog(imgBuff, message, failInc) {
 				const level = levelnum[0];
 				resolve([level, false, text]);
 				return;
-			} else if (text.includes("LEVEL") && failInc < 4) {
-				shortCrop(imgBuff).then((imgBuffTwo) => {
-					if (ops.testMode) message.reply({ content:`Test mode. This is attempt #${failInc + 1}:`, files: [imgBuffTwo] });
-					recog(imgBuffTwo, message, failInc + 1).then(([level, failed, txt]) => {
-						resolve([level, failed, txt]);
-					});
-				});
 			} else {
-				resolve(["Failure", true, text]);
-				return;
+				const levelTextArray = ["LEVEL", "LLLLL", "NNNNN", "NIVEL", "HIVEL", "NIVEAL", "LRI", "TEVEL", "NIV", "VEL"];
+				const findTextInArray = (arr, str) => arr.some(e => str.toLowerCase().includes(e.toLowerCase()));
+				if (failInc < 4 && findTextInArray(levelTextArray, text)){
+					shortCrop(imgBuff).then((imgBuffTwo) => {
+						if (ops.testMode) message.reply({ content:`Test mode. Scanned text:\n${text}\n\n This is attempt #${failInc + 1}:`, files: [imgBuffTwo] });
+						recog(imgBuffTwo, message, failInc + 1).then(([level, failed, txt]) => {
+							resolve([level, failed, txt]);
+						});
+					});
+				} else {
+					resolve(["Failure", true, text]);
+					return;
+				}
 			}
 		})();
 	});

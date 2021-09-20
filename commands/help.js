@@ -5,6 +5,7 @@ module.exports = {
 	description: "Displays all commands and information for specific commands.",
   aliases: ["command", "commands"],
   usage: `\`${ops.prefix}help [command name]\``,
+	permissions: "VIEW_CHANNEL",
 	execute(message, args) {
 		return new Promise(function(resolve) {
 			const data = [];

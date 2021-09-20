@@ -42,10 +42,14 @@ This release probably needs either some testing or monitoring for a bit, a lot o
 #### v1.8.3 (2021-Sep-18)
 * Fixed more ubuntu path stuff. I use node-path now so should work on any OS
 
-#### v1.8.4 (2021-Sep-1?)
+#### v1.8.4 (2021-Sep-18)
 * Added failed message to messagetxt
 * Fixed blacklist logs issue
 * Removed some big unnecessary traineddata files
+
+#### v1.8.5 (2021-Sep-20)
+* Changed command checking to be based on access to logsChannel if the command does not have permissions specified.
+* Added more cases for recrop-retry
 
 
 

@@ -6,7 +6,6 @@ module.exports = {
   aliases: ["rs"],
   usage: `\`${ops.prefix}rs\``,
 	guildOnly:true,
-	permissions: "MANAGE_GUILD",
 	execute(message) {
 		return new Promise(function(resolve) {
 			console.log(`${message.author.username}${message.author} force quit the server at ${message.createdAt.toLocaleString()}.`);

@@ -13,7 +13,6 @@ module.exports = {
 	usage: `\`${ops.prefix}r <@mention/ID>\``,
 	guildOnly: true,
 	args: true,
-	permissions: "MANAGE_ROLES",
 	execute(message, args) {
 		return new Promise(function(bigResolve) {
 		if (args[1]){

@@ -23,7 +23,7 @@ function handleCommand(message, postedTime){
       console.log(logString);
       return message.reply(`You must possess the ${command.permissions} permission to execute \`${ops.prefix}${commandName}\``);
     }
-  }
+  } else if (!message.member.permissionsIn(ops.logsChannel).has("VIEW_CHANNEL")) return;
   if (command.args && !args.length) {																// Checking for arguments if an argument is required
     let reply = "You didn't provide any arguments.";
     if (command.usage) {
