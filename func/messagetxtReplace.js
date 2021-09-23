@@ -1,4 +1,4 @@
-const { dateToTime } = require("../func/dateToTime.js");
+const { dateToTime } = require("../func/misc.js");
 
 function messagetxtReplace(msg, member, level){
 	try {

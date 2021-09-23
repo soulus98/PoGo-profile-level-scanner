@@ -8,7 +8,6 @@ module.exports = {
   aliases: [""],
   usage: `\`${ops.prefix}\``,
 	guildOnly:true,
-	permissions: "MANAGE_GUILD",
 	execute(message, args) {
 		return new Promise(function(resolve,reject) {
 

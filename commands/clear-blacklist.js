@@ -7,7 +7,6 @@ module.exports = {
   usage: `\`${ops.prefix}cbl [user-id]\``,
   cooldown: 5,
 	guildOnly:true,
-	permissions: "MANAGE_GUILD",
 	execute(message, args) {
 		return new Promise(function(resolve) {
 			if (args[0]){

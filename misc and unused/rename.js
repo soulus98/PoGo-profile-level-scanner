@@ -1,4 +1,5 @@
 const fs = require("fs");
+//broken need to add path
 const canvas = require('canvas');
 const pngFiles = fs.readdirSync("./screens/Manual").filter(file => file.endsWith(".png"));
 console.log("Renaming pngs...");

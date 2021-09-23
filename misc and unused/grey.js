@@ -1,5 +1,6 @@
 const Canvas = require("canvas");
 const fs = require("fs");
+//broken need to add path
 const img = Canvas.loadImage("image.jpg");
 img.then((img) => {
   const imgCanv = Canvas.createCanvas(img.width,img.height);

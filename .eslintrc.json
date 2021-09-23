@@ -9,7 +9,8 @@
 	},
 	"globals": {
   	"ops": "writable",
-		"imgStats": "writable"
+		"imgStats": "writable",
+		"blacklist": "writable"
   },
 	"rules": {
 		"arrow-spacing": ["warn", { "before": true, "after": true }],

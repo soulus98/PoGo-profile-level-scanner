@@ -1,15 +1,16 @@
-const fs = require("fs");
-const https = require("https");
-const delay = 75;
+const fs = require("fs"),
+			https = require("https"),
+			delay = 75,
+			path = require("path");
 
 function saveFile(input) {
-	const screensFolder = `./screens/Auto/${new Date().toDateString()}`;
+	const screensFolder = path.resolve(__dirname, `../screens/Auto/${new Date().toDateString()}`);
 	return new Promise(function(resolve, reject) {
 		if (input[1]){
 			const image = input[0],
 						imgBuff = input[1];
 			const imageName = image.id + "crop." + image.url.split(".").pop();
-			fs.writeFile(`${screensFolder}/${imageName}`, imgBuff, (err) => {
+			fs.writeFile(path.join(screensFolder, imageName), imgBuff, (err) => {
 				if (err){
 					reject(`Error while writing a cropped(?) image to file. image: ${image}\nimgBuff: ${imgBuff}\nError: ${err}`);
 					return;
@@ -23,7 +24,7 @@ function saveFile(input) {
 			const image = input;
 			const imageName = image.id + "." + image.url.split(".").pop().toLowerCase();
 			try {
-				const imageDL = fs.createWriteStream(screensFolder + "/" + imageName);
+				const imageDL = fs.createWriteStream(path.join(screensFolder, imageName));
 				https.get(image.url, (response) => {
 					response.pipe(imageDL);
 					response.on("end", () => {

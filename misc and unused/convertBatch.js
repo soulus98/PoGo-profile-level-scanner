@@ -1,8 +1,9 @@
-const gm = require("gm");
-const fs = require("fs");
+const gm = require("gm"),
+			fs = require("fs"),
+			path = require("path");
 
-const path = "Training";
-fs.readdir(path, (err, files) => {
+const folder = path.resolve(__dirname, "../screens/Training");
+fs.readdir(folder, (err, files) => {
   if (err) {
     console.log(`An error occured: ${err}`);
     return;

@@ -3,6 +3,7 @@ const { rect } = require("./fun/rect.js");
 const gm = require('gm');
 const https = require('https');
 const fs = require('fs');
+//broken need to add path
 
 imagePath = "https://cdn.discordapp.com/attachments/816837120219152394/838605695917490186/image0-25.png";
 

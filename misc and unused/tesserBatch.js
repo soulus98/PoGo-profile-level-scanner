@@ -1,4 +1,5 @@
 const fs = require('fs');
+//broken need to add path
 const { createWorker , PSM } = require('tesseract.js');
 const imgPath = "screens/Manual/cropped";
 

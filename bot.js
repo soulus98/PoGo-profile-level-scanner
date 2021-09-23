@@ -1,19 +1,23 @@
 const { token } = require("./server/keys.json"),
 			fs = require("fs"),
+			path = require("path"),
 			Discord = require("discord.js"),
 			messagetxt = require("./server/messagetxt.js"),
 			{ handleCommand } = require("./handlers/commands.js"),
 			{ handleImage } = require("./handlers/images.js"),
-			{ dateToTime } = require("./func/dateToTime.js"),
+			{ dateToTime, performanceLogger, replyNoMention } = require("./func/misc.js"),
 			{ saveStats, loadStats } = require("./func/stats.js"),
 			{ saveBlacklist } = require("./func/saveBlacklist.js"),
-			{ performanceLogger } = require("./func/performanceLogger.js"),
 			{ messagetxtReplace } = require("./func/messagetxtReplace.js"),
 			mail = require("./handlers/dm.js"),
 			ver = require("./package.json").version;
-require("discord-reply");
 
-const client = new Discord.Client(),
+const client = new Discord.Client({ intents: [
+				Discord.Intents.FLAGS.GUILDS,
+				Discord.Intents.FLAGS.GUILD_MEMBERS,
+				Discord.Intents.FLAGS.GUILD_MESSAGES,
+				Discord.Intents.FLAGS.DIRECT_MESSAGES,
+			] }),
 			cooldowns = new Discord.Collection(),
 			launchDate = new Date();
 imgStats = {
@@ -21,8 +25,8 @@ imgStats = {
 				imageLogCount : 0,
 				currentlyImage : 0,
 			};
-let blacklist = new Discord.Collection(),
-		loaded = false,
+blacklist = new Discord.Collection();
+let loaded = false,
 		config = {},
 		channel = {},
 		logs = {},
@@ -30,7 +34,7 @@ let blacklist = new Discord.Collection(),
 		server = {},
 		screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 ops = {};
-module.exports = { loadConfigs, clearBlacklist, cooldowns, blacklist, screensFolder };
+module.exports = { loadConfigs, clearBlacklist, cooldowns, screensFolder };
 
 // Loads all the variables at program launch
 async function load(){
@@ -39,12 +43,7 @@ async function load(){
 		await loadConfigs();
 		await checkDateFolder(launchDate).catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
 		await loadCommands();
-		await loadBlacklist().then((b) => {
-			const { passAppBlack } = require("./commands/approve.js");
-			const { passRevBlack } = require("./commands/revert.js");
-			passAppBlack(b);
-			passRevBlack(b);
-		}).catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
+		await loadBlacklist().catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
 		await loadStats().then((s) => {
 			const { passStats } = require("./commands/stats.js");
 			passStats(s);
@@ -87,22 +86,24 @@ function loadConfigs(){
 function checkDateFolder(checkDate){
 	return new Promise((resolve, reject) => {
 		if (ops.saveLocalCopy) {
-			let newFolder = `./screens/Auto/${checkDate.toDateString()}`; // eslint-disable-line prefer-const
-			console.log(`\nChecking for ${newFolder}...`);
-			fs.access(newFolder, (err) => {
+			const folder = path.resolve(__dirname, `./screens/Auto/${checkDate.toDateString()}`),
+						folderParent = path.dirname(folder),
+						folderParentParent = path.dirname(folderParent);
+			console.log(`\nChecking for ${folder}...`);
+			fs.access(folder, (err) => {
 				if (err){
-					fs.mkdir("./screens", { recursive: true }, (err) => {
-						if (err) return reject(`Error occured when making/checking "./screens". Error: ${err}`);
+					fs.mkdir(folderParentParent, { recursive: true }, (err) => {
+						if (err) reject(`Error occured when making/checking ${folderParentParent}. Error: ${err}`);
 						else {
-							console.log("Created/checked Folder: \"screens\"");
-							fs.mkdir("./screens/Auto", { recursive: true }, (err) => {
-								if (err) return reject(`Error occured when making/checking "./screens/Auto". Error: ${err}`);
+							console.log(`Created/checked Folder: ${folderParentParent}`);
+							fs.mkdir(folderParent, { recursive: true }, (err) => {
+								if (err) reject(`Error occured when making/checking ${folderParent}. Error: ${err}`);
 								else {
-									console.log("Created/checked Folder: \"Auto\"");
-									fs.mkdir(newFolder, { recursive: true }, (err) => {
-										if (err) return reject(`Error occured when making/checking "${newFolder}". Error: ${err}`);
+									console.log(`Created/checked Folder: ${folderParent}`);
+									fs.mkdir(folder, { recursive: true }, (err) => {
+										if (err) reject(`Error occured when making/checking "${folder}". Error: ${err}`);
 										else {
-											console.log(`Created/checked Folder: ${checkDate.toDateString()}.`);
+											console.log(`Created/checked Folder: ${folder}.`);
 											resolve();
 										}
 									});
@@ -111,10 +112,11 @@ function checkDateFolder(checkDate){
 						}
 					});
 				} else {
-					console.log(`Folder: ${checkDate.toDateString()} already existed.`);
+					console.log(`Folder: ${folder} already existed.`);
 					resolve();
 				}
 			});
+			return;
 		} else resolve();
 	});
 }
@@ -122,8 +124,8 @@ function checkDateFolder(checkDate){
 function loadCommands(){
 	return new Promise((resolve) => {
 		client.commands = new Discord.Collection();
-		const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
-		let commandFilesNames = "\nThe currently loaded commands and cooldowns are: \n";
+		const commandFiles = fs.readdirSync(path.resolve(__dirname, "./commands")).filter(file => file.endsWith(".js"));
+		let commandFilesNames = "\nThe currently loaded commands and cooldowns are:\n";
 		for (const file of commandFiles) {		// Loads commands
 			const command = require(`./commands/${file}`);
 			commandFilesNames = commandFilesNames + ops.prefix + command.name;
@@ -163,9 +165,9 @@ function loadBlacklist(){
 					res();
 				} catch (e) {
 					if (e.code == "MODULE_NOT_FOUND") {
-						fs.writeFile("./server/blacklist.json", "[]", (err) => {
+						fs.writeFile(path.resolve(__dirname, "./server/blacklist.json"), "[]", (err) => {
 							if (err){
-								reject(`Error thrown when writing stats file. Error: ${err}`);
+								reject(`Error thrown when writing new blacklist file. Error: ${err}`);
 								return;
 							}
 							console.log("Could not find blacklist.json. Making a new one...");
@@ -212,7 +214,7 @@ async function checkServer(message){
 	// 216412752120381441
 	if (ops.serverID === undefined) return;
 	if (message){
-		await message.lineReply("This is not the intended server. Goodbye forever :wave:").catch(() => {
+		await message.reply("This is not the intended server. Goodbye forever :wave:").catch(() => {
 				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send("This is not the intended server. Goodbye forever :wave:");
 			});
@@ -275,9 +277,11 @@ client.once("ready", async () => {
 		}
 	});
 	channel.messages.fetch({ limit:20 }).then(msgs => {
-		const closeMsg = msgs.find(msg => msg.content == "The bot is sleeping now. Goodbye :wave:" || msg.content == "Restarting..." || msg.content == "The bot has awoken, Hello :wave:");
-		if (closeMsg) closeMsg.delete().catch(() => {
-			console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${closeMsg.url}\nContent of mesage: "${closeMsg.content}"`);
+		const closeMsg = msgs.filter(msg => (msg.author == client.user) && (msg.content.startsWith("The bot") || msg.content == "Restarting..."));
+		closeMsg.each((msg) => {
+			msg.delete().catch(() => {
+				console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${closeMsg.url}\nContent of mesage: "${closeMsg.content}"`);
+			});
 		});
 	});
 	dev.send(`**Dev message: **Loaded in guild: "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
@@ -297,20 +301,20 @@ client.on("guildMemberAdd", member => {
 function clearBlacklist(message, idToDelete){
 	if (idToDelete){
 		blacklist.delete(idToDelete[0]);
-		message.lineReplyNoMention(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`).catch(() => {
+		replyNoMention(message, `Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`).catch(() => {
 				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`);
 			});
 		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
 		saveBlacklist(blacklist);
 	} else {
-		fs.writeFile("./server/blacklist.json", "[]", (err) => {
+		fs.writeFile(path.resolve(__dirname, "./server/blacklist.json"), "[]", (err) => {
 			if (err){
 				console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
 				return;
 			}
 			loadBlacklist();
-			message.lineReplyNoMention("Blacklist cleared.").catch(() => {
+			replyNoMention(message, "Blacklist cleared.").catch(() => {
 				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send("Blacklist cleared.");
 			});
@@ -320,7 +324,6 @@ function clearBlacklist(message, idToDelete){
 }
 
 // TODO: figure out the fucking launch queue checker
-
 function processImage(message, postedTime, wasDelayed){
 	handleImage(message, postedTime, wasDelayed).then(() => { // This runs after the recognition is finished
 		imgStats.imageLogCount++;
@@ -342,7 +345,7 @@ client.on("message", message => {
 	if (message.channel == profile) return;
 	if (message.author.bot) return; // Bot? Cancel
 	const postedTime = new Date();
-	if (message.channel.type !== "dm" && message.guild.id != ops.serverID && ops.serverID){ // If we are in the wrong server
+	if (message.channel.type !== "DM" && message.guild.id != ops.serverID && ops.serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
 	}
@@ -351,7 +354,7 @@ client.on("message", message => {
 	if (message.attachments.size > 0) { // checks for an attachment
 		if (ops.performanceMode) performanceLogger(`\n\n\n#${imgStats.imageLogCount + 1}: Image received\t`, postedTime.getTime());
 		if (channel == undefined){
-			message.lineReply(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``).catch(() => {
+			message.reply(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``).catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``);
 			});
@@ -369,7 +372,7 @@ client.on("message", message => {
 
 // This is no longer necessary, especially since other channels might be mail channels. Still should stress the importance of security
 // 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
-// 			message.lineReply(`I cannot scan an image in this channel. Please send it in ${channel}.
+// 			message.reply(`I cannot scan an image in this channel. Please send it in ${channel}.
 // <@&${ops.modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`).catch(()=>{
 // 				console.error(`[${dateToTime(postedTime)}]: Error: I can not send a message in ${message.channel.name}${message.channel}`);
 // 			});
@@ -378,40 +381,49 @@ client.on("message", message => {
 		const image = message.attachments.first();
 		const fileType = image.url.split(".").pop().toLowerCase();
 		if (image.height < 50 || image.width < 50 || fileType.length > 6){ //
-			console.log(image, fileType.length); // testo
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since it is an Empty/Tiny image file`);
-			message.lineReply("I cannot scan tiny images or images with no size information.\nIf you think this is in error, please tell a moderator.").catch(() => {
+			message.reply("I cannot scan tiny images or images with no size information.\nIf you think this is in error, please tell a moderator.").catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send("I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.");
 			});
-			logs.send(`User: ${message.author}\nEmpty/Tiny image file. Not scanned.\n`, image);
+			logs.send({ content : `User: ${message.author}\nEmpty/Tiny image file. Not scanned.\n`, files: [image] });
+			saveStats("wrong");
+			return;
+		}
+		if (image.size / 1048576 > 15){ //
+			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since it is over 15mb`);
+			message.reply("I cannot handle such a large file.\nIf you think this is in error, please tell a moderator.").catch(() => {
+				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send("I cannot handle such a large file.\nIf you think this is in error, please tell a moderator.");
+			});
+			logs.send({ content : `User: ${message.author}\nLarge file over 15MB: ${(image.size / 1048576).toFixed(2)}MB. Not scanned.\nFile url: ${image.url}` });
 			saveStats("wrong");
 			return;
 		}
 		const acceptedFileTypes = ["png", "jpg", "jpeg", "jfif", "tiff", "bmp"];
-		if (!acceptedFileTypes.includes(fileType)){
+		if (!acceptedFileTypes.includes(fileType) && !(image.contentType.split("/")[0] == "image")){
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, due to an Invalid file type: ${fileType}`);
-			message.lineReply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`).catch(() => {
+			message.reply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`).catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`);
 			});
-			logs.send(`User: ${message.author}\nFile is not an image. Not scanned.\n`, image);
+			logs.send({ content : `User: ${message.author}\nFile is not an image. Not scanned.\n`, files: [image] });
 			saveStats("wrong");
 			return;
 		}
 		if (message.member == null){
 			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but could not be processed, since they left the server.`);
-			logs.send(`User: ${message.author}\nLeft the server. Not scanned.\n`, image);
+			logs.send({ content : `User: ${message.author}\nLeft the server. Not scanned.\n`, files: [image] });
 			saveStats("left");
 			return;
 		}
 		if (message.member.roles.cache.has(ops.blacklistRole) && ops.blacklistRole){
-			message.lineReplyNoMention(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`).catch(() => {
+			message.reply(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`).catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`);
 			});
-			logs.send(`User: ${message.author}\nNot scanned due to manual blacklist:\n<@&${ops.blacklistRole}>`, image);
-			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the auto blacklist`);
+			logs.send({ content : `User: ${message.author}\nNot scanned due to manual blacklist:\n<@&${ops.blacklistRole}>`, files: [image] });
+			console.error(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the manual blacklist`);
 			saveStats("black");
 			return;
 		}
@@ -419,7 +431,7 @@ client.on("message", message => {
 			message.author.send("You already have all available roles.").catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 			});
-			logs.send(`User: ${message.author}\nRoles: All 3 already possessed`, image);
+			logs.send({ content : `User: ${message.author}\nRoles: All 3 already possessed`, files: [image] });
 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
 			if (ops.deleteScreens && !message.deleted) message.delete().catch(() => {
 				console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
@@ -434,7 +446,7 @@ client.on("message", message => {
 					message.author.send(messagetxtReplace(messagetxt.denyBlacklist, message.author)).catch(() => {
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not send DM to ${message.author.username}${message.author}`);
 					});
-					logs.send(`User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((ops.blacklistTime - (postedTime.getTime() - blacklist.get(message.author.id))) / 3600000).toFixed(1)} hours`, image);
+					logs.send({ content : `User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((ops.blacklistTime - (postedTime.getTime() - blacklist.get(message.author.id))) / 3600000).toFixed(1)} hours`, files: [image] });
 					if (ops.deleteScreens && !message.deleted) message.delete().catch(() => {
 						console.error(`[${dateToTime(postedTime)}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});

@@ -4,13 +4,13 @@ const { rect } = require("../func/rect.js");
 
 function crop(message){
 	const image = message.attachments.first();
-  return new Promise ((bigResolve, reject) => {
-    new Promise ((resolve) => {
+  return new Promise ((resolve, reject) => {
+    new Promise ((res) => {
 			const size = { };
 			size.width = image.width;
 			size.height = image.height;
 			rect(size).then((cropSize) => {
-				resolve(cropSize);
+				res(cropSize);
 			});
     }).then((cropSize) => {
 			https.get(image.url, function(response){
@@ -31,10 +31,28 @@ function crop(message){
 						reject("crash");
 						return;
 					}
-					bigResolve(imgBuff);
+					resolve(imgBuff);
 				});
 			});
 		});
   });
 }
-module.exports = { crop };
+
+function shortCrop(input){
+	return new Promise((resolve) => {
+		const img = gm(input);
+		img.shave(0, 50)
+		.toBuffer((err, output) => {
+			if (err){
+				console.error(err);
+				console.error("imgBuff: ");
+				console.error(input); 			// testo
+				console.error("imgTwo: ");
+				console.error(output); 			// testo
+				return;
+			}
+			resolve(output);
+		});
+	});
+}
+module.exports = { crop, shortCrop };

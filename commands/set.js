@@ -1,5 +1,7 @@
-const fs = require("fs");
-const bot = require("../bot.js");
+const fs = require("fs"),
+			bot = require("../bot.js"),
+			{ replyNoMention } = require("../func/misc.js"),
+			path = require("path");
 
 module.exports = {
 	name: "modify-setting",
@@ -7,14 +9,13 @@ module.exports = {
   aliases: ["set", "modify"],
   usage: `\`${ops.prefix}set <setting> <value>\``,
 	guildOnly:true,
-	permissions: "MANAGE_GUILD",
 	execute(message, args) {
 		let config = {};
 		delete require.cache[require.resolve("../server/config.json")];
 		config = require("../server/config.json");
 		return new Promise(function(resolve) {
 			if (args.length != 2){
-				message.lineReply(`You must supply two arguments in the form \`${ops.prefix}set [setting-name] [value]\``);
+				message.reply(`You must supply two arguments in the form \`${ops.prefix}set [setting-name] [value]\``);
 				resolve(`, but it failed, as there were an incorrect amount of arguments: ${args}.`);
 				return;
 			}
@@ -23,7 +24,7 @@ module.exports = {
 				const chars = config.chars;
 				const ids = config.ids;
 				if (numbers[args[0]] === undefined && chars[args[0]] === undefined && ids[args[0]] === undefined){
-					message.lineReply(`Sorry, but ${args[0]} is not a valid setting. Use \`${ops.prefix}show\` to see a list of all settings. (case-sensitive)`);
+					message.reply(`Sorry, but ${args[0]} is not a valid setting. Use \`${ops.prefix}show\` to see a list of all settings. (case-sensitive)`);
 					resolve(`, but it failed, as ${args[0]} is not a valid setting.`);
 					return;
 				}
@@ -32,7 +33,7 @@ module.exports = {
 				if (numbers[args[0]]){
 					const value = parseInt(args[1]);
 					if (isNaN(value)) {
-						message.lineReply(`You must supply a number for ${args[0]}.`);
+						message.reply(`You must supply a number for ${args[0]}.`);
 						resolve(`, but it failed, as ${args[0]} requires a number, and ${args[1]} isn't one.`);
 						return;
 					}
@@ -41,7 +42,7 @@ module.exports = {
 					to = numbers[args[0]];
 				} else if (chars[args[0]]){
 					if (typeof (args[1]) != "string") {
-						message.lineReply(`You must supply a text string for ${args[0]}.`);
+						message.reply(`You must supply a text string for ${args[0]}.`);
 						resolve(`, but it failed, as ${args[0]} requires a string, and ${args[1]} isn't one.`);
 						return;
 					}
@@ -50,7 +51,7 @@ module.exports = {
 					to = chars[args[0]];
 				} else if (ids[args[0]]){
 					if ((args[1].length < 17 || args[1].length > 19) && (!(args[1] == 0))) {
-						message.lineReply(`You must supply a valid discord ID for ${args[0]}.`);
+						message.reply(`You must supply a valid discord ID for ${args[0]}.`);
 						resolve(`, but it failed, as ${args[0]} requires a discord ID, and ${args[1]} isn't one.`);
 						return;
 					}
@@ -59,20 +60,20 @@ module.exports = {
 					to = ids[args[0]];
 				}
 				const jsonString = JSON.stringify(config);
-				fs.writeFile("./server/config.json", jsonString, err => {
+				fs.writeFile(path.resolve(__dirname, "../server/config.json"), jsonString, err => {
 					if (err) {
-						message.lineReply("An unexpected error occured when editing the config file.");
+						message.reply("An unexpected error occured when editing the config file.");
 						resolve(`, but an unexpected write error occured. Error: ${err}.`);
 						return;
 					} else {
-						message.lineReplyNoMention(`"${args[0]}" was successfully changed from \`${was}\` to \`${to}\`.\n Please verify that this is the correct value, as I have no value checking system (yet).`);
+						replyNoMention(message, `"${args[0]}" was successfully changed from \`${was}\` to \`${to}\`.\n Please verify that this is the correct value, as I have no value checking system (yet).`);
 						bot.loadConfigs();
 						resolve(`, and successfully changed "${args[0]}" from ${was} to ${to}.`);
 						return;
 					}
 				});
 			} catch (err){
-				message.lineReply("An unexpected error occured.");
+				message.reply("An unexpected error occured.");
 				resolve(`, but an unexpected error occured. Error: ${err}.`);
 				return;
 			}

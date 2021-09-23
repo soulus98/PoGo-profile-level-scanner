@@ -1,19 +1,22 @@
+const { replyNoMention } = require("../func/misc.js");
+
 module.exports = {
 	name: "help",
 	description: "Displays all commands and information for specific commands.",
   aliases: ["command", "commands"],
   usage: `\`${ops.prefix}help [command name]\``,
+	permissions: "VIEW_CHANNEL",
 	execute(message, args) {
 		return new Promise(function(resolve) {
 			const data = [];
 			const { commands } = message.client;
 			if (message.channel.type === "dm"){
-				message.lineReplyNoMention("There is no reason to request help in a dm. Please do so in the relevant server");
+				replyNoMention(message, "There is no reason to request help in a dm. Please do so in the relevant server");
 				resolve();
 				return;
 			}
-			if (!message.channel.permissionsFor(message.author).has("MANAGE_GUILD")){
-				message.lineReplyNoMention(`Hey trainer,
+			if (!message.member.permissionsIn(ops.logsChannel).has("VIEW_CHANNEL")){
+				replyNoMention(message, `Hey trainer,
 
 	Welcome to the server!
 	To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
@@ -26,21 +29,21 @@ module.exports = {
 				if (!args.length) {
 					data.push("Here's a list of all my commands:");
 					data.push(commands.map(command => "`" + ops.prefix + command.name).join("`\n"));
-					data.push(`\`\nYou can use \`${ops.prefix}help [command name]\` for information on a specific command.`);
-					message.lineReplyNoMention(data, { split: true });
+					data.push(`\`You can use \`${ops.prefix}help [command name]\` for information on a specific command.`);
+					replyNoMention(message, data.join("\n"));
 					resolve(", and it was successful.");
 					return;
 				}
 				const name = args[0].toLowerCase();
 				const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
 				if (!command) {
-					message.lineReply(`\`${ops.prefix}${name}\` is not a valid command.`);
+					message.reply(`\`${ops.prefix}${name}\` is not a valid command.`);
 					resolve(`, but it failed, as ${ops.prefix}${name} not a valid command.`);
 					return;
 				}
 				try {
 					dataPush(data, command);
-					message.lineReplyNoMention(data, { split: true });
+					replyNoMention(message, data.join("\n"), { split: true });
 					resolve(", and it was successful.");
 					return;
 				} catch (err){

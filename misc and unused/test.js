@@ -1,5 +1,6 @@
 const Canvas = require("canvas");
-const fs = require("fs")
+const fs = require("fs");
+//broken need to add path
 const https = require("https");
 
 test();
@@ -42,7 +43,7 @@ function test(){
   });
 
   //const imgAttach = new Discord.MessageAttachment(imgCanv.toBuffer(), "reeeee.jpg");
-  //message.channel.send("Reeeeee", imgAttach);
+  //message.channel.send({ content: "Reeeeee", files:[imgAttach] });
   /*
 		function imageWrite(message){
 			imageLogCount++;

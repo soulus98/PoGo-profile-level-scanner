@@ -1,6 +1,7 @@
 const fs = require("fs");
 const gm = require("gm");
 const { rect } = require("../func/rect.js");
+//broken: need to add path
 
 const path = "Training/jpgs";
 fs.readdir(path, (err, files) => {
