@@ -1,5 +1,3 @@
-console.log("Ree");
-
 const { token } = require("./server/keys.json"),
 			fs = require("fs"),
 			Discord = require("discord.js"),
@@ -11,6 +9,7 @@ const { token } = require("./server/keys.json"),
 			{ saveBlacklist } = require("./func/saveBlacklist.js"),
 			{ performanceLogger } = require("./func/performanceLogger.js"),
 			{ messagetxtReplace } = require("./func/messagetxtReplace.js"),
+			mail = require("./handlers/dm.js"),
 			ver = require("./package.json").version;
 require("discord-reply");
 
@@ -124,7 +123,7 @@ function loadCommands(){
 	return new Promise((resolve) => {
 		client.commands = new Discord.Collection();
 		const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
-		let commandFilesNames = "\nThe currently loaded commands and cooldowns are:\n";
+		let commandFilesNames = "\nThe currently loaded commands and cooldowns are: \n";
 		for (const file of commandFiles) {		// Loads commands
 			const command = require(`./commands/${file}`);
 			commandFilesNames = commandFilesNames + ops.prefix + command.name;
@@ -246,6 +245,7 @@ client.once("ready", async () => {
 	passAppServ([channel, profile, server, logs]);
 	passRevServ([channel, server]);
 	passImgServ(logs);
+	mail.passServ(server);
 	const dev = await client.users.fetch("146186496448135168", false, true);
 	checkServer();
 	client.user.setActivity(`${ver}`);
@@ -339,14 +339,9 @@ function processImage(message, postedTime, wasDelayed){
 }
 
 client.on("message", message => {
-
 	if (message.channel == profile) return;
 	if (message.author.bot) return; // Bot? Cancel
 	const postedTime = new Date();
-	if (message.channel.type === "dm") {
-		mail.mailDM(message);
-		return;
-	}
 	if (message.channel.type !== "dm" && message.guild.id != ops.serverID && ops.serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
@@ -479,10 +474,17 @@ client.on("message", message => {
 			}
 		}).then(() => {
 			if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Queue passed\t`, postedTime.getTime());
-
 			processImage(message, postedTime, wasDelayed); // handles the image, then checks the queue for more images
 		});
 	} else {
+		if (message.channel.type === "dm") {
+			mail.mailDM(message);
+			return;
+		}
+		if (message.channel.parent.id == ops.mailCategory) {
+			mail.channelMsg(message);
+			return;
+		}
 		handleCommand(message, postedTime); // command handler
 	}
 });
