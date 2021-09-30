@@ -469,7 +469,7 @@ client.on("messageCreate", async message => {
 		}
 		if (ops.blacklistTime > 0 && blacklist.has(message.author.id)){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
 			if (postedTime.getTime() - blacklist.get(message.author.id) < ops.blacklistTime){
-				if (ops.dmMail && dm) return mail.mailDM(message);
+				// if (ops.dmMail && dm) return mail.mailDM(message); // perhaps if false negatives don't get fixed
 				saveStats("black");
 				message.author.send(messagetxtReplace(messagetxt.denyBlacklist, message.author)).catch(() => {
 					errorMessage(postedTime, dm, `Error: Could not send DM to ${message.author.username}${message.author}`);

@@ -3,8 +3,11 @@
 * Added a DM scanning system for profile screenshots
 * Integrated the two, so that failed screenshots are passed on to the mail section
 * Added dmMail and dmScanning toggles to enable these features
+* Added a Pokenav message deletion filter
+* Added `]add` and `]remove` to add channels to the filter list
 * Added "DM" to some error messages
 * Made level 29 screenshots redirect to mail
+* Added YPOBEI to the rescan word list
 
 
 

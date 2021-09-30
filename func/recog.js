@@ -24,7 +24,7 @@ async function recog(imgBuff, message, failInc) {
 				resolve([level, false, text]);
 				return;
 			} else {
-				const levelTextArray = ["LEVEL", "LLLLL", "NNNNN", "NIVEL", "HIVEL", "NIVEAL", "LRI", "TEVEL", "NIV", "VEL"];
+				const levelTextArray = ["LEVEL", "LLLLL", "NNNNN", "NIVEL", "HIVEL", "NIVEAL", "LRI", "TEVEL", "NIV", "VEL", "YPOBEI"];
 				const findTextInArray = (arr, str) => arr.some(e => str.toLowerCase().includes(e.toLowerCase()));
 				if (failInc < 4 && findTextInArray(levelTextArray, text)){
 					shortCrop(imgBuff).then((imgBuffTwo) => {
