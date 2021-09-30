@@ -83,12 +83,12 @@ function channelMsg(message) {
 			const embedIn = await newEmbed(message, "hostOpen");
 			embedIn.setTitle("New Ticket");
 			const embedOut = new Discord.MessageEmbed(embedIn);
-			embedIn.setDescription(`Ticket opened with: ${member.user.toString()}\nOpened by: ${message.author.toString()}`)
-			.setFooter(member.user.tag + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
 			embedOut.setDescription(`Staff member ${message.author.toString()} from ${server.name} would like to speak to you.\nTheir message will follow shortly.`)
 			.setFooter(server.name, server.iconURL());
 			member.send({ embeds: [embedOut] }).then(() => {
 				newChannel(message, member.user).then(([channel, embedStart]) => {
+					embedIn.setDescription(`Ticket opened with: ${member.user.toString()}\n${channel.toString()}\nOpened by: ${message.author.toString()}`)
+					.setFooter(member.user.tag + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
 					embedStart.addField("Ticket opened by:", message.author.toString());
 					channel.send({ embeds: [embedStart] });
 					logs.send({ embeds: [embedIn] }).then(() => {
