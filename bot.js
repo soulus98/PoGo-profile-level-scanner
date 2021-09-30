@@ -3,13 +3,13 @@ const { token } = require("./server/keys.json"),
 			path = require("path"),
 			Discord = require("discord.js"),
 			messagetxt = require("./server/messagetxt.js"),
+			{ messagetxtReplace } = require("./func/misc.js"),
 			{ handleCommand } = require("./handlers/commands.js"),
 			{ handleImage } = require("./handlers/images.js"),
 			{ dateToTime, performanceLogger, replyNoMention, errorMessage } = require("./func/misc.js"),
 			{ saveStats, loadStats } = require("./func/stats.js"),
 			{ saveBlacklist } = require("./func/saveBlacklist.js"),
 			{ filter, loadFilterList } = require("./func/filter.js"),
-			{ messagetxtReplace } = require("./func/messagetxtReplace.js"),
 			mail = require("./handlers/dm.js"),
 			ver = require("./package.json").version;
 
@@ -258,7 +258,11 @@ client.once("ready", async () => {
 	mail.refreshMailLog();
 	const dev = await client.users.fetch("146186496448135168", false, true);
 	checkServer();
-	client.user.setActivity(`${ver}`);
+	if (ops.dmMail) {
+		client.user.setActivity(messagetxtReplace(messagetxt.activity));
+	} else {
+		client.user.setActivity(`${ver}`);
+	}
 	if (server == undefined){
 		console.log("\nOops the screenshot server is broken.");
 		return;
@@ -363,7 +367,7 @@ client.on("messageCreate", async message => {
 	}
 	let wasDelayed = false;
 	// image handler
-	if (ops.dmMail && message.channel.parent && message.channel.parent.id == ops.mailCategory) {
+	if (ops.dmMail && !message.content.startsWith(ops.prefix) && message.channel.parent && message.channel.parent.id == ops.mailCategory) {
 		mail.channelMsg(message);
 		return;
 	} else if (message.attachments.size > 0 && (!dm || (dm && ops.dmScanning))) { // checks for an attachment.
@@ -513,12 +517,12 @@ client.on("messageCreate", async message => {
 		});
 	} else if (dm) {
 		if (message.content.startsWith("$")) {
-			message.reply(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you have confirmed you are above level ${ops.targetLevelRole} by sending a screenshot in <#${ops.screenshotChannel}>.`).catch(() => {
+			message.reply(`Commands starting with \`$\` are for a different bot (Pokénav).
+You can use them in <#${ops.profileChannel}> once you have confirmed you are above level ${ops.targetLevel} by sending a screenshot in <#${ops.screenshotChannel}>.`).catch(() => {
 				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you have confirmed you are above level ${ops.targetLevelRole} by sending a screenshot in <#${ops.screenshotChannel}>.`);
 			});
-		}
-		if (ops.dmMail){
+		} else if (ops.dmMail){
 			mail.mailDM(message);
 		} else {
 			message.reply(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${ops.screenshotChannel}>.`).catch(() => {

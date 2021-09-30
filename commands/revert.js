@@ -2,7 +2,7 @@ const { saveStats } = require("../func/stats.js"),
 			{ dateToTime } = require("../func/misc.js"),
 			{ saveBlacklist } = require("../func/saveBlacklist.js"),
 			messagetxt = require("../server/messagetxt.js"),
-			{ messagetxtReplace } = require("../func/messagetxtReplace.js");
+			{ messagetxtReplace } = require("../func/misc.js");
 let server = {},
 		channel = {};
 

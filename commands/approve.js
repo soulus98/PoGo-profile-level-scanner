@@ -3,7 +3,7 @@ const { saveStats } = require("../func/stats.js"),
 			{ saveBlacklist } = require("../func/saveBlacklist.js"),
 			mail = require("../handlers/dm.js"),
 			messagetxt = require("../server/messagetxt.js"),
-			{ messagetxtReplace } = require("../func/messagetxtReplace.js");
+			{ messagetxtReplace } = require("../func/misc.js");
 let server = {},
 		channel = {},
 		profile = {},
@@ -153,6 +153,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 					} else { // Due to the if logic, this block is only accessable if level is one less than targetLevel AND blacklistOneOff is false
 						bigResolve((logString || "") + `. No action taken. Level ${level}.`);
 						if (!inCommand) {
+							if (ops.dmMail && dm) mail.mailDM(message);
 							if (ops.tagModOneOff) {
 								logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nNo action taken.\nManual review, <@&${ops.modRole}>?`, files: [image] });
 							} else {

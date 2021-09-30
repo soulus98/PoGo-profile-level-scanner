@@ -1,6 +1,9 @@
 const Discord = require("discord.js"),
 			{ dateToTime } = require("../func/misc.js"),
-			fs = require("fs");
+			messagetxt = require("../server/messagetxt.js"),
+			{ messagetxtReplace } = require("../func/misc.js"),
+			fs = require("fs"),
+			path = require("path");
 let queue = new Discord.Collection(),
 		server = {},
 		logs = {};
@@ -33,7 +36,7 @@ function loadMailQueue() {
 					res();
 				} catch (e) {
 					if (e.code == "MODULE_NOT_FOUND") {
-						fs.writeFile("./server/mailQueue.json", "[]", (err) => {
+						fs.writeFile(path.resolve(__dirname, "../server/mailQueue.json"), "[]", (err) => {
 							if (err){
 								reject("Error thrown when writing mail queue. Error: ", err);
 								return;
@@ -59,7 +62,7 @@ function loadMailQueue() {
 }
 
 function saveQueue() {
-	fs.writeFile("./server/mailQueue.json", JSON.stringify(Array.from(queue)), (err) => {
+	fs.writeFile(path.resolve(__dirname, "../server/mailQueue.json"), JSON.stringify(Array.from(queue)), (err) => {
 		if (err){
 			console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the the mail queue. Err:${err}`);
 			return;
@@ -83,10 +86,11 @@ function channelMsg(message) {
 			const embedIn = await newEmbed(message, "hostOpen");
 			embedIn.setTitle("New Ticket");
 			const embedOut = new Discord.MessageEmbed(embedIn);
-			embedOut.setDescription(`Staff member ${message.author.toString()} from ${server.name} would like to speak to you.\nTheir message will follow shortly.`)
+			embedOut.setDescription(messagetxtReplace(messagetxt.dmHostOpen, message.author))
 			.setFooter(server.name, server.iconURL());
 			member.send({ embeds: [embedOut] }).then(() => {
 				newChannel(message, member.user).then(([channel, embedStart]) => {
+					console.log(`[${dateToTime(new Date())}]: Staff member ${message.author.username}${message.author.toString()} opened a new ticket with ${member.user.username}${member.user.toString()}`);
 					embedIn.setDescription(`Ticket opened with: ${member.user.toString()}\n${channel.toString()}\nOpened by: ${message.author.toString()}`)
 					.setFooter(member.user.tag + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
 					embedStart.addField("Ticket opened by:", message.author.toString());
@@ -116,12 +120,14 @@ function channelMsg(message) {
 							else embedIn.setDescription(args);
 							const embedOut = new Discord.MessageEmbed(embedIn);
 							embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }));
-							embedOut.setFooter(message.guild.name, message.guild.iconURL());
+							embedOut.setFooter(message.guild.name, message.guild.iconURL())
+							.addField("\u200b", `**${messagetxtReplace(messagetxt.dmClose, user)}**`);
 							user.send({ embeds: [embedOut] });
 							logs.send({ embeds: [embedIn] });
 							message.channel.delete();
 							queue.delete(userId);
 							saveQueue();
+							console.log(`[${dateToTime(new Date())}]: Staff member ${message.author.username}${message.author.toString()} closed the ticket with ${user.username}${user.toString()}`);
 						} else return;
 					} else {
 						const embedIn = await newEmbed(message, "hostReply");
@@ -161,12 +167,14 @@ async function mailDM(message) {
 		user.send({ embeds: [embedOut] });
   } else {
     newChannel(message, user).then(async ([channel, embedStart]) => {
+			console.log(`[${dateToTime(new Date())}]: User ${user.username}${user.toString()} opened a new ticket via a DM`);
 			const embedIn = await newEmbed(message, "userReply");
 			const embedOut = new Discord.MessageEmbed(embedIn);
 			embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }))
 			.setTitle("Message Received");
 			embedOut.setFooter(server.name, server.iconURL())
-			.setTitle("New Ticket Created");
+			.setTitle("New Ticket Created")
+			.addField("\u200b", `**${messagetxtReplace(messagetxt.dmOpen, user)}**`);
 			await channel.send({ embeds: [embedStart] });
 			sendWithImg(message, channel, [embedIn]);
 			embedIn.setTitle("New Ticket Created");
@@ -178,7 +186,7 @@ async function mailDM(message) {
 
 // function when a new ticket has to be created
 function newChannel(message, user) {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
 		const ticketName = `${user.username}-${user.discriminator}`;
 		server.channels.create(ticketName, {
 			parent:ops.mailCategory,
@@ -201,7 +209,8 @@ function newChannel(message, user) {
 				resolve([channel, embedStart]);
 			});
 		}).catch((err) => {
-			reject("An error occured creating a new channel for modmail: ", err);
+			console.error("An error occured creating a new channel for modmail: ", err);
+			message.reply("I can not create a channel. Could be a permissions issue");
 		});
 	});
 }

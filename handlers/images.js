@@ -5,7 +5,7 @@ const Discord = require("discord.js"),
 			{ dateToTime, performanceLogger, replyNoMention, errorMessage } = require("../func/misc.js"),
 			mail = require("../handlers/dm.js"),
 			messagetxt = require("../server/messagetxt.js"),
-			{ messagetxtReplace } = require("../func/messagetxtReplace.js");
+			{ messagetxtReplace } = require("../func/misc.js");
 let logs = {};
 
 function handleImage(message, postedTime, wasDelayed){

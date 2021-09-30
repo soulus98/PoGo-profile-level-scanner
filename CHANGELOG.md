@@ -1,11 +1,10 @@
-# Mail update (2021-Sep-??)
-*
-*
-*
-*
+# v2.0 (2021-Sep-30)
+* Added a mail ticket handler for DM messages
+* Added a DM scanning system for profile screenshots
+* Integrated the two, so that failed screenshots are passed on to the mail section
+* Added dmMail and dmScanning toggles to enable these features
 * Added "DM" to some error messages
-
-
+* Made level 29 screenshots redirect to mail
 
 
 
