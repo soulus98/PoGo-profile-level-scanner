@@ -1,3 +1,14 @@
+# Mail update (2021-Sep-??)
+*
+*
+*
+*
+* Added "DM" to some error messages
+
+
+
+
+
 # v1.8 (2021-Sep-10)
 * Desynced and reworked **logImg** for a potential 100% speed increase
 * Added configurable message text in ./server/messagetxt.js

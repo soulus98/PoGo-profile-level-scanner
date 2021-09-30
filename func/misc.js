@@ -16,4 +16,10 @@ function replyNoMention(message, content){
 		});
 	});
 }
-module.exports = { dateToTime, performanceLogger, replyNoMention };
+
+function errorMessage(time, dm, string){
+	console.error(`[${dateToTime(time)}]: ${(dm) ? "DM: " : ""}${string}`);
+	return;
+}
+
+module.exports = { dateToTime, performanceLogger, replyNoMention, errorMessage };

@@ -1,6 +1,7 @@
 const { saveStats } = require("../func/stats.js"),
 			{ dateToTime, performanceLogger } = require("../func/misc.js"),
 			{ saveBlacklist } = require("../func/saveBlacklist.js"),
+			mail = require("../handlers/dm.js"),
 			messagetxt = require("../server/messagetxt.js"),
 			{ messagetxtReplace } = require("../func/messagetxtReplace.js");
 let server = {},
@@ -84,11 +85,10 @@ module.exports = {
 					const inCommand = false;
 					const message = input[0];
 					const postedTime = input[1];
-					server = message.guild;
 					const image = message.attachments.first();
 					const level = args[1];
 					const id = args[0];
-					const memb = message.member;
+					const memb = message.memb;
 					const info = [inCommand, message, postedTime, image, level, id, memb];
 					resolve(info);
 				}
@@ -98,13 +98,14 @@ module.exports = {
 			// role id === undefined
 			// any other mistype === undefined
 			prom.then(function([inCommand, message, postedTime, image, level, id, member]) {
+				const dm = (message.channel.type == "DM") ? true : false;
 				if (member === null){
 					console.error(`[${execTime}]: Error: #${id} left the server before they could be processed.`);
 					if (inCommand) {
 						message.reply("That member has *just* left the server, and can not be processed.");
 						bigResolve(`, but it failed, since the member, #${id}, left the server before they could be processed.`);
 					} else {
-						logs.send({ content : `User: ${message.author}\nLeft the server. No roles added.`, files: [image] });
+						logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nLeft the server. No roles added.`, files: [image] });
 					}
 					return;
 				} else if (member === undefined) { // this should not be accessable unless using a command
@@ -130,8 +131,8 @@ module.exports = {
 						if (!inCommand) member.send(`I'll be honest, this is weird.
 Why would you send a screenshot of an account under level when you already have the role that means you are above the gate level...???
 I am honestly curious as to why, so please shoot me a dm at <@146186496448135168>. It is soulus#3935 if that tag doesn't work.`);
-							else message.reply(`Ya silly, they already have Remote Raids. You probably want \`${ops.prefix}revert\`. That or you did a typo.`);
-							if (!inCommand) logs.send({ content : `User: ${member}\nResult: \`${level}\`\nAlready had RR, no action taken.`, files: [image] });
+						else message.reply(`Ya silly, they already have Remote Raids. You probably want \`${ops.prefix}revert\`. That or you did a typo.`);
+						if (!inCommand) logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nAlready had RR, no action taken.`, files: [image] });
 						bigResolve((logString || "") + `, but it failed. They already have RR, so cannot be rejected${(!inCommand) ? ` for level ${level}` : ""}.`);
 						return;
 					}
@@ -147,15 +148,15 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 					if (level < ops.targetLevel - 1 || ops.blacklistOneOff) {
 						blacklist.set(id, Date.now());
 						saveBlacklist(blacklist);
-						bigResolve((logString || "") + `. They were added to the blacklist for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"} for level ${level}.`);
-						if (!inCommand) logs.send({ content:`User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"}`, files:[image] });
+						bigResolve((logString || "") + `. Blacklisted for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"}. Level ${level}.`);
+						if (!inCommand) logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"}`, files:[image] });
 					} else { // Due to the if logic, this block is only accessable if level is one less than targetLevel AND blacklistOneOff is false
-						bigResolve((logString || "") + `. No action was taken for level: ${level}.`);
+						bigResolve((logString || "") + `. No action taken. Level ${level}.`);
 						if (!inCommand) {
 							if (ops.tagModOneOff) {
-								logs.send({ content : `User: ${member}\nResult: \`${level}\`\nNo action taken.\nManual review, <@&${ops.modRole}>?`, files: [image] });
+								logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nNo action taken.\nManual review, <@&${ops.modRole}>?`, files: [image] });
 							} else {
-								logs.send({ content : `User: ${member}\nResult: \`${level}\`\nNo action taken.`, files: [image] });
+								logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nNo action taken.`, files: [image] });
 							}
 						}
 					}
@@ -172,7 +173,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 								resolve(false);
 							}
 						} else {
-							channel.send(messagetxtReplace(messagetxt.successSS, member, level)).then(msg => {
+							if (!dm) channel.send(messagetxtReplace(messagetxt.successSS, member, level)).then(msg => {
 								setTimeout(() => {
 									msg.delete().catch(() => {
 										console.error(`[${execTime}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
@@ -182,11 +183,11 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 							setTimeout(() => {
 								member.roles.add(server.roles.cache.get(ops.targetLevelRole)).catch(console.error);
 							}, 250);
-							resolve(true);
 							setTimeout(() => {
 								profile.send(messagetxtReplace(messagetxt.successProfile, member, level));
 							}, 3000);
 							msgtxt.push(messagetxtReplace(messagetxt.successDM, member, level));
+							resolve(true);
 						}
 					}).then((given30) => {
 						const g40 = new Promise((resolve) => {
@@ -256,10 +257,15 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 							}
 							if (!inCommand){
 								if (!given30 && !given40 && !given50){
-									logs.send({ content : `User: ${message.author}\nResult: \`${level}\`\nRoles: RR already possessed. None added.`, files: [image] }).then(() => {
-										if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Log img posted\t`, postedTime.getTime()); // testo?
-									});
-								} else logs.send({ content : `User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}`, files: [image] }).then(() => {
+									if (ops.dmMail) {
+										mail.mailDM(message);
+										return;
+									} else {
+										logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nResult: \`${level}\`\nRoles: RR already possessed. None added.`, files: [image] }).then(() => {
+											if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Log img posted\t`, postedTime.getTime()); // testo?
+										});
+									}
+								} else logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nRoles given: ${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}`, files: [image] }).then(() => {
 									if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Log img posted\t`, postedTime.getTime()); // testo?
 								});
 							}
