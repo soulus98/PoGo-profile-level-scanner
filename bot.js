@@ -46,6 +46,9 @@ async function load(){
 		await checkDateFolder(launchDate).catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
 		await loadCommands();
 		await loadBlacklist().catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
+		await mail.loadMailQueue().catch((err) => {
+			console.error(`[${dateToTime(new Date())}]: `, err);
+		});
 		await loadStats().then((s) => {
 			const { passStats } = require("./commands/stats.js");
 			passStats(s);
@@ -82,7 +85,7 @@ function loadConfigs(){
 				passRevServ([channel, server]);
 				passImgServ(logs);
 				await mail.passServ(server);
-				mail.refreshMailLog();
+				if (ops.dmMail) mail.refreshMailLog();
 				console.log("\nReloaded configs\n");
 				resolve();
 			})();
@@ -255,7 +258,7 @@ client.once("ready", async () => {
 	passRevServ([channel, server]);
 	passImgServ(logs);
 	await mail.passServ(server);
-	mail.refreshMailLog();
+	if (ops.dmMail) mail.refreshMailLog();
 	const dev = await client.users.fetch("146186496448135168", false, true);
 	checkServer();
 	if (ops.dmMail) {
@@ -520,7 +523,7 @@ client.on("messageCreate", async message => {
 			message.reply(`Commands starting with \`$\` are for a different bot (Pokénav).
 You can use them in <#${ops.profileChannel}> once you have confirmed you are above level ${ops.targetLevel} by sending a screenshot in <#${ops.screenshotChannel}>.`).catch(() => {
 				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you have confirmed you are above level ${ops.targetLevelRole} by sending a screenshot in <#${ops.screenshotChannel}>.`);
+				message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`);
 			});
 		} else if (ops.dmMail){
 			mail.mailDM(message);

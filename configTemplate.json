@@ -6,7 +6,9 @@
     "testMode":false,
 		"performanceMode":false,
 		"blacklistOneOff":false,
-		"tagModOneOff":true
+		"tagModOneOff":true,
+		"dmScanning":false,
+		"dmMail":false
   },
   "numbers":{
     "threshold":228,

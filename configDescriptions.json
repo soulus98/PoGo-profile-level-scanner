@@ -7,7 +7,9 @@
     "testMode":"(Provides more information about what is scanned and whatnot)",
 		"performanceMode":"(Provides more information (in the console) about exectution time and whatnot)",
 		"blacklistOneOff":"(Whether to blacklist off-by-one screenshots e.g. level 29. Turning this off allows them to repost immediately)",
-		"tagModOneOff":"(Whether to tag modRole in logs when a off-by-one screenshot is posted, e.g. level 29)"
+		"tagModOneOff":"(Whether to tag modRole in logs when a off-by-one screenshot is posted, e.g. level 29)",
+		"dmScanning":"(Whether to scan images in DMs or not)",
+		"dmMail":"(Whether to forward DMs to mailCategory or not)"
   },
   "numbers":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a number",

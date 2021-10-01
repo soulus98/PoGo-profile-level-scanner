@@ -8,10 +8,6 @@ let queue = new Discord.Collection(),
 		server = {},
 		logs = {};
 
-loadMailQueue().catch((err) => {
-	console.error(`[${dateToTime(new Date())}]: `, err);
-});
-
 function loadMailQueue() {
 	return new Promise(function(resolve, reject) {
 		queue = new Discord.Collection();
@@ -86,7 +82,7 @@ function channelMsg(message) {
 			const embedIn = await newEmbed(message, "hostOpen");
 			embedIn.setTitle("New Ticket");
 			const embedOut = new Discord.MessageEmbed(embedIn);
-			embedOut.setDescription(messagetxtReplace(messagetxt.dmHostOpen, message.author))
+			embedOut.setDescription(messagetxtReplace(messagetxt.dmHostOpen, message.author).replace(/<server>/g, `**${server.name}**`))
 			.setFooter(server.name, server.iconURL());
 			member.send({ embeds: [embedOut] }).then(() => {
 				newChannel(message, member.user).then(([channel, embedStart]) => {
@@ -291,4 +287,4 @@ function refreshMailLog() {
 	});
 }
 
-module.exports = { mailDM, channelMsg, passServ, refreshMailLog };
+module.exports = { mailDM, channelMsg, passServ, refreshMailLog, loadMailQueue };
