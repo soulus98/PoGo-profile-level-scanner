@@ -31,6 +31,8 @@
     "modRole":"(The mod role intended to be notified when an issue occurs)",
     "serverID":"(The server that the bot is intended to be used in)",
     "blacklistRole":"(The role used to force the bot to ignore certain members. Leave blank to stop the bot from checking)",
-		"verifiedRole":"(The Verfied Host role, if you want ]r to remove it)"
+		"verifiedRole":"(The Verfied Host role, if you want ]r to remove it)",
+    "mailCategory":"(The category to create mail channels)",
+    "mailLogChannel":"(The log channel for the mail section of the bot)"
   }
 }

@@ -2,7 +2,7 @@ const { saveStats } = require("../func/stats.js"),
 			{ dateToTime } = require("../func/misc.js"),
 			{ saveBlacklist } = require("../func/saveBlacklist.js"),
 			messagetxt = require("../server/messagetxt.js"),
-			{ messagetxtReplace } = require("../func/messagetxtReplace.js");
+			{ messagetxtReplace } = require("../func/misc.js");
 let server = {},
 		channel = {};
 
@@ -125,9 +125,7 @@ module.exports = {
 						member.send(messagetxtReplace(messagetxt.revert, member)).catch(() => {
 							console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member}`);
 						});
-						console.log(blacklist);
 						blacklist.set(id, Date.now());
-						console.log(blacklist);
 						saveBlacklist(blacklist);
 						saveStats("revert");
 						bigResolve(logggString + `. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}${(tookVH ? `${took30 || took40 || took50 ? ", " : ""}VH` : "")}.`);

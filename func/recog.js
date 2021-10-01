@@ -2,6 +2,7 @@ const { createWorker, PSM } = require("tesseract.js"),
 			{ shortCrop } = require("../func/crop.js");
 
 async function recog(imgBuff, message, failInc) {
+	const dm = (message.channel.type == "DM") ? true : false;
 	if (failInc == undefined) failInc = 1;
 	return new Promise((resolve) => {
 		const worker = createWorker({
@@ -23,11 +24,11 @@ async function recog(imgBuff, message, failInc) {
 				resolve([level, false, text]);
 				return;
 			} else {
-				const levelTextArray = ["LEVEL", "LLLLL", "NNNNN", "NIVEL", "HIVEL", "NIVEAL", "LRI", "TEVEL", "NIV", "VEL"];
+				const levelTextArray = ["LEVEL", "LLLLL", "NNNNN", "NIVEL", "HIVEL", "NIVEAL", "LRI", "TEVEL", "NIV", "VEL", "YPOBEI"];
 				const findTextInArray = (arr, str) => arr.some(e => str.toLowerCase().includes(e.toLowerCase()));
 				if (failInc < 4 && findTextInArray(levelTextArray, text)){
 					shortCrop(imgBuff).then((imgBuffTwo) => {
-						if (ops.testMode) message.reply({ content:`Test mode. Scanned text:\n${text}\n\n This is attempt #${failInc + 1}:`, files: [imgBuffTwo] });
+						if (ops.testMode && !dm) message.reply({ content:`Test mode. Scanned text:\n${text}\n\n This is attempt #${failInc + 1}:`, files: [imgBuffTwo] });
 						recog(imgBuffTwo, message, failInc + 1).then(([level, failed, txt]) => {
 							resolve([level, failed, txt]);
 						});
