@@ -221,12 +221,7 @@ function newEmbed(message, status){ // open, hostOpen, hostReply, userReply, clo
 			embed.setColor("#F94819")
 			.setAuthor(message.author.tag, message.author.avatarURL({ dynamic:true }));
 		} else {
-
-			// Delete this to revert to the other message
-			embed.setDescription(message.content);
-
-			/* removed this, it is the "Attached #1" message
-			if (message.attachments.size > 0) {
+			if (ops.attachmentURLs && message.attachments.size > 0) {
 				let i = 0;
 				const files = message.attachments.map((a) => {
 					i++;
@@ -237,8 +232,6 @@ function newEmbed(message, status){ // open, hostOpen, hostReply, userReply, clo
 			} else {
 				embed.setDescription(message.content);
 			}
-			*/
-
 			if (status == "open"){
 				embed.setColor("#00FF0A");
 			} else if (status == "hostReply") {

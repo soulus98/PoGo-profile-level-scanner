@@ -8,7 +8,8 @@
 		"blacklistOneOff":false,
 		"tagModOneOff":true,
 		"dmScanning":false,
-		"dmMail":false
+		"dmMail":false,
+		"attachmentURLs":true
   },
   "numbers":{
     "threshold":228,
