@@ -6,7 +6,8 @@ const Discord = require("discord.js"),
 			path = require("path");
 let queue = new Discord.Collection(),
 		server = {},
-		logs = {};
+		logs = {},
+		tempQueue = [];
 
 function loadMailQueue() {
 	return new Promise(function(resolve, reject) {
@@ -118,7 +119,10 @@ function channelMsg(message) {
 							embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }));
 							embedOut.setFooter(message.guild.name, message.guild.iconURL())
 							.addField("\u200b", `**${messagetxtReplace(messagetxt.dmClose, user)}**`);
-							user.send({ embeds: [embedOut] });
+							user.send({ embeds: [embedOut] }).catch(() => {
+								console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${user.username}${user.id}`);
+								return;
+							});
 							logs.send({ embeds: [embedIn] });
 							message.channel.delete();
 							queue.delete(userId);
@@ -132,13 +136,16 @@ function channelMsg(message) {
 						.setTitle("Message Sent");
 						embedOut.setFooter(message.guild.name, message.guild.iconURL())
 						.setTitle("Message Received");
-						sendWithImg(message, user, [embedOut]);
+						sendWithImg(message, user, [embedOut]).catch(() => {
+							console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${user.username}#${user.id}`);
+							message.reply("I can no longer reply to that member. They may have blocked me or turned off DMs.");
+							return;
+						});
 						logs.send({ embeds: [embedIn] });
 						sendWithImg(message, message.channel, [embedIn]).then(() => {
 							message.delete();
-						}).catch(() => {
-							message.reply("I can no longer reply to that member. They may have blocked me or turned off DMs.");
-							return;
+						}).catch((err) => {
+							console.error(`[${dateToTime(new Date())}]: Error occured when sending an embed in the mail logs. Err:${err}`);
 						});
 					}
 				});
@@ -150,18 +157,35 @@ function channelMsg(message) {
 // function when a dm comes in
 async function mailDM(message) {
   const user = message.author;
-  if (queue.has(user.id)){
-    const channel = server.channels.cache.get(queue.get(user.id));
-		const embedIn = await newEmbed(message, "userReply");
-		const embedOut = new Discord.MessageEmbed(embedIn);
-		embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }))
-		.setTitle("Message Received");
-		embedOut.setFooter(server.name, server.iconURL())
-		.setTitle("Message Sent");
-		sendWithImg(message, channel, [embedIn]);
-		logs.send({ embeds: [embedIn] });
-		user.send({ embeds: [embedOut] });
+	let wasTemp = false;
+	if (tempQueue.includes(user.id)) {
+		wasTemp = true;
+	}
+  if (queue.has(user.id) || wasTemp){
+		new Promise((res) => {
+			if (wasTemp){
+				setTimeout(async () => {
+					const ch = await server.channels.fetch(queue.get(user.id));
+					res(ch);
+				}, 5000);
+			} else {
+				server.channels.fetch(queue.get(user.id)).then((ch) => {
+					res(ch);
+				});
+			}
+		}).then(async (channel) => {
+			const embedIn = await newEmbed(message, "userReply");
+			const embedOut = new Discord.MessageEmbed(embedIn);
+			embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }))
+			.setTitle("Message Received");
+			embedOut.setFooter(server.name, server.iconURL())
+			.setTitle("Message Sent");
+			sendWithImg(message, channel, [embedIn]);
+			logs.send({ embeds: [embedIn] });
+			user.send({ embeds: [embedOut] });
+		});
   } else {
+		tempQueue.push[user.id];
     newChannel(message, user).then(async ([channel, embedStart]) => {
 			console.log(`[${dateToTime(new Date())}]: User ${user.username}${user.toString()} opened a new ticket via a DM`);
 			const embedIn = await newEmbed(message, "userReply");
@@ -189,6 +213,7 @@ function newChannel(message, user) {
 		}).then((channel) => {
 			queue.set(user.id, channel.id);
 			saveQueue();
+			tempQueue.splice(tempQueue.indexOf(user.id));
 			const embedStart = new Discord.MessageEmbed()
 			.setColor("#4B85FF")
 			.setTitle("New Ticket")
@@ -221,15 +246,23 @@ function newEmbed(message, status){ // open, hostOpen, hostReply, userReply, clo
 			embed.setColor("#F94819")
 			.setAuthor(message.author.tag, message.author.avatarURL({ dynamic:true }));
 		} else {
+			let stickers;
+			if (message.stickers.size > 0) {
+				let i = 0;
+				stickers = message.stickers.map((s) => {
+					i++;
+					return `**Sticker #${i}:** ${s.name}#${s.id}`;
+				});
+			}
 			if (ops.attachmentURLs && message.attachments.size > 0) {
 				let i = 0;
 				const files = message.attachments.map((a) => {
 					i++;
 					return `**Attachment #${i}:** ${a.url}`;
 				});
-				embed.setDescription(`${message.content}\n\n${files.join("\n")}`);
+				embed.setDescription(`${message.content}\n\n${files.join("\n")}${(stickers) ? `\n\n${stickers}` : ""}`);
 			} else {
-				embed.setDescription(message.content);
+				embed.setDescription(`${message.content}${(stickers) ? `\n\n${stickers}` : ""}`);
 			}
 			if (status == "open"){
 				embed.setColor("#00FF0A");
@@ -247,8 +280,11 @@ function newEmbed(message, status){ // open, hostOpen, hostReply, userReply, clo
 
 function sendWithImg(message, target, embArr) { // hostReply
 	return new Promise((resolve, reject) => {
+		let filesArr;
 		if (message.attachments.size > 0) {
-			const filesArr = message.attachments.map(a => a);
+			filesArr = message.attachments.map(a => a);
+		}
+		if (filesArr){
 			target.send({ embeds: embArr, files: filesArr }).then(() => resolve()).catch(() => reject());
 		} else {
 			target.send({ embeds: embArr }).then(() => resolve()).catch(() => reject());

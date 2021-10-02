@@ -15,6 +15,10 @@
 * Fixed a problem with impossible deletions
 * Added await to embedStart so we get them in order
 
+# v2.0.2 (2021-Oct-03)
+* Added a "Sticker #1:" section to embeds
+* Fixed a double-message bug
+* Added attachmentURLs toggle for seeing the "attachment #1: thingy"
 
 
 

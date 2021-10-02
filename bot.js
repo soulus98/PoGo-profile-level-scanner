@@ -521,9 +521,15 @@ client.on("messageCreate", async message => {
 	} else if (dm) {
 		if (message.content.startsWith("$")) {
 			message.reply(`Commands starting with \`$\` are for a different bot (Pokénav).
-You can use them in <#${ops.profileChannel}> once you have confirmed you are above level ${ops.targetLevel} by sending a screenshot in <#${ops.screenshotChannel}>.`).catch(() => {
+You can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`).catch(() => {
 				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`);
+			});
+		} else if (message.content.startsWith("/") || message.content.startsWith("!") || message.content.startsWith("?")) {
+			message.reply(`That command is likely for a different bot.
+If you need any help just reply to this message to talk to the staff`).catch(() => {
+				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.author.send("That command is likely for a different bot.\nIf you need any help just reply to this message to talk to the staff");
 			});
 		} else if (ops.dmMail){
 			mail.mailDM(message);
