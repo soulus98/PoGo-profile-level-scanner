@@ -85,12 +85,12 @@ function channelMsg(message) {
 			embedOut.setDescription(messagetxtReplace(messagetxt.dmHostOpen, message.author).replace(/<server>/g, `**${server.name}**`))
 			.setFooter(server.name, server.iconURL());
 			member.send({ embeds: [embedOut] }).then(() => {
-				newChannel(message, member.user).then(([channel, embedStart]) => {
+				newChannel(message, member.user).then(async ([channel, embedStart]) => {
 					console.log(`[${dateToTime(new Date())}]: Staff member ${message.author.username}${message.author.toString()} opened a new ticket with ${member.user.username}${member.user.toString()}`);
 					embedIn.setDescription(`Ticket opened with: ${member.user.toString()}\n${channel.toString()}\nOpened by: ${message.author.toString()}`)
 					.setFooter(member.user.tag + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
 					embedStart.addField("Ticket opened by:", message.author.toString());
-					channel.send({ embeds: [embedStart] });
+					await channel.send({ embeds: [embedStart] });
 					logs.send({ embeds: [embedIn] }).then(() => {
 						message.delete();
 					});

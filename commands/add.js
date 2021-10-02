@@ -25,16 +25,16 @@ module.exports = {
 							message.delete();
 						}, 1000);
 					}
-					resolve(`, and added ${ch}#${id} to the Pokenav filter list.`);
+					resolve(`, and added ${ch.name}#${id} to the Pokenav filter list.`);
 					return;
 				}).catch(() => {
 					message.reply(`${(args[0]) ? "That" : "This"} channel is already included in the filter list.`);
-					resolve(", but it failed, since that channel was already included in the list.");
+					resolve(`, but it failed, since ${ch.name}#${id} was already included in the list.`);
 					return;
 				});
 			}).catch(() => {
 				message.reply("There may be a typo, or some other issue, which causes me to not be able to find this channel.");
-				resolve(", but it failed, since I couldn't find the channel.");
+				resolve(`, but it failed, since I couldn't find a channel with ID: #${id}.`);
 				return;
 			});
 		});

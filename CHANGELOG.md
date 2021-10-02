@@ -9,6 +9,13 @@
 * Made level 29 screenshots redirect to mail
 * Added YPOBEI to the rescan word list
 
+# v2.0.1 (2021-Oct-02)
+* Removed a catastrophic filter issue where it would delete raid embeds!
+* Added "User is on cooldown" to the Pokenav filter
+* Fixed a problem with impossible deletions
+* Added await to embedStart so we get them in order
+
+
 
 
 # v1.8 (2021-Sep-10)

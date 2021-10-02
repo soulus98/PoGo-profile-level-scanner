@@ -107,7 +107,7 @@ function handleImage(message, postedTime, wasDelayed){
 										console.log(logString + addToLogString + ` Time: ${(Date.now() - currentTime) / 1000}s`);
 									});
 									resolve();
-									if (ops.deleteScreens && !message.deleted) message.delete().catch(() => {
+									if (!dm && ops.deleteScreens && !message.deleted) message.delete().catch(() => {
 										errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 									});
 								}

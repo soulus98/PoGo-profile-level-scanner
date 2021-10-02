@@ -34,10 +34,14 @@ function filter(message){
 		message.delete();
 		return;
 	}
-	if (new RegExp(/\d{12}/).test(message.content)) {
+	if (message.content.startsWith("User is on cooldown")) {
 		message.delete();
 		return;
 	}
+	// if (new RegExp(/\d{12}/).test(message.content)) {
+	// 	message.delete();
+	// 	return;
+	// }
 }
 
 function addFilterChannel(id) {

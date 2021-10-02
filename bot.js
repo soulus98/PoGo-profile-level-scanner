@@ -464,7 +464,7 @@ client.on("messageCreate", async message => {
 			});
 			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nRoles: All 3 already possessed`, files: [image] });
 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
-			if (ops.deleteScreens && !message.deleted) message.delete().catch(() => {
+			if (!dm && ops.deleteScreens && !message.deleted) message.delete().catch(() => {
 				errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 			});
 			saveStats("all");
@@ -478,7 +478,7 @@ client.on("messageCreate", async message => {
 					errorMessage(postedTime, dm, `Error: Could not send DM to ${message.author.username}${message.author}`);
 				});
 				logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((ops.blacklistTime - (postedTime.getTime() - blacklist.get(message.author.id))) / 3600000).toFixed(1)} hours`, files: [image] });
-				if (ops.deleteScreens && !message.deleted) message.delete().catch(() => {
+				if (!dm && ops.deleteScreens && !message.deleted) message.delete().catch(() => {
 					errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 				});
 				console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the auto blacklist`);

@@ -25,14 +25,14 @@ module.exports = {
 							message.delete();
 						}, 1000);
 					}
-					resolve(`, and removed ${ch}#${id} from the Pokenav filter list.`);
+					resolve(`, and removed ${ch.name}#${id} from the Pokenav filter list.`);
 				}).catch(() => {
 					message.reply(`${(args[0]) ? "That" : "This"} channel was not found in the filter list.`);
-					resolve(", but it failed, since that channel was not found in the list.");
+					resolve(`, but it failed, since ${ch.name}#${id} was not found in the list.`);
 				});
 			}).catch(() => {
 				message.reply("There may be a typo, or some other issue, which causes me to not be able to find this channel.");
-				resolve(", but it failed, since I couldn't find the channel.");
+				resolve(`, but it failed, since I couldn't find a channel with ID: #${id}.`);
 				return;
 			});
 		});
