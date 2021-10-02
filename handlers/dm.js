@@ -227,7 +227,6 @@ function newEmbed(message, status){ // open, hostOpen, hostReply, userReply, clo
 					i++;
 					return `**Attachment #${i}:** ${a.url}`;
 				});
-				console.log(files);
 				embed.setDescription(`${message.content}\n\n${files.join("\n")}`);
 			} else {
 				embed.setDescription(message.content);
