@@ -22,6 +22,9 @@
 
 # v2.0.3 (2021-Oct-)
 * Added user ID to the start of a ticket for ease of use on Android
+* Failed images in DMs aren't SS logged
+* Under level images in DMs aren't SS logged
+* DM image scanning no longer adds reactions
 * Fixed a typo to *actually* fix the double-message bug
 
 
