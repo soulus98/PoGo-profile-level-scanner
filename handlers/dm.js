@@ -91,7 +91,7 @@ function channelMsg(message) {
 					embedIn.setDescription(`Ticket opened with: ${member.user.toString()}\n${channel.toString()}\nOpened by: ${message.author.toString()}`)
 					.setFooter(member.user.tag + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
 					embedStart.addField("Ticket opened by:", message.author.toString());
-					await channel.send({ embeds: [embedStart] });
+					await channel.send({ content: member.user.id, embeds: [embedStart] });
 					logs.send({ embeds: [embedIn] }).then(() => {
 						message.delete();
 					});
@@ -185,7 +185,7 @@ async function mailDM(message) {
 			user.send({ embeds: [embedOut] });
 		});
   } else {
-		tempQueue.push[user.id];
+		tempQueue.push(user.id);
     newChannel(message, user).then(async ([channel, embedStart]) => {
 			console.log(`[${dateToTime(new Date())}]: User ${user.username}${user.toString()} opened a new ticket via a DM`);
 			const embedIn = await newEmbed(message, "userReply");
@@ -195,7 +195,7 @@ async function mailDM(message) {
 			embedOut.setFooter(server.name, server.iconURL())
 			.setTitle("New Ticket Created")
 			.addField("\u200b", `**${messagetxtReplace(messagetxt.dmOpen, user)}**`);
-			await channel.send({ embeds: [embedStart] });
+			await channel.send({ content: user.id, embeds: [embedStart] });
 			sendWithImg(message, channel, [embedIn]);
 			embedIn.setTitle("New Ticket Created");
 			logs.send({ embeds: [embedIn] });

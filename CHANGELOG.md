@@ -20,6 +20,9 @@
 * Fixed a double-message bug
 * Added attachmentURLs toggle for seeing the "attachment #1: thingy"
 
+# v2.0.3 (2021-Oct-)
+* Added user ID to the start of a ticket for ease of use on Android
+* Fixed a typo to *actually* fix the double-message bug
 
 
 # v1.8 (2021-Sep-10)

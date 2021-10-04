@@ -527,9 +527,9 @@ You can use them in <#${ops.profileChannel}> once you show you are above level $
 			});
 		} else if (message.content.startsWith("/") || message.content.startsWith("!") || message.content.startsWith("?")) {
 			message.reply(`That command is likely for a different bot.
-If you need any help just reply to this message to talk to the staff`).catch(() => {
+If you need any help just reply to this message to talk to the staff.`).catch(() => {
 				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.author.send("That command is likely for a different bot.\nIf you need any help just reply to this message to talk to the staff");
+				message.author.send("That command is likely for a different bot.\nIf you need any help just reply to this message to talk to the staff.");
 			});
 		} else if (ops.dmMail){
 			mail.mailDM(message);
