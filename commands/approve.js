@@ -128,7 +128,8 @@ module.exports = {
 				const give50 = (level == 50) ? true : false;
 				if (!give30) {
 					if (member.roles.cache.has(ops.targetLevelRole)){
-						if (!inCommand) member.send(`I'll be honest, this is weird.
+						if (ops.dmMail && dm) return mail.mailDM(message);
+						else if (!inCommand) member.send(`I'll be honest, this is weird.
 Why would you send a screenshot of an account under level when you already have the role that means you are above the gate level...???
 I am honestly curious as to why, so please shoot me a dm at <@146186496448135168>. It is soulus#3935 if that tag doesn't work.`);
 						else message.reply(`Ya silly, they already have Remote Raids. You probably want \`${ops.prefix}revert\`. That or you did a typo.`);
@@ -136,7 +137,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 						bigResolve((logString || "") + `, but it failed. They already have RR, so cannot be rejected${(!inCommand) ? ` for level ${level}` : ""}.`);
 						return;
 					}
-					if (!inCommand && !ops.deleteScreens && !message.deleted) message.react("👎").catch(() => {
+					if (!dm && !inCommand && !ops.deleteScreens && !message.deleted) message.react("👎").catch(() => {
 						console.error(`[${execTime}]: Error: Could not react 👎 (thumbsdown) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
 					if (inCommand && !message.deleted) message.react("👍").catch(() => {

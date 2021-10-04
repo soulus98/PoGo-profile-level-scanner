@@ -69,7 +69,7 @@ function handleImage(message, postedTime, wasDelayed){
 						});
 						Promise.all([testSend, saveCropped]).then(async () => {
 							if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Recog starting\t`, postedTime.getTime());
-							if (!message.deleted) await message.react("👀").catch(() => {
+							if (!message.deleted && !dm) await message.react("👀").catch(() => {
 								errorMessage(postedTime, dm, `Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 							});
 							recog(imgBuff, message).then(([level, failed, text]) => {
@@ -80,15 +80,15 @@ function handleImage(message, postedTime, wasDelayed){
 									});
 								}
 								if (failed || level > 50 || level < 1){
-									logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``, files: [image] });
-									message.react("❌").catch(() => {
-										errorMessage(postedTime, dm, `Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-									});
 									if (dm && ops.dmMail) {
-											mail.mailDM(message);
-											reject();
-											return;
+										mail.mailDM(message);
+										reject();
+										return;
 									} else {
+										logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``, files: [image] });
+										message.react("❌").catch(() => {
+											errorMessage(postedTime, dm, `Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
+										});
 										if (!dm) message.reply(messagetxtReplace(messagetxt.fail, message.author)).catch(() => {
 											errorMessage(postedTime, dm, `Error: Could not reply to message: ${message.url}\nContent of mesage: "${message.content}"`);
 											message.channel.send(messagetxtReplace(messagetxt.fail, message.author));
