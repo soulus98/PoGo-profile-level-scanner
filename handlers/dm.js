@@ -218,7 +218,6 @@ async function mailDM(message) {
 				tempQueue.splice(tempQueue.indexOf(user.id));
 				msg.delete()
 				.catch((err) => console.error("Failed to delete:", err));
-				console.log("Timed out & deleted.");
 			});
 		});
   }
