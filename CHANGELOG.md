@@ -21,6 +21,7 @@
 * Added attachmentURLs toggle for seeing the "attachment #1: thingy"
 
 # v2.0.3 (2021-Oct-)
+* Added a DM new ticket reaction trap
 * Added user ID to the start of a ticket for ease of use on Android
 * Failed images in DMs aren't SS logged
 * Under level images in DMs aren't SS logged
