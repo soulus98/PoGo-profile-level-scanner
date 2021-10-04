@@ -210,12 +210,15 @@ async function mailDM(message) {
 						user.send({ embeds: [embedOut] });
 					});
 				} else {
+					tempQueue.splice(tempQueue.indexOf(user.id));
 					user.send("Message not sent. Please send another message if you need support.");
 				}
 			})
 			.catch(() => {
-				msg.reactions.cache.get("👍").remove()
-				.catch((err) => console.error("Failed to remove reactions:", err));
+				tempQueue.splice(tempQueue.indexOf(user.id));
+				msg.delete()
+				.catch((err) => console.error("Failed to delete:", err));
+				console.log("Timed out & deleted.");
 			});
 		});
   }
@@ -324,7 +327,7 @@ function passServ(s) {
 		server = s;
 		trapEmbed.setTitle("Server Staff Mail")
 		.setDescription(`Would you like to make a new support ticket by sending that message to the staff at ${server.name}?
-	React with 👍 for yes and 👎 for no.`)
+	React with 👍 for yes and 👎 for no. (This will last 60 seconds)`)
 		.setColor("#4B85FF")
 		.setFooter(server.name, server.iconURL());
 		res();
