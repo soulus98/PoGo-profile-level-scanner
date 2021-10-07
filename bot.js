@@ -11,17 +11,30 @@ const { token } = require("./server/keys.json"),
 			{ saveBlacklist } = require("./func/saveBlacklist.js"),
 			{ filter, loadFilterList } = require("./func/filter.js"),
 			mail = require("./handlers/dm.js"),
-			ver = require("./package.json").version;
-
-const client = new Discord.Client({ intents: [
-				Discord.Intents.FLAGS.GUILDS,
-				Discord.Intents.FLAGS.GUILD_MEMBERS,
-				Discord.Intents.FLAGS.GUILD_MESSAGES,
-				Discord.Intents.FLAGS.DIRECT_MESSAGES,
-				Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-			], partials: ["CHANNEL"] }),
+			ver = require("./package.json").version,
+			dmMailTog = require("./server/config.json").toggles.dmMail,
 			cooldowns = new Discord.Collection(),
-			launchDate = new Date();
+			launchDate = new Date(),
+			act = (dmMailTog) ? messagetxtReplace(messagetxt.activity) : ver,
+client = new Discord.Client({
+	intents: [
+		Discord.Intents.FLAGS.GUILDS,
+		Discord.Intents.FLAGS.GUILD_MEMBERS,
+		Discord.Intents.FLAGS.GUILD_MESSAGES,
+		Discord.Intents.FLAGS.DIRECT_MESSAGES,
+		Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+	],
+	partials: [
+		"CHANNEL",
+	],
+	presence: {
+		status: "online",
+		activities: [{
+			name: act,
+			type: "PLAYING",
+		}],
+	},
+});
 imgStats = {
 				imageAttempts : 0,
 				imageLogCount : 0,
@@ -41,8 +54,8 @@ module.exports = { loadConfigs, clearBlacklist, cooldowns, screensFolder };
 
 // Loads all the variables at program launch
 async function load(){
-	console.log("======================================================================================\n");
-	console.log("Server starting...");
+		console.log("======================================================================================\n");
+		console.log("Server starting...");
 		await loadConfigs();
 		await checkDateFolder(launchDate).catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
 		await loadCommands();
@@ -248,6 +261,7 @@ async function checkServer(message){
 load();
 
 client.once("ready", async () => {
+	console.log(client.presence);
 	channel = await client.channels.fetch(ops.screenshotChannel);
 	logs = await client.channels.fetch(ops.logsChannel);
 	profile = await client.channels.fetch(ops.profileChannel);
@@ -262,11 +276,6 @@ client.once("ready", async () => {
 	if (ops.dmMail) mail.refreshMailLog();
 	const dev = await client.users.fetch("146186496448135168", false, true);
 	checkServer();
-	if (ops.dmMail) {
-		client.user.setActivity(messagetxtReplace(messagetxt.activity));
-	} else {
-		client.user.setActivity(`${ver}`);
-	}
 	if (server == undefined){
 		console.log("\nOops the screenshot server is broken.");
 		return;

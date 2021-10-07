@@ -20,7 +20,7 @@
 * Fixed a double-message bug
 * Added attachmentURLs toggle for seeing the "attachment #1: thingy"
 
-# v2.0.3 (2021-Oct-)
+# v2.0.3 (2021-Oct-04)
 * Added a DM new ticket reaction trap
 * Added user ID to the start of a ticket for ease of use on Android
 * Failed images in DMs aren't SS logged
@@ -28,6 +28,10 @@
 * DM image scanning no longer adds reactions
 * Fixed a typo to *actually* fix the double-message bug
 
+# v2.0.4 (2021-Oct-07)
+* Added `]presence` so we can check if it is working or not
+* Changed how presence is loaded to help troubleshoot the disappearance of it
+* Made messagetxtReplace check first if a string contains "<"
 
 # v1.8 (2021-Sep-10)
 * Desynced and reworked **logImg** for a potential 100% speed increase

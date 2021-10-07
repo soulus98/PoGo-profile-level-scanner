@@ -5,6 +5,7 @@ module.exports = {
 	description: "Adds a channel to the list that is watched for Pokenav filtering. Run in the intended channel or include a [channel id/tag] if you run it from an admin channel.",
   aliases: ["add"],
   usage: `\`${ops.prefix}add [channel id/tag]\``,
+	args:true,
 	guildOnly:true,
 	execute(message, args) {
 		message.react("👀");
