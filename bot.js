@@ -371,8 +371,10 @@ client.on("shardError", (error) => {
 });
 
 client.on("shardResume", () => {
-	console.error("Resumed! Refreshing Activity...");
-	client.user.setActivity(act, { type: "PLAYING" });
+	if (loaded) {
+		console.error("Resumed! Refreshing Activity...");
+		client.user.setActivity(act, { type: "PLAYING" });
+	}
 });
 
 client.on("shardDisconnect", () => {
@@ -380,8 +382,10 @@ client.on("shardDisconnect", () => {
 });
 
 client.on("shardReady", () => {
-	console.error("Reconnected! Refreshing Activity...");
-	client.user.setActivity(act, { type: "PLAYING" });
+	if (loaded) {
+		console.error("Reconnected! Refreshing Activity...");
+		client.user.setActivity(act, { type: "PLAYING" });
+	}
 });
 
 client.on("shardReconnecting", () => {
