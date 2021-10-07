@@ -261,7 +261,6 @@ async function checkServer(message){
 load();
 
 client.once("ready", async () => {
-	console.log(client.presence);
 	channel = await client.channels.fetch(ops.screenshotChannel);
 	logs = await client.channels.fetch(ops.logsChannel);
 	profile = await client.channels.fetch(ops.profileChannel);
