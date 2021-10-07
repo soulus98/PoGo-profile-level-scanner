@@ -365,6 +365,29 @@ function processImage(message, postedTime, wasDelayed){
 	});
 }
 
+
+client.on("shardError", (error) => {
+	console.error(`[${dateToTime(new Date())}]: Websocket disconnect: ${error}`);
+});
+
+client.on("shardResume", () => {
+	console.error("Resumed! Refreshing Activity...");
+	client.user.setActivity(act, { type: "PLAYING" });
+});
+
+client.on("shardDisconnect", () => {
+	console.error("Disconnected!");
+});
+
+client.on("shardReady", () => {
+	console.error("Reconnected! Refreshing Activity...");
+	client.user.setActivity(act, { type: "PLAYING" });
+});
+
+client.on("shardReconnecting", () => {
+	console.error("Reconnecting...");
+});
+
 client.on("messageCreate", async message => {
 	if (message.author.id == 428187007965986826 && filterList.includes(message.channel.id)) {
 		filter(message);
