@@ -29,7 +29,8 @@
 * Fixed a typo to *actually* fix the double-message bug
 
 # v2.0.4 (2021-Oct-07)
-* Added `]presence` so we can check if it is working or not
+* Added `]presence` so we can check if the activity is working or not
+* Added websocket listeners for the same reason
 * Changed how presence is loaded to help troubleshoot the disappearance of it
 * Made messagetxtReplace check first if a string contains "<"
 
