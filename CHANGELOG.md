@@ -43,6 +43,7 @@
 * Added Badge messages to the filter
 * Fixed a dumbass mistake I introduced in `]add` and `]rem`
 * Added time and date to websocket disconnect error logs
+* Fixed time and date in logs from being off by one!
 
 
 # v1.8 (2021-Sep-10)
