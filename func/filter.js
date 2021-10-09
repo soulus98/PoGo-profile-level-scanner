@@ -17,6 +17,30 @@ function filter(message){
 			message.delete();
 			return;
 		}
+		if (message.embeds[0].title == "Badge Granted!") {
+			message.react("👀").then(() => {
+				setTimeout(() => {
+					message.delete();
+				}, 5000);
+				return;
+			});
+		}
+		if (message.embeds[0].title == "Badge Revoked!") {
+			message.react("👀").then(() => {
+				setTimeout(() => {
+					message.delete();
+				}, 5000);
+				return;
+			});
+		}
+		// if (message.embeds[0].title == "No Change Made To Trainer's Badge") {
+		// 	message.react("👀").then(() => {
+		// 		setTimeout(() => {
+		// 			message.delete();
+		// 		}, 5000);
+		// 		return;
+		// 	});
+		// }
 		if (new RegExp(/Your .+ has been updated!/).test(message.embeds[0].description)) {
 			message.delete();
 			return;

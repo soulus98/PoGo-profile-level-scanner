@@ -92,7 +92,7 @@ function channelMsg(message) {
 					embedIn.setDescription(`Ticket opened with: ${member.user.toString()}\n${channel.toString()}\nOpened by: ${message.author.toString()}`)
 					.setFooter(member.user.tag + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
 					embedStart.addField("Ticket opened by:", message.author.toString());
-					await channel.send({ content: member.user.id, embeds: [embedStart] });
+					await channel.send({ content: `${member.user} (${member.user.id})`, embeds: [embedStart] });
 					logs.send({ embeds: [embedIn] }).then(() => {
 						message.delete();
 					});
@@ -109,7 +109,7 @@ function channelMsg(message) {
 			if (!userId) return;
 			else {
 				message.client.users.fetch(userId).then(async (user) => {
-					if (message.content.startsWith("=")) {
+					if (message.content.startsWith("=") || message.content.startsWith("?") || message.content.startsWith("$")) {
 						if (message.content.toLowerCase().startsWith("=close")) { // Close ticket. Todo:embed
 							const args = message.content.slice(7);
 							const embedIn = await newEmbed(message, "close");
@@ -187,7 +187,7 @@ async function mailDM(message) {
 		});
   } else {
 		tempQueue.push(user.id);
-		user.send({ embeds: [trapEmbed] }).then((msg) => {
+		message.reply({ embeds: [trapEmbed] }).then((msg) => {
 			msg.react("👍").then(() => msg.react("👎"));
 			const filter = (reaction, usr) => {
 				return ["👍", "👎"].includes(reaction.emoji.name) && usr.id === message.author.id;
@@ -203,7 +203,7 @@ async function mailDM(message) {
 						embedOut.setFooter(server.name, server.iconURL())
 						.setTitle("New Ticket Created")
 						.addField("\u200b", `**${messagetxtReplace(messagetxt.dmOpen, user)}**`);
-						await channel.send({ content: user.id, embeds: [embedStart] });
+						await channel.send({ content: `${user} (${user.id})`, embeds: [embedStart] });
 						sendWithImg(message, channel, [embedIn]);
 						embedIn.setTitle("New Ticket Created");
 						logs.send({ embeds: [embedIn] });
@@ -240,11 +240,16 @@ function newChannel(message, user) {
 			.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }))
 			.addField("User", user.toString() + "\n" + user.id, true);
 			server.members.fetch(user.id).then((m) => {
-				const membRoles = m.roles.cache.map(r => r.toString());
+				const membRoles = m.roles.cache.map(r => `${r.toString()} `);
 				if (membRoles.length > 1) {
 					embedStart.addField("Roles", membRoles.slice(0, -1).join(""), true);
 				} else {
 					embedStart.addField("Roles", "No roles possessed", true);
+				}
+				embedStart.addField("Joined the server at:", m.joinedAt.toUTCString(), true);
+				embedStart.addField("Account created at:", m.user.createdAt.toUTCString(), true);
+				if (m.premiumSince) {
+					embedStart.addField("Supported with Nitro at:", m.premiumSince.toUTCString(), true);
 				}
 				resolve([channel, embedStart]);
 			});

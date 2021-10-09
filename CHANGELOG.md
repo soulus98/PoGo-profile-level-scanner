@@ -34,6 +34,13 @@
 * Changed how presence is loaded to help troubleshoot the disappearance of it
 * Made messagetxtReplace check first if a string contains "<"
 
+# v2.0.5 (2021-Oct-09)
+* Mail start embed now shows join time, account create time, and nitro time
+* Mail now ignores `?` and `$`, to allow dyno and pokenav commands
+* Added Badge messages to the filter
+* Fixed a dumbass mistake I introduced in `]add` and `]rem`
+
+
 # v1.8 (2021-Sep-10)
 * Desynced and reworked **logImg** for a potential 100% speed increase
 * Added configurable message text in ./server/messagetxt.js
