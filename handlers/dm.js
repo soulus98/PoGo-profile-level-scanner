@@ -5,6 +5,7 @@ const Discord = require("discord.js"),
 			fs = require("fs"),
 			path = require("path");
 let queue = new Discord.Collection(),
+		ignoreMail,
 		server = {},
 		logs = {};
 const tempQueue = [],
@@ -187,6 +188,9 @@ async function mailDM(message) {
 			user.send({ embeds: [embedOut] });
 		});
   } else {
+		if (ignoreMail.includes(message.content.toLowerCase())) {
+			return;
+		}
 		tempQueue.push(user.id);
 		message.reply({ embeds: [trapEmbed] }).then((msg) => {
 			msg.react("👍").then(() => msg.react("👎"));
@@ -335,6 +339,7 @@ function passServ(s) {
 	React with 👍 for yes and 👎 for no. (This will last 60 seconds)`)
 		.setColor("#4B85FF")
 		.setFooter(server.name, server.iconURL());
+		ignoreMail = require("../server/ignoreMail.js");
 		res();
 	});
 }

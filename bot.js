@@ -97,8 +97,10 @@ function loadConfigs(){
 				passAppServ([channel, profile, server, logs]);
 				passRevServ([channel, server]);
 				passImgServ(logs);
-				await mail.passServ(server);
-				if (ops.dmMail) mail.refreshMailLog();
+				if (ops.dmMail) {
+					await mail.passServ(server);
+					mail.refreshMailLog();
+				}
 				console.log("\nReloaded configs\n");
 				resolve();
 			})();
@@ -260,7 +262,6 @@ async function checkServer(message){
 load();
 
 client.once("ready", async () => {
-
 	channel = await client.channels.fetch(ops.screenshotChannel);
 	logs = await client.channels.fetch(ops.logsChannel);
 	profile = await client.channels.fetch(ops.profileChannel);
@@ -271,8 +272,10 @@ client.once("ready", async () => {
 	passAppServ([channel, profile, server, logs]);
 	passRevServ([channel, server]);
 	passImgServ(logs);
-	await mail.passServ(server);
-	if (ops.dmMail) mail.refreshMailLog();
+	if (ops.dmMail) {
+		await mail.passServ(server);
+		mail.refreshMailLog();
+	}
 	const dev = await client.users.fetch("146186496448135168", false, true);
 	checkServer();
 	if (server == undefined){
@@ -371,7 +374,6 @@ client.on("error", (error) => {
 	console.error(`[${dateToTime(new Date())}]: Client Error: ${error}`);
 });
 
-
 client.on("shardError", (error) => {
 	console.error(`[${dateToTime(new Date())}]: Websocket disconnect: ${error}`);
 });
@@ -395,7 +397,9 @@ client.on("shardReady", () => {
 });
 
 client.on("shardReconnecting", () => {
-	console.error(`[${dateToTime(new Date())}]: Reconnecting...`);
+	if (loaded) {
+		console.error(`[${dateToTime(new Date())}]: Reconnecting...`);
+	}
 });
 
 client.on("messageCreate", async message => {
