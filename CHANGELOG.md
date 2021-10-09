@@ -41,6 +41,7 @@
 * Mail now ignores `?` and `$`, to allow dyno and pokenav commands (it already ignored bots)
 * Added Badge messages to the filter
 * Fixed a dumbass mistake I introduced in `]add` and `]rem`
+* Added time and date to websocket disconnect error logs
 
 
 # v1.8 (2021-Sep-10)

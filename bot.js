@@ -84,7 +84,6 @@ function loadConfigs(){
 		if (!loaded){
 			console.log("\nLoading configs...");
 			console.log("\nConfigs:", config);
-			loaded = true;
 			resolve();
 		} else {
 			(async () => {
@@ -261,6 +260,7 @@ async function checkServer(message){
 load();
 
 client.once("ready", async () => {
+
 	channel = await client.channels.fetch(ops.screenshotChannel);
 	logs = await client.channels.fetch(ops.logsChannel);
 	profile = await client.channels.fetch(ops.profileChannel);
@@ -308,6 +308,7 @@ client.once("ready", async () => {
 			});
 		});
 	});
+	loaded = true;
 	dev.send(`**Dev message: **Loaded in guild: "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
 	console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in guild: "${server.name}"#${server.id} in channel: "${channel.name}"#${channel.id}`);
 	console.log("\n======================================================================================\n");
@@ -366,30 +367,35 @@ function processImage(message, postedTime, wasDelayed){
 }
 
 
+client.on("error", (error) => {
+	console.error(`[${dateToTime(new Date())}]: Client Error: ${error}`);
+});
+
+
 client.on("shardError", (error) => {
 	console.error(`[${dateToTime(new Date())}]: Websocket disconnect: ${error}`);
 });
 
 client.on("shardResume", () => {
 	if (loaded) {
-		console.error("Resumed! Refreshing Activity...");
+		console.error(`[${dateToTime(new Date())}]: Resumed! Refreshing Activity...`);
 		client.user.setActivity(act, { type: "PLAYING" });
 	}
 });
 
 client.on("shardDisconnect", () => {
-	console.error("Disconnected!");
+	console.error(`[${dateToTime(new Date())}]: Disconnected!`);
 });
 
 client.on("shardReady", () => {
 	if (loaded) {
-		console.error("Reconnected! Refreshing Activity...");
+		console.error(`[${dateToTime(new Date())}]: Reconnected! Refreshing Activity...`);
 		client.user.setActivity(act, { type: "PLAYING" });
 	}
 });
 
 client.on("shardReconnecting", () => {
-	console.error("Reconnecting...");
+	console.error(`[${dateToTime(new Date())}]: Reconnecting...`);
 });
 
 client.on("messageCreate", async message => {
