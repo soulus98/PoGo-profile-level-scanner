@@ -48,7 +48,7 @@ function test(){
 		function imageWrite(message){
 			imageLogCount++;
 			lastImageTimestamp = Date.now(); //Setting lastImageTimestamp for the next time it runs
-			logString = `User ${message.author.username}${message.author} sent image#${imageLogCount} at ${postedTime.toLocaleString()}`;
+			logString = `${message.author.username}${message.author} sent image#${imageLogCount} at ${postedTime.toLocaleString()}`;
 			try{
 				image = message.attachments.first();
 				imageName = image.id + "." + image.url.split(".").pop();

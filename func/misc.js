@@ -1,5 +1,5 @@
 function dateToTime(inDate){
-	const time = `${inDate.getFullYear()}-${inDate.getMonth()}-${(inDate.getDate() < 10) ? `0${inDate.getDate()}` : inDate.getDate()} ${inDate.getHours()}:${(inDate.getMinutes() < 10) ? `0${inDate.getMinutes()}` : inDate.getMinutes()}:${(inDate.getSeconds() < 10) ? `0${inDate.getSeconds()}` : inDate.getSeconds()}`;
+	const time = `${inDate.getFullYear()}-${(inDate.getMonth() + 1 < 10) ? `0${inDate.getMonth() + 1}` : inDate.getMonth() + 1}-${(inDate.getDate() < 10) ? `0${inDate.getDate()}` : inDate.getDate()} ${(inDate.getHours() < 10) ? `0${inDate.getHours()}` : inDate.getHours()}:${(inDate.getMinutes() < 10) ? `0${inDate.getMinutes()}` : inDate.getMinutes()}:${(inDate.getSeconds() < 10) ? `0${inDate.getSeconds()}` : inDate.getSeconds()}`;
 	return time;
 }
 

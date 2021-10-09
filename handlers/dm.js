@@ -89,7 +89,7 @@ function channelMsg(message) {
 			.setFooter(server.name, server.iconURL());
 			member.send({ embeds: [embedOut] }).then(() => {
 				newChannel(message, member.user).then(async ([channel, embedStart]) => {
-					console.log(`[${dateToTime(new Date())}]: Staff member ${message.author.username}${message.author.toString()} opened a new ticket with ${member.user.username}${member.user.toString()}`);
+					console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} opened a new ticket with ${member.user.username}${member.user.toString()}`);
 					embedIn.setDescription(`Ticket opened with: ${member.user.toString()}\n${channel.toString()}\nOpened by: ${message.author.toString()}`)
 					.setFooter(member.user.tag + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
 					embedStart.addField("Ticket opened by:", message.author.toString());
@@ -129,7 +129,7 @@ function channelMsg(message) {
 							message.channel.delete();
 							queue.delete(userId);
 							saveQueue();
-							console.log(`[${dateToTime(new Date())}]: Staff member ${message.author.username}${message.author.toString()} closed the ticket with ${user.username}${user.toString()}`);
+							console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${user.username}${user.toString()}`);
 						} else return;
 					} else {
 						const embedIn = await newEmbed(message, "hostReply");
@@ -200,7 +200,7 @@ async function mailDM(message) {
 			msg.awaitReactions({ filter, max: 1, time: 60000, errors: ["time"] }).then((collected) => {
 				if (collected.first().emoji.name === "👍") {
 					newChannel(message, user).then(async ([channel, embedStart]) => {
-						console.log(`[${dateToTime(new Date())}]: User ${user.username}${user.toString()} opened a new ticket via a DM`);
+						console.log(`[${dateToTime(new Date())}]: ${user.username}${user.toString()} opened a new ticket via DM`);
 						const embedIn = await newEmbed(message, "userReply");
 						const embedOut = new Discord.MessageEmbed(embedIn);
 						embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }))

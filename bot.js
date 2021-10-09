@@ -443,7 +443,7 @@ client.on("messageCreate", async message => {
 // Some mail-ticket handling code should go here in the future
 
 // This is no longer necessary, especially since other channels might be mail channels. Still should stress the importance of security
-// 			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
+// 			console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
 // 			message.reply(`I cannot scan an image in this channel. Please send it in ${channel}.
 // <@&${ops.modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`).catch(()=>{
 // 				errorMessage(postedTime, dm, `Error: I can not send a message in ${message.channel.name}${message.channel}`);
@@ -454,7 +454,7 @@ client.on("messageCreate", async message => {
 		const fileType = image.url.split(".").pop().toLowerCase();
 		if (image.height < 50 || image.width < 50 || fileType.length > 6){
 			if (ops.dmMail && dm) return mail.mailDM(message);
-			errorMessage(postedTime, dm, `User ${message.author.username}${message.author} sent an image, but could not be processed, since it is an Empty/Tiny image file`);
+			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused for being Empty/Tiny`);
 			message.reply("I cannot scan tiny images or images with no size information.\nIf you think this is in error, please tell a moderator.").catch(() => {
 				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send("I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.");
@@ -464,7 +464,7 @@ client.on("messageCreate", async message => {
 			return;
 		}
 		if (image.size / 1048576 > 15){ //
-			errorMessage(postedTime, dm, `User ${message.author.username}${message.author} sent an image, but could not be processed, since it is over 15mb`);
+			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused for being over 15mb: ${(image.size / 1048576).toFixed(2)}MB.`);
 			message.reply("I cannot handle such a large file.\nIf you think this is in error, please tell a moderator.").catch(() => {
 				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send("I cannot handle such a large file.\nIf you think this is in error, please tell a moderator.");
@@ -476,7 +476,7 @@ client.on("messageCreate", async message => {
 		const acceptedFileTypes = ["png", "jpg", "jpeg", "jfif", "tiff", "bmp"];
 		if (!acceptedFileTypes.includes(fileType) && !(image.contentType.split("/")[0] == "image")){
 			if (ops.dmMail && dm) return mail.mailDM(message);
-			errorMessage(postedTime, dm, `User ${message.author.username}${message.author} sent an image, but could not be processed, due to an Invalid file type: ${fileType}`);
+			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused as ${fileType} is an invalid file type: `);
 			message.reply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`).catch(() => {
 				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`);
@@ -487,7 +487,7 @@ client.on("messageCreate", async message => {
 		}
 		if (message.memb == null){
 			if (ops.dmMail && dm) return mail.mailDM(message);
-			errorMessage(postedTime, dm, `User ${message.author.username}${message.author} sent an image, but could not be processed, since they left the server.`);
+			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, but left the server.`);
 			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nLeft the server. Not scanned.\n`, files: [image] });
 			saveStats("left");
 			return;
@@ -499,7 +499,7 @@ client.on("messageCreate", async message => {
 				message.channel.send(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`);
 			});
 			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nNot scanned due to manual blacklist:\n<@&${ops.blacklistRole}>`, files: [image] });
-			errorMessage(postedTime, dm, `User ${message.author.username}${message.author} sent an image, but it was declined, due to the manual blacklist`);
+			console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, which was refused due to the manual blacklist`);
 			saveStats("black");
 			return;
 		}
@@ -509,7 +509,7 @@ client.on("messageCreate", async message => {
 				errorMessage(postedTime, dm, `Error: Could not send DM to ${message.author.username}${message.author}`);
 			});
 			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nRoles: All 3 already possessed`, files: [image] });
-			console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
+			console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
 			if (!dm && ops.deleteScreens && !message.deleted) message.delete().catch(() => {
 				errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 			});
@@ -527,7 +527,7 @@ client.on("messageCreate", async message => {
 				if (!dm && ops.deleteScreens && !message.deleted) message.delete().catch(() => {
 					errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 				});
-				console.log(`[${dateToTime(postedTime)}]: User ${message.author.username}${message.author} sent an image, but it was declined, due to the auto blacklist`);
+				console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, which was refused due to the auto blacklist`);
 				return;
 			} else {
 				blacklist.delete(message.author.id);
@@ -572,10 +572,9 @@ You can use them in <#${ops.profileChannel}> once you show you are above level $
 				message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`);
 			});
 		} else if (message.content.startsWith("/") || message.content.startsWith("!") || message.content.startsWith("?")) {
-			message.reply(`That command is likely for a different bot.
-If you need any help just reply to this message to talk to the staff.`).catch(() => {
+			message.reply(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`).catch(() => {
 				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.author.send("That command is likely for a different bot.\nIf you need any help just reply to this message to talk to the staff.");
+				message.author.send(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`);
 			});
 		} else if (ops.dmMail){
 			mail.mailDM(message);
