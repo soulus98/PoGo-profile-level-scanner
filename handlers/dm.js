@@ -137,16 +137,17 @@ function channelMsg(message) {
 						.setTitle("Message Sent");
 						embedOut.setFooter(message.guild.name, message.guild.iconURL())
 						.setTitle("Message Received");
-						sendWithImg(message, user, [embedOut]).catch(() => {
+						sendWithImg(message, user, [embedOut]).then(() => {
+							logs.send({ embeds: [embedIn] });
+							sendWithImg(message, message.channel, [embedIn]).then(() => {
+								message.delete();
+							}).catch((err) => {
+								console.error(`[${dateToTime(new Date())}]: Error occured when sending an embed in the mail logs. Err:${err}`);
+							});
+						}).catch(() => {
 							console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${user.username}#${user.id}`);
-							message.reply("I can no longer reply to that member. They may have blocked me or turned off DMs.");
+							message.reply("I can no longer reply to this member. They may have blocked me or turned off DMs.");
 							return;
-						});
-						logs.send({ embeds: [embedIn] });
-						sendWithImg(message, message.channel, [embedIn]).then(() => {
-							message.delete();
-						}).catch((err) => {
-							console.error(`[${dateToTime(new Date())}]: Error occured when sending an embed in the mail logs. Err:${err}`);
 						});
 					}
 				});

@@ -36,7 +36,9 @@
 
 # v2.0.5 (2021-Oct-09)
 * Mail start embed now shows join time, account create time, and nitro time
-* Mail now ignores `?` and `$`, to allow dyno and pokenav commands
+* Added the user mention in the start of the mail ticket to make it even slightly easier on mobile users
+* Fixed the banned/no DMs message that appears in the channel
+* Mail now ignores `?` and `$`, to allow dyno and pokenav commands (it already ignored bots)
 * Added Badge messages to the filter
 * Fixed a dumbass mistake I introduced in `]add` and `]rem`
 
