@@ -333,13 +333,17 @@ client.on("guildMemberRemove", member => {
 // Called from clear-blacklist.js to clear the blacklist when requested
 function clearBlacklist(message, idToDelete){
 	if (idToDelete){
-		blacklist.delete(idToDelete[0]);
-		replyNoMention(message, `Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`).catch(() => {
+		if (blacklist.has(idToDelete)) {
+			blacklist.delete(idToDelete[0]);
+			replyNoMention(message, `Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`).catch(() => {
 				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`);
 			});
-		console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
-		saveBlacklist(blacklist);
+			console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
+			saveBlacklist(blacklist);
+		} else {
+			message.reply("I can not find that user's ID in the blacklist. Please try again");
+		}
 	} else {
 		fs.writeFile(path.resolve(__dirname, "./server/blacklist.json"), "[]", (err) => {
 			if (err){
