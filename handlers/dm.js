@@ -198,12 +198,12 @@ async function mailDM(message, status, level) {
 			}
 			tempQueue.push(member.id);
 			message.reply({ embeds: [trapEmbed] }).then((msg) => {
-				msg.react("👍").then(() => msg.react("👎"));
+				msg.react("✅").then(() => msg.react("❌"));
 				const filter = (reaction, usr) => {
-					return ["👍", "👎"].includes(reaction.emoji.name) && usr.id === message.author.id;
+					return ["✅", "❌"].includes(reaction.emoji.name) && usr.id === message.author.id;
 				};
 				msg.awaitReactions({ filter, max: 1, time: 60000, errors: ["time"] }).then((collected) => {
-					if (collected.first().emoji.name === "👍") {
+					if (collected.first().emoji.name === "✅") {
 						newChannel(message, member).then(async ([channel, embedStart]) => {
 							console.log(`[${dateToTime(new Date())}]: ${member.user.username}${member} opened a new ticket via DM`);
 							const embedIn = await newEmbed(message, "userReply");
@@ -421,7 +421,7 @@ function passServ(s) {
 		server = s;
 		trapEmbed.setTitle("Server Staff Mail")
 		.setDescription(`Would you like to make a new support ticket by sending that message to the staff at ${server.name}?
-	React with 👍 for yes and 👎 for no. (This will last 60 seconds)`)
+	React with ✅ for yes and ❌ for no. (This will last 60 seconds)`)
 		.setColor("#4B85FF")
 		.setFooter(server.name, server.iconURL());
 		ignoreMail = require("../server/ignoreMail.js");
