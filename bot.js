@@ -26,6 +26,7 @@ client = new Discord.Client({
 	],
 	partials: [
 		"CHANNEL",
+		"GUILD_MEMBER"
 	],
 	presence: {
 		status: "online",
@@ -325,6 +326,10 @@ client.on("guildMemberAdd", member => {
 	});
 });
 
+client.on("guildMemberRemove", member => {
+	mail.alertMsg(member.user, "left");
+});
+
 // Called from clear-blacklist.js to clear the blacklist when requested
 function clearBlacklist(message, idToDelete){
 	if (idToDelete){
@@ -452,8 +457,20 @@ client.on("messageCreate", async message => {
 		}
 		const image = message.attachments.first();
 		const fileType = image.url.split(".").pop().toLowerCase();
+		const acceptedFileTypes = ["png", "jpg", "jpeg", "jfif", "tiff", "bmp"];
+		if (!acceptedFileTypes.includes(fileType) && !(image.contentType.split("/")[0] == "image")){
+			if (ops.dmMail && dm) return mail.mailDM(message, "wrong");
+			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused as ${fileType} is an invalid file type: `);
+			message.reply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`).catch(() => {
+				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`);
+			});
+			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nFile is not an image. Not scanned.\n`, files: [image] });
+			saveStats("wrong");
+			return;
+		}
 		if (image.height < 50 || image.width < 50 || fileType.length > 6){
-			if (ops.dmMail && dm) return mail.mailDM(message);
+			if (ops.dmMail && dm) return mail.mailDM(message, "tiny");
 			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused for being Empty/Tiny`);
 			message.reply("I cannot scan tiny images or images with no size information.\nIf you think this is in error, please tell a moderator.").catch(() => {
 				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
@@ -473,27 +490,15 @@ client.on("messageCreate", async message => {
 			saveStats("wrong");
 			return;
 		}
-		const acceptedFileTypes = ["png", "jpg", "jpeg", "jfif", "tiff", "bmp"];
-		if (!acceptedFileTypes.includes(fileType) && !(image.contentType.split("/")[0] == "image")){
-			if (ops.dmMail && dm) return mail.mailDM(message);
-			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused as ${fileType} is an invalid file type: `);
-			message.reply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`).catch(() => {
-				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.channel.send(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`);
-			});
-			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nFile is not an image. Not scanned.\n`, files: [image] });
-			saveStats("wrong");
-			return;
-		}
 		if (message.memb == null){
-			if (ops.dmMail && dm) return mail.mailDM(message);
+			if (ops.dmMail && dm) return mail.mailDM(message, "left");
 			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, but left the server.`);
 			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nLeft the server. Not scanned.\n`, files: [image] });
 			saveStats("left");
 			return;
 		}
 		if (message.memb.roles.cache.has(ops.blacklistRole) && ops.blacklistRole){
-			if (ops.dmMail && dm) return mail.mailDM(message);
+			if (ops.dmMail && dm) return mail.mailDM(message, "man-black");
 			message.reply(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`).catch(() => {
 				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 				message.channel.send(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`);
@@ -504,7 +509,7 @@ client.on("messageCreate", async message => {
 			return;
 		}
 		if (message.memb.roles.cache.has(ops.level50Role) && message.memb.roles.cache.has(ops.level40Role) && message.memb.roles.cache.has(ops.targetLevelRole)){
-			if (ops.dmMail && dm) return mail.mailDM(message);
+			if (ops.dmMail && dm) return mail.mailDM(message, "all");
 			message.author.send("You already have all available roles.").catch(() => {
 				errorMessage(postedTime, dm, `Error: Could not send DM to ${message.author.username}${message.author}`);
 			});
@@ -518,7 +523,7 @@ client.on("messageCreate", async message => {
 		}
 		if (ops.blacklistTime > 0 && blacklist.has(message.author.id)){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
 			if (postedTime.getTime() - blacklist.get(message.author.id) < ops.blacklistTime){
-				// if (ops.dmMail && dm) return mail.mailDM(message); // perhaps if false negatives don't get fixed
+				if (ops.dmMail && dm) return mail.mailDM(message, "black");
 				saveStats("black");
 				message.author.send(messagetxtReplace(messagetxt.denyBlacklist, message.author)).catch(() => {
 					errorMessage(postedTime, dm, `Error: Could not send DM to ${message.author.username}${message.author}`);

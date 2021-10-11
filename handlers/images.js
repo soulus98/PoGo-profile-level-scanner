@@ -81,7 +81,7 @@ function handleImage(message, postedTime, wasDelayed){
 								}
 								if (failed || level > 50 || level < 1){
 									if (dm && ops.dmMail) {
-										mail.mailDM(message);
+										mail.mailDM(message, "failed");
 										reject();
 										return;
 									} else {

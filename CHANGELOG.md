@@ -45,6 +45,11 @@
 * Added time and date to websocket disconnect error logs
 * Fixed time and date in logs from being off by one!
 
+# v2.0.6 (2021-Oct-11)
+* Added "Bot note" messages regarding the status of why the image was not scanned for mail purposes
+* Also, whether the user was just scanned elsewhere, or if they have left/were banned from the server
+* Allowed images posted after being blacklisted to be forwarded, with an aforementioned "Bot note"
+* Changed embeds to Nickname instead of tag
 
 # v1.8 (2021-Sep-10)
 * Desynced and reworked **logImg** for a potential 100% speed increase
