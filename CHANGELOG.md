@@ -50,6 +50,7 @@
 * Also, whether the user was just scanned elsewhere, or if they have left/were banned from the server
 * Allowed images posted after being blacklisted to be forwarded, with an aforementioned "Bot note"
 * Changed embeds to Nickname instead of tag
+* Made `]cbl` safer by making `]cbl all` the all case rather than no argument
 
 # v1.8 (2021-Sep-10)
 * Desynced and reworked **logImg** for a potential 100% speed increase

@@ -141,9 +141,7 @@ function channelMsg(message) {
 							logs.send({ embeds: [embedIn] });
 							sendWithImg(message, message.channel, [embedIn]).then(() => {
 								message.delete();
-							}).catch((err) => {
-								console.error(`[${dateToTime(new Date())}]: Error occured when sending an embed in the mail logs. Err:${err}`);
-							});
+							}).catch((err) => console.error(`An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
 						}).catch(() => {
 							console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${member.user.username}#${member.user.id}`);
 							message.reply("I can no longer reply to this member. They may have blocked me or turned off DMs.");
@@ -184,9 +182,9 @@ async function mailDM(message, status, level) {
 				.setTitle("Message Sent");
 				if (status && ops.dmScanning) {
 					await checkStatus(status, message, channel, level);
-					sendWithImg(message, channel, [embedIn]);
+					sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
 				} else {
-					sendWithImg(message, channel, [embedIn]);
+					sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
 				}
 				logs.send({ embeds: [embedIn] });
 				member.send({ embeds: [embedOut] });
@@ -216,9 +214,9 @@ async function mailDM(message, status, level) {
 							await channel.send({ content: `${member} (${member.id})`, embeds: [embedStart] });
 							if (status && ops.dmScanning) {
 								await checkStatus(status, message, channel, level);
-								sendWithImg(message, channel, [embedIn]);
+								sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
 							} else {
-								sendWithImg(message, channel, [embedIn]);
+								sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
 							}
 							embedIn.setTitle("New Ticket Created");
 							logs.send({ embeds: [embedIn] });
@@ -329,9 +327,15 @@ function sendWithImg(message, target, embArr) { // hostReply
 			filesArr = message.attachments.map(a => a);
 		}
 		if (filesArr){
-			target.send({ embeds: embArr, files: filesArr }).then(() => resolve()).catch(() => reject());
+			target.send({ embeds: embArr, files: filesArr }).then(() => resolve()).catch((err) => {
+				console.error("Embeds: ", embArr, "\nFiles: ", filesArr, "\nMessage: ", message, "\nTarget:", target);
+				reject(err);
+			});
 		} else {
-			target.send({ embeds: embArr }).then(() => resolve()).catch(() => reject());
+			target.send({ embeds: embArr }).then(() => resolve()).catch((err) => {
+				console.error("Embeds: ", embArr, "\nMessage: ", message, "\nTarget:", target);
+				reject(err);
+			});
 		}
 	});
 }
