@@ -49,8 +49,12 @@
 * Added "Bot note" messages regarding the status of why the image was not scanned for mail purposes
 * Also, whether the user was just scanned elsewhere, or if they have left/were banned from the server
 * Allowed images posted after being blacklisted to be forwarded, with an aforementioned "Bot note"
+* Added a 10 character minimum for dm mail tickets. Should stop silly messages and stickers
 * Changed embeds to Nickname instead of tag
+* Changed 👍 👎 to ✅ ❌ in the dm trap
 * Made `]cbl` safer by making `]cbl all` the all case rather than no argument
+
+
 
 # v1.8 (2021-Sep-10)
 * Desynced and reworked **logImg** for a potential 100% speed increase
