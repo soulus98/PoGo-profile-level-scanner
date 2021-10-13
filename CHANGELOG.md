@@ -55,6 +55,7 @@
 * Made `]cbl` safer by making `]cbl all` the all case rather than no argument
 
 #### v2.0.7
+* `]c` and `]r` now don't auto-delete in mailCategory
 * Fixed `=close` not working when someone leaves
 * Fixed a weird "status switch" error
 
