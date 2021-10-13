@@ -108,7 +108,19 @@ function channelMsg(message) {
 		getUser(channelId).then((userId) => {
 			if (!userId) return;
 			else {
-				server.members.fetch(userId).then(async (member) => {
+				new Promise((resolve) => {
+					server.members.fetch(userId).then((m) => {
+						resolve([m, false]);
+					}).catch((err) => {
+						if (err.httpStatus != 404) console.error(`[${dateToTime(new Date())}]: Error: member not found yet not 404. err: ${err}`);
+						message.client.users.fetch(userId).then((u) => {
+							resolve([false, u]);
+						}).catch((err) => {
+							console.error(`[${dateToTime(new Date())}]: Error: I can not find user ${userId} from a mail category. Error: ${err}`);
+							message.reply("An error occured, I can not fetch this user. Please tell Soul");
+						});
+					});
+				}).then(async ([member, user]) => {
 					if (message.content.startsWith("=") || message.content.startsWith("?") || message.content.startsWith("$")) {
 						if (message.content.toLowerCase().startsWith("=close")) { // Close ticket. Todo:embed
 							const args = message.content.slice(7);
@@ -117,20 +129,40 @@ function channelMsg(message) {
 							if (args == "") embedIn.setDescription("No reason provided.");
 							else embedIn.setDescription(args);
 							const embedOut = new Discord.MessageEmbed(embedIn);
-							embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
+							if (member) {
+								embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
+							} else {
+								embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }));
+							}
 							embedOut.setFooter(message.guild.name, message.guild.iconURL())
 							.addField("\u200b", `**${messagetxtReplace(messagetxt.dmClose, member.user)}**`);
-							member.send({ embeds: [embedOut] }).catch(() => {
-								console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${member.user.username}${member.user.id}`);
-								return;
-							});
+							if (member) {
+								member.send({ embeds: [embedOut] }).catch(() => {
+									console.error(`[${dateToTime(new Date())}]: Error: I can not send a close DM to ${member.user.username}${member.user.id}`);
+									return;
+								});
+							} else {
+								user.send({ embeds: [embedOut] }).catch(() => {
+									console.error(`[${dateToTime(new Date())}]: Error: I can not send a close DM to ${user.username}${user.id}`);
+									return;
+								});
+							}
 							logs.send({ embeds: [embedIn] });
 							message.channel.delete();
 							queue.delete(userId);
 							saveQueue();
-							console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${member.user.username}${member.user.toString()}`);
+							if (member) {
+								console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${member.user.username}${member.user.toString()}`);
+							} else {
+								console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${user.username}${user.toString()}`);
+							}
 						} else return;
 					} else {
+						if (!member) {
+							console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${user.username}${user}`);
+							message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
+							return;
+						}
 						const embedIn = await newEmbed(message, "hostReply");
 						const embedOut = new Discord.MessageEmbed(embedIn);
 						embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }))
@@ -143,8 +175,8 @@ function channelMsg(message) {
 								message.delete();
 							}).catch((err) => console.error(`An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
 						}).catch(() => {
-							console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${member.user.username}#${member.user.id}`);
-							message.reply("I can no longer reply to this member. They may have blocked me or turned off DMs.");
+							console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${member.user.username}${member.user}`);
+							message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
 							return;
 						});
 					}

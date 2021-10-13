@@ -9,18 +9,18 @@
 * Made level 29 screenshots redirect to mail
 * Added YPOBEI to the rescan word list
 
-# v2.0.1 (2021-Oct-02)
+#### v2.0.1 (2021-Oct-02)
 * Removed a catastrophic filter issue where it would delete raid embeds!
 * Added "User is on cooldown" to the Pokenav filter
 * Fixed a problem with impossible deletions
 * Added await to embedStart so we get them in order
 
-# v2.0.2 (2021-Oct-03)
+#### v2.0.2 (2021-Oct-03)
 * Added a "Sticker #1:" section to embeds
 * Fixed a double-message bug
 * Added attachmentURLs toggle for seeing the "attachment #1: thingy"
 
-# v2.0.3 (2021-Oct-04)
+#### v2.0.3 (2021-Oct-04)
 * Added a DM new ticket reaction trap
 * Added user ID to the start of a ticket for ease of use on Android
 * Failed images in DMs aren't SS logged
@@ -28,13 +28,13 @@
 * DM image scanning no longer adds reactions
 * Fixed a typo to *actually* fix the double-message bug
 
-# v2.0.4 (2021-Oct-07)
+#### v2.0.4 (2021-Oct-07)
 * Added `]presence` so we can check if the activity is working or not
 * Added websocket listeners for the same reason
 * Changed how presence is loaded to help troubleshoot the disappearance of it
 * Made messagetxtReplace check first if a string contains "<"
 
-# v2.0.5 (2021-Oct-09)
+#### v2.0.5 (2021-Oct-09)
 * Mail start embed now shows join time, account create time, and nitro time
 * Added the user mention in the start of the mail ticket to make it even slightly easier on mobile users
 * Fixed the banned/no DMs message that appears in the channel
@@ -45,7 +45,7 @@
 * Added time and date to websocket disconnect error logs
 * Fixed time and date in logs from being off by one!
 
-# v2.0.6 (2021-Oct-11)
+#### v2.0.6 (2021-Oct-11)
 * Added "Bot note" messages regarding the status of why the image was not scanned for mail purposes
 * Also, whether the user was just scanned elsewhere, or if they have left/were banned from the server
 * Allowed images posted after being blacklisted to be forwarded, with an aforementioned "Bot note"
@@ -54,6 +54,9 @@
 * Changed 👍 👎 to ✅ ❌ in the dm trap
 * Made `]cbl` safer by making `]cbl all` the all case rather than no argument
 
+#### v2.0.6.1 hotfix (2021-Oct-11)
+* Fixed `=close` not working when someone leaves
+* Fixed a weird "status switch" error
 
 
 # v1.8 (2021-Sep-10)
