@@ -267,7 +267,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 							}
 							if (!inCommand){
 								if (!given30 && !given40 && !given50){
-									if (ops.dmMail) {
+									if (ops.dmMail && dm) {
 										mail.mailDM(message, "already", level);
 										return;
 									} else {

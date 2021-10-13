@@ -26,7 +26,7 @@ client = new Discord.Client({
 	],
 	partials: [
 		"CHANNEL",
-		"GUILD_MEMBER"
+		"GUILD_MEMBER",
 	],
 	presence: {
 		status: "online",
@@ -37,10 +37,10 @@ client = new Discord.Client({
 	},
 });
 imgStats = {
-				imageAttempts : 0,
-				imageLogCount : 0,
-				currentlyImage : 0,
-			};
+	imageAttempts : 0,
+	imageLogCount : 0,
+	currentlyImage : 0,
+};
 blacklist = new Discord.Collection();
 let loaded = false,
 		config = {},
@@ -378,6 +378,15 @@ function processImage(message, postedTime, wasDelayed){
 	});
 }
 
+if (ops.debugMode) {
+	client.on("debug", (info) => { //testo
+		console.error(`[${dateToTime(new Date())}]: Debug info: ${info}`);
+	});
+	client.on("rateLimit", (data) => { //testo
+		console.error(`[${dateToTime(new Date())}]: Ratelimit hit: ${data}`);
+	});
+}
+
 
 client.on("error", (error) => {
 	console.error(`[${dateToTime(new Date())}]: Client Error: ${error}`);
@@ -418,7 +427,9 @@ client.on("messageCreate", async message => {
 	if (message.channel == profile) return;
 	if (message.author.bot) return; // Bot? Cancel
 	const postedTime = new Date();
-	const dm = (message.channel.type == "DM") ? true : false;
+	let dm = false;
+	if (message.channel.type == "DM") dm = true;
+	console.log(dm);
 	if (!dm && ops.serverID && message.guild.id != ops.serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
