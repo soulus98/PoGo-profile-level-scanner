@@ -54,7 +54,7 @@
 * Changed 👍 👎 to ✅ ❌ in the dm trap
 * Made `]cbl` safer by making `]cbl all` the all case rather than no argument
 
-#### v2.0.6.1 hotfix (2021-Oct-11)
+#### v2.0.7
 * Fixed `=close` not working when someone leaves
 * Fixed a weird "status switch" error
 

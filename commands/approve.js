@@ -303,7 +303,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 };
 
 function deleteStuff(message, execTime, id){
-	if (!message.deleted && ops.msgDeleteTime){
+	if (!message.deleted && ops.msgDeleteTime && !(message.channel.parent && message.channel.parent.id == ops.mailCategory)){
 		setTimeout(function() {
 			message.delete().catch(() => {
 				console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
