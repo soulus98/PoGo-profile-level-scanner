@@ -10,7 +10,8 @@
 		"tagModOneOff":"(Whether to tag modRole in logs when a off-by-one screenshot is posted, e.g. level 29)",
 		"dmScanning":"(Whether to scan images in DMs or not)",
 		"dmMail":"(Whether to forward DMs to mailCategory or not)",
-		"attachmentURLs":"(Whether to add `Attachment #1: <URL>` to the mail embed when sending images)"
+		"attachmentURLs":"(Whether to add `Attachment #1: <URL>` to the mail embed when sending images)",
+		"debugMode":"(Whether to log the discord.js debug information. INCLUDING TOKEN! Don't post logs if this is on.)"
   },
   "numbers":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a number",

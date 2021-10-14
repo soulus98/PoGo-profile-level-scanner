@@ -59,6 +59,10 @@
 * Fixed `=close` not working when someone leaves
 * Fixed a weird "status switch" error
 
+#### v2.0.8
+* Fixed a bug in the dm trap that caused some messages to appear to send but not actually create a channel. Hopefully there aren't too many people waiting for a response... lol.
+* Added debugMode toggle to make the console log all the discord.js debug info (INCLUDING YOUR TOKEN, so please don't post logs if you have debugMode on... lol)
+
 
 # v1.8 (2021-Sep-10)
 * Desynced and reworked **logImg** for a potential 100% speed increase

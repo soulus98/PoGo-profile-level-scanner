@@ -326,9 +326,11 @@ client.on("guildMemberAdd", member => {
 	});
 });
 
-client.on("guildMemberRemove", member => {
-	mail.alertMsg(member.user, "left");
-});
+if (ops.dmMail) {
+	client.on("guildMemberRemove", member => {
+		mail.alertMsg(member.user, "left");
+	});
+}
 
 // Called from clear-blacklist.js to clear the blacklist when requested
 function clearBlacklist(message, idToDelete){
@@ -380,20 +382,25 @@ function processImage(message, postedTime, wasDelayed){
 
 if (ops.debugMode) {
 	client.on("debug", (info) => { //testo
-		console.error(`[${dateToTime(new Date())}]: Debug info: ${info}`);
+		const d = new Date();
+		const dateTime = `${d.getFullYear()}-${(d.getMonth() + 1 < 10) ? `0${d.getMonth() + 1}` : d.getMonth() + 1}-${(d.getDate() < 10) ? `0${d.getDate()}` : d.getDate()} ${(d.getHours() < 10) ? `0${d.getHours()}` : d.getHours()}:${(d.getMinutes() < 10) ? `0${d.getMinutes()}` : d.getMinutes()}:${(d.getSeconds() < 10) ? `0${d.getSeconds()}` : d.getSeconds()}.${(d.getMilliseconds() < 10) ? `00${d.getMilliseconds()}` : `${(d.getMilliseconds() < 100) ? `0${d.getMilliseconds()}` : `${d.getMilliseconds()}`}`}`;
+		console.error(`[${dateTime}]: Debug info:.`, info);
 	});
 	client.on("rateLimit", (data) => { //testo
-		console.error(`[${dateToTime(new Date())}]: Ratelimit hit: ${data}`);
+		console.error(`[${dateToTime(new Date())}]: Ratelimit hit:`, data);
 	});
 }
-
 
 client.on("error", (error) => {
 	console.error(`[${dateToTime(new Date())}]: Client Error: ${error}`);
 });
 
-client.on("shardError", (error) => {
-	console.error(`[${dateToTime(new Date())}]: Websocket disconnect: ${error}`);
+client.on("warn", (info) => {
+	console.error(`[${dateToTime(new Date())}]: Client Waring: ${info}`);
+});
+
+client.on("shardError", (error, id) => {
+	console.error(`[${dateToTime(new Date())}]: Websocket disconnect: ${error}. ID: ${id}`);
 });
 
 client.on("shardResume", () => {
@@ -403,13 +410,15 @@ client.on("shardResume", () => {
 	}
 });
 
-client.on("shardDisconnect", () => {
+client.on("shardDisconnect", (evt, id) => {
 	console.error(`[${dateToTime(new Date())}]: Disconnected!`);
+	console.log(evt, id);
 });
 
-client.on("shardReady", () => {
+client.on("shardReady", (id, una) => {
 	if (loaded) {
 		console.error(`[${dateToTime(new Date())}]: Reconnected! Refreshing Activity...`);
+		console.log(id, una);
 		client.user.setActivity(act, { type: "PLAYING" });
 	}
 });
@@ -429,7 +438,6 @@ client.on("messageCreate", async message => {
 	const postedTime = new Date();
 	let dm = false;
 	if (message.channel.type == "DM") dm = true;
-	console.log(dm);
 	if (!dm && ops.serverID && message.guild.id != ops.serverID){ // If we are in the wrong server
 		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;

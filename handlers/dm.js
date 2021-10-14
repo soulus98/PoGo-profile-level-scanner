@@ -173,7 +173,7 @@ function channelMsg(message) {
 							logs.send({ embeds: [embedIn] });
 							sendWithImg(message, message.channel, [embedIn]).then(() => {
 								message.delete();
-							}).catch((err) => console.error(`An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
+							}).catch((err) => console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
 						}).catch(() => {
 							console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${member.user.username}${member.user}`);
 							message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
@@ -197,9 +197,15 @@ async function mailDM(message, status, level) {
 			new Promise((res) => {
 				if (wasTemp){
 					setTimeout(async () => {
-						const ch = await server.channels.fetch(queue.get(member.id));
-						res(ch);
-					}, 5000);
+						const chId = queue.get(member.id);
+						if (chId) {
+							const ch = await server.channels.fetch(queue.get(member.id));
+							res(ch);
+						} else {
+							message.reply("This message will not be forwarded to the staff.\nPlease react to the previous question before attempting to send more messages.");
+							return;
+						}
+					}, 1000);
 				} else {
 					server.channels.fetch(queue.get(member.id)).then((ch) => {
 						res(ch);
@@ -214,9 +220,9 @@ async function mailDM(message, status, level) {
 				.setTitle("Message Sent");
 				if (status && ops.dmScanning) {
 					await checkStatus(status, message, channel, level);
-					sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
+					sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg to channel: ${message.channel}. Error:`, err));
 				} else {
-					sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
+					sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg to channel: ${message.channel}. Error:`, err));
 				}
 				logs.send({ embeds: [embedIn] });
 				member.send({ embeds: [embedOut] });
@@ -228,6 +234,7 @@ async function mailDM(message, status, level) {
 			}
 			tempQueue.push(member.id);
 			message.reply({ embeds: [trapEmbed] }).then((msg) => {
+				console.log(`Pending mail ticket from ${message.author.username}`);
 				msg.react("✅").then(() => msg.react("❌"));
 				const filter = (reaction, usr) => {
 					return ["✅", "❌"].includes(reaction.emoji.name) && usr.id === message.author.id;
@@ -246,9 +253,9 @@ async function mailDM(message, status, level) {
 							await channel.send({ content: `${member} (${member.id})`, embeds: [embedStart] });
 							if (status && ops.dmScanning) {
 								await checkStatus(status, message, channel, level);
-								sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
+								sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
 							} else {
-								sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
+								sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
 							}
 							embedIn.setTitle("New Ticket Created");
 							logs.send({ embeds: [embedIn] });
@@ -256,6 +263,7 @@ async function mailDM(message, status, level) {
 						});
 					} else {
 						tempQueue.splice(tempQueue.indexOf(member.id));
+						console.log(`Pending ticket from ${message.author.username} expired`);
 						member.send("Message not sent. Please send another message if you need support.");
 					}
 				})

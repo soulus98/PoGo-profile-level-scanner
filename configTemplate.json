@@ -9,7 +9,8 @@
 		"tagModOneOff":true,
 		"dmScanning":false,
 		"dmMail":false,
-		"attachmentURLs":true
+		"attachmentURLs":true,
+		"debugMode":false
   },
   "numbers":{
     "threshold":228,
