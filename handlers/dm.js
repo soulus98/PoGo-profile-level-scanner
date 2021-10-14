@@ -171,13 +171,7 @@ function channelMsg(message) {
 						.setTitle("Message Received");
 						sendWithImg(message, member.user, [embedOut]).then(() => {
 							logs.send({ embeds: [embedIn] });
-							sendWithImg(message, message.channel, [embedIn]).then(() => {
-								message.delete();
-							}).catch((err) => console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
-						}).catch(() => {
-							console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${member.user.username}${member.user}`);
-							message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
-							return;
+							sendWithImg(message, message.channel, [embedIn]).then(() => message.delete());
 						});
 					}
 				});
@@ -220,9 +214,9 @@ async function mailDM(message, status, level) {
 				.setTitle("Message Sent");
 				if (status && ops.dmScanning) {
 					await checkStatus(status, message, channel, level);
-					sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg to channel: ${message.channel}. Error:`, err));
+					sendWithImg(message, channel, [embedIn]);
 				} else {
-					sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg to channel: ${message.channel}. Error:`, err));
+					sendWithImg(message, channel, [embedIn]);
 				}
 				logs.send({ embeds: [embedIn] });
 				member.send({ embeds: [embedOut] });
@@ -253,9 +247,9 @@ async function mailDM(message, status, level) {
 							await channel.send({ content: `${member} (${member.id})`, embeds: [embedStart] });
 							if (status && ops.dmScanning) {
 								await checkStatus(status, message, channel, level);
-								sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
+								sendWithImg(message, channel, [embedIn]);
 							} else {
-								sendWithImg(message, channel, [embedIn]).catch((err) => console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg to message.channel: ${message.channel}. Error:`, err));
+								sendWithImg(message, channel, [embedIn]);
 							}
 							embedIn.setTitle("New Ticket Created");
 							logs.send({ embeds: [embedIn] });
@@ -361,20 +355,42 @@ function newEmbed(message, status){ // open, hostOpen, hostReply, userReply, clo
 }
 
 function sendWithImg(message, target, embArr) { // hostReply
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
 		let filesArr;
 		if (message.attachments.size > 0) {
 			filesArr = message.attachments.map(a => a);
 		}
 		if (filesArr){
 			target.send({ embeds: embArr, files: filesArr }).then(() => resolve()).catch((err) => {
-				console.error("Embeds: ", embArr, "\nFiles: ", filesArr, "\nMessage: ", message, "\nTarget:", target);
-				reject(err);
+				if (target instanceof Discord.User && err.httpStatus == 403) {
+					console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${target.username}${target}.`);
+					message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
+					return;
+				} else {
+					console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg... Error: ${err}`);
+					console.error("message:");
+					console.error(message);
+					console.error("target");
+					console.error(target);
+					message.reply("An error occured... please tell a moderator");
+					return;
+				}
 			});
 		} else {
 			target.send({ embeds: embArr }).then(() => resolve()).catch((err) => {
-				console.error("Embeds: ", embArr, "\nMessage: ", message, "\nTarget:", target);
-				reject(err);
+				if (target instanceof Discord.User && err.httpStatus == 403) {
+					console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${target.username}${target}.`);
+					message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
+					return;
+				} else {
+					console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg... Error: ${err}`);
+					console.error("message:");
+					console.error(message);
+					console.error("target");
+					console.error(target);
+					message.reply("An error occured... please tell a moderator");
+					return;
+				}
 			});
 		}
 	});
