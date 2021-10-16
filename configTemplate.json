@@ -10,7 +10,8 @@
 		"dmScanning":false,
 		"dmMail":false,
 		"attachmentURLs":true,
-		"debugMode":false
+		"debugMode":false,
+		"dmAutoReply":false
   },
   "numbers":{
     "threshold":228,

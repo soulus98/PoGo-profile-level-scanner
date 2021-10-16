@@ -381,12 +381,12 @@ function processImage(message, postedTime, wasDelayed){
 }
 
 if (ops.debugMode) {
-	client.on("debug", (info) => { //testo
+	client.on("debug", (info) => {
 		const d = new Date();
 		const dateTime = `${d.getFullYear()}-${(d.getMonth() + 1 < 10) ? `0${d.getMonth() + 1}` : d.getMonth() + 1}-${(d.getDate() < 10) ? `0${d.getDate()}` : d.getDate()} ${(d.getHours() < 10) ? `0${d.getHours()}` : d.getHours()}:${(d.getMinutes() < 10) ? `0${d.getMinutes()}` : d.getMinutes()}:${(d.getSeconds() < 10) ? `0${d.getSeconds()}` : d.getSeconds()}.${(d.getMilliseconds() < 10) ? `00${d.getMilliseconds()}` : `${(d.getMilliseconds() < 100) ? `0${d.getMilliseconds()}` : `${d.getMilliseconds()}`}`}`;
 		console.error(`[${dateTime}]: Debug info:.`, info);
 	});
-	client.on("rateLimit", (data) => { //testo
+	client.on("rateLimit", (data) => {
 		console.error(`[${dateToTime(new Date())}]: Ratelimit hit:`, data);
 	});
 }

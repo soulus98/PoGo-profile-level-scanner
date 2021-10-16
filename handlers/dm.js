@@ -121,43 +121,50 @@ function channelMsg(message) {
 						});
 					});
 				}).then(async ([member, user]) => {
-					if (message.content.startsWith("=") || message.content.startsWith("?") || message.content.startsWith("$")) {
-						if (message.content.toLowerCase().startsWith("=close")) { // Close ticket. Todo:embed
-							const args = message.content.slice(7);
-							const embedIn = await newEmbed(message, "close");
-							embedIn.setTitle("Ticket closed");
-							if (args == "") embedIn.setDescription("No reason provided.");
-							else embedIn.setDescription(args);
-							const embedOut = new Discord.MessageEmbed(embedIn);
-							if (member) {
-								embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
-							} else {
-								embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }));
-							}
-							embedOut.setFooter(message.guild.name, message.guild.iconURL())
-							.addField("\u200b", `**${messagetxtReplace(messagetxt.dmClose, member.user)}**`);
-							if (member) {
-								member.send({ embeds: [embedOut] }).catch(() => {
-									console.error(`[${dateToTime(new Date())}]: Error: I can not send a close DM to ${member.user.username}${member.user.id}`);
-									return;
-								});
-							} else {
-								user.send({ embeds: [embedOut] }).catch(() => {
-									console.error(`[${dateToTime(new Date())}]: Error: I can not send a close DM to ${user.username}${user.id}`);
-									return;
-								});
-							}
-							logs.send({ embeds: [embedIn] });
-							message.channel.delete();
-							queue.delete(userId);
-							saveQueue();
-							if (member) {
-								console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${member.user.username}${member.user.toString()}`);
-							} else {
-								console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${user.username}${user.toString()}`);
-							}
-						} else return;
-					} else {
+					if (message.content.startsWith("?") || message.content.startsWith("$") || message.content.startsWith("!") || message.content.startsWith(".")) return;
+					else if (message.content.toLowerCase().startsWith("=close")) { // Close ticket
+						const args = message.content.slice(7);
+						const embedIn = await newEmbed(message, "close");
+						embedIn.setTitle("Ticket closed");
+						if (args == "") embedIn.setDescription("No reason provided.");
+						else embedIn.setDescription(args);
+						const embedOut = new Discord.MessageEmbed(embedIn);
+						if (member) {
+							embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
+						} else {
+							embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }));
+						}
+						embedOut.setFooter(message.guild.name, message.guild.iconURL())
+						.addField("\u200b", `**${messagetxtReplace(messagetxt.dmClose, member.user)}**`);
+						if (member) {
+							member.send({ embeds: [embedOut] }).catch(() => {
+								console.error(`[${dateToTime(new Date())}]: Error: I can not send a close DM to ${member.user.username}${member.user.id}`);
+								return;
+							});
+						} else {
+							user.send({ embeds: [embedOut] }).catch(() => {
+								console.error(`[${dateToTime(new Date())}]: Error: I can not send a close DM to ${user.username}${user.id}`);
+								return;
+							});
+						}
+						logs.send({ embeds: [embedIn] });
+						message.channel.delete();
+						queue.delete(userId);
+						saveQueue();
+						if (member) {
+							console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${member.user.username}${member.user.toString()}`);
+						} else {
+							console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${user.username}${user.toString()}`);
+						}
+					} else if (
+						(ops.dmAutoReply && !message.content.startsWith("="))
+							|| (!ops.dmAutoReply && (
+								(message.content.toLowerCase().startsWith("=r") && message.content.length == 2 && message.attachments.first())
+								|| (message.content.toLowerCase().startsWith("=reply") && message.content.length == 6 && message.attachments.first())
+								|| message.content.toLowerCase().startsWith("=r ") || message.content.toLowerCase().startsWith("=reply ")
+							)
+						)
+					){
 						if (!member) {
 							console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${user.username}${user}`);
 							message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
@@ -173,7 +180,7 @@ function channelMsg(message) {
 							logs.send({ embeds: [embedIn] });
 							sendWithImg(message, message.channel, [embedIn]).then(() => message.delete());
 						});
-					}
+					} else return;
 				});
 			}
 		});
@@ -245,26 +252,30 @@ async function mailDM(message, status, level) {
 							.setTitle("New Ticket Created")
 							.addField("\u200b", `**${messagetxtReplace(messagetxt.dmOpen, member.user)}**`);
 							await channel.send({ content: `${member} (${member.id})`, embeds: [embedStart] });
-							if (status && ops.dmScanning) {
-								await checkStatus(status, message, channel, level);
-								sendWithImg(message, channel, [embedIn]);
-							} else {
-								sendWithImg(message, channel, [embedIn]);
-							}
-							embedIn.setTitle("New Ticket Created");
-							logs.send({ embeds: [embedIn] });
-							member.send({ embeds: [embedOut] });
+							setTimeout(async () => {
+								if (status && ops.dmScanning) {
+									await checkStatus(status, message, channel, level);
+									sendWithImg(message, channel, [embedIn]);
+								} else {
+									sendWithImg(message, channel, [embedIn]);
+								}
+								embedIn.setTitle("New Ticket Created");
+								logs.send({ embeds: [embedIn] });
+								member.send({ embeds: [embedOut] });
+							}, 250);
 						});
 					} else {
 						tempQueue.splice(tempQueue.indexOf(member.id));
-						console.log(`Pending ticket from ${message.author.username} expired`);
+						console.log(`Pending ticket from ${message.author.username} cancelled`);
+						msg.delete()
+						.catch((err) => console.error("Failed to delete dm trap:", err));
 						member.send("Message not sent. Please send another message if you need support.");
 					}
-				})
-				.catch(() => {
+				}).catch(() => {
 					tempQueue.splice(tempQueue.indexOf(member.id));
+					console.log(`Pending ticket from ${message.author.username} expired`);
 					msg.delete()
-					.catch((err) => console.error("Failed to delete:", err));
+					.catch((err) => console.error("Failed to delete dm trap:", err));
 				});
 			});
 		}
@@ -330,15 +341,29 @@ function newEmbed(message, status){ // open, hostOpen, hostReply, userReply, clo
 					return `**Sticker #${i}:** ${s.name}#${s.id}`;
 				});
 			}
+			let content = message.content;
+			if (message.content.toLowerCase().startsWith("=reply")){
+				if (content.length == 6) {
+					content = "";
+				} else {
+					content = content.slice(6);
+				}
+			} else if (message.content.toLowerCase().startsWith("=r")) {
+				if (content.length == 2) {
+					content = "";
+				} else {
+					content = content.slice(2);
+				}
+			}
 			if (ops.attachmentURLs && message.attachments.size > 0) {
 				let i = 0;
 				const files = message.attachments.map((a) => {
 					i++;
 					return `**Attachment #${i}:** ${a.url}`;
 				});
-				embed.setDescription(`${message.content}\n\n${files.join("\n")}${(stickers) ? `\n\n${stickers}` : ""}`);
+				embed.setDescription(`${content}\n\n${files.join("\n")}${(stickers) ? `\n\n${stickers}` : ""}`);
 			} else {
-				embed.setDescription(`${message.content}${(stickers) ? `\n\n${stickers}` : ""}`);
+				embed.setDescription(`${content}${(stickers) ? `\n\n${stickers}` : ""}`);
 			}
 			if (status == "open"){
 				embed.setColor("#00FF0A");

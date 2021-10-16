@@ -1,11 +1,14 @@
 {
   "name": "ocrboi",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "description": "Pokémon go Trainer Profile OCR developed for the Pokémon GO Raids discord server",
   "main": "bot.js",
   "scripts": {
-    "start": "nodemon ./bin/www --ignore *.json",
+    "start": "nodemon ./bin/www",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "nodemonConfig": {
+      "ignore": ["misc/*", "*.json"]
   },
   "repository": {
     "type": "git",
