@@ -10,6 +10,7 @@ const { token } = require("./server/keys.json"),
 			{ saveStats, loadStats } = require("./func/stats.js"),
 			{ saveBlacklist } = require("./func/saveBlacklist.js"),
 			{ filter, loadFilterList } = require("./func/filter.js"),
+			{ respondVerify } = require("./func/verify.js"),
 			mail = require("./handlers/dm.js"),
 			ver = require("./package.json").version,
 			dmMailTog = require("./server/config.json").toggles.dmMail,
@@ -404,6 +405,11 @@ client.on("shardError", (error, id) => {
 });
 
 client.on("shardResume", () => {
+	if (imgStats.currentlyImage > 0){
+		imgStats.imageLogCount++;
+		imgStats.currentlyImage--;
+		console.error(`[${dateToTime(new Date())}]: Balancing imageLogCount`);
+	}
 	if (loaded) {
 		console.error(`[${dateToTime(new Date())}]: Resumed! Refreshing Activity...`);
 		client.user.setActivity(act, { type: "PLAYING" });
@@ -416,9 +422,14 @@ client.on("shardDisconnect", (evt, id) => {
 });
 
 client.on("shardReady", (id, una) => {
+	if (imgStats.currentlyImage > 0){
+		imgStats.imageLogCount++;
+		imgStats.currentlyImage--;
+		console.error(`[${dateToTime(new Date())}]: Balancing imageLogCount`);
+	}
 	if (loaded) {
 		console.error(`[${dateToTime(new Date())}]: Reconnected! Refreshing Activity...`);
-		console.log(id, una);
+		console.error(id, una);
 		client.user.setActivity(act, { type: "PLAYING" });
 	}
 });
@@ -430,8 +441,12 @@ client.on("shardReconnecting", () => {
 });
 
 client.on("messageCreate", async message => {
-	if (message.author.id == 428187007965986826 && filterList.includes(message.channel.id)) {
-		filter(message);
+	if (message.author.id == 428187007965986826){
+		if (filterList.includes(message.channel.id)) {
+			filter(message);
+		} else if (ops.respondVerify){
+			respondVerify(message);
+		}
 	}
 	if (message.channel == profile) return;
 	if (message.author.bot) return; // Bot? Cancel
@@ -464,7 +479,7 @@ client.on("messageCreate", async message => {
 		}
 		if (ops.saveLocalCopy && screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
 			screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
-			checkDateFolder(postedTime);
+			await checkDateFolder(postedTime);
 		}
 		if (!dm && message.channel != channel) {
 

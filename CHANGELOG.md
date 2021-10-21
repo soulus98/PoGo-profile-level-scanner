@@ -1,3 +1,11 @@
+# v2.1 (2021-Oct-21)
+* Added a `$verify` responder that works in any channel that the bot can see that *isn't* being filtered.
+* Added **respondVerify** as a toggle and a messagetxt.js entry
+* Updated the description in the embedStart
+* Removed the quarter second delay and make it a `.then()` promise from the embedStart message
+* Added await to checkDateFolder so it doesn't error when making a new date folder
+* Removed some silly files that weren't neccesary: `pogo.traineddata`, `pogo_old.traineddata`, `./misc_and_unused`
+
 # v2.0 (2021-Sep-30)
 * Added a mail ticket handler for DM messages
 * Added a DM scanning system for profile screenshots
@@ -54,14 +62,19 @@
 * Changed 👍 👎 to ✅ ❌ in the dm trap
 * Made `]cbl` safer by making `]cbl all` the all case rather than no argument
 
-#### v2.0.7
+#### v2.0.7 (2021-Oct-13)
 * `]c` and `]r` now don't auto-delete in mailCategory
 * Fixed `=close` not working when someone leaves
 * Fixed a weird "status switch" error
 
-#### v2.0.8
+#### v2.0.8 (2021-Oct-14)
 * Fixed a bug in the dm trap that caused some messages to appear to send but not actually create a channel. Hopefully there aren't too many people waiting for a response... lol.
 * Added debugMode toggle to make the console log all the discord.js debug info (INCLUDING YOUR TOKEN, so please don't post logs if you have debugMode on... lol)
+
+#### v2.0.9 (2021-Oct-16)
+* Added a `=r` command for replying in a mail ticket
+* Added a dmAutoReply toggle to return to the old functionality
+* Added a quarter second delay to the first message of a ticket. Even though I await it, sometimes they still aren't in order
 
 
 # v1.8 (2021-Sep-10)

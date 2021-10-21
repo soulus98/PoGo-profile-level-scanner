@@ -251,8 +251,7 @@ async function mailDM(message, status, level) {
 							embedOut.setFooter(server.name, server.iconURL())
 							.setTitle("New Ticket Created")
 							.addField("\u200b", `**${messagetxtReplace(messagetxt.dmOpen, member.user)}**`);
-							await channel.send({ content: `${member} (${member.id})`, embeds: [embedStart] });
-							setTimeout(async () => {
+							channel.send({ content: `${member} (${member.id})`, embeds: [embedStart] }).then(async () => {
 								if (status && ops.dmScanning) {
 									await checkStatus(status, message, channel, level);
 									sendWithImg(message, channel, [embedIn]);
@@ -262,7 +261,7 @@ async function mailDM(message, status, level) {
 								embedIn.setTitle("New Ticket Created");
 								logs.send({ embeds: [embedIn] });
 								member.send({ embeds: [embedOut] });
-							}, 250);
+							});
 						});
 					} else {
 						tempQueue.splice(tempQueue.indexOf(member.id));
@@ -299,9 +298,13 @@ function newChannel(message, member) {
 			const embedStart = new Discord.MessageEmbed()
 			.setColor("#4B85FF")
 			.setTitle("New Ticket")
-			.setDescription("Type a message in this channel to reply. Messages starting with the mail prefix '=' are ignored, and can be used for staff discussion. Use the command `=close [reason]` to close this ticket.")
 			.setFooter((member.nickname || user.tag) + " | " + user.id, user.avatarURL({ dynamic:true }))
 			.addField("User", user.toString() + "\n" + user.id, true);
+			if (ops.dmAutoReply) {
+				embedStart.setDescription("Type a message in this channel to reply. Messages starting with the mail prefix '=' are ignored, and can be used for staff discussion. Use the command `=close [reason]` to close this ticket.");
+			} else {
+				embedStart.setDescription("Type `=r <message>` in this channel to reply. All other messages are ignored, and can be used for staff discussion. Use the command `=close [reason]` to close this ticket.");
+			}
 			server.members.fetch(user.id).then((m) => {
 				const membRoles = m.roles.cache.map(r => `${r.toString()} `);
 				if (membRoles.length > 1) {

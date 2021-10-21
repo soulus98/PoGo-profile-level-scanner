@@ -8,9 +8,9 @@ module.exports = {
 		return new Promise(function(resolve) {
 			try {
 				message.client.emit("guildMemberAdd", message.member);
-				resolve(`, and it was successful.`);
+				resolve(", and it was successful.");
 				return;
-			} catch(err){
+			} catch (err){
 				resolve(`, but it failed, due to an unexpected error. Error: ${err}`);
 				return;
 			}

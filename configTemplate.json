@@ -11,7 +11,8 @@
 		"dmMail":false,
 		"attachmentURLs":true,
 		"debugMode":false,
-		"dmAutoReply":false
+		"dmAutoReply":false,
+		"respondVerify":true
   },
   "numbers":{
     "threshold":228,
