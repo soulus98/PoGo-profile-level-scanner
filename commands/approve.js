@@ -183,7 +183,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 								resolve(false);
 							}
 						} else {
-							if (!dm) channel.send(messagetxtReplace(messagetxt.successSS, member, level)).then(msg => {
+							if (!dm) channel.send(messagetxtReplace(messagetxt.successSS, member, (level == "missing") ? `${ops.targetLevel}+` : level)).then(msg => {
 								setTimeout(() => {
 									msg.delete().catch(() => {
 										console.error(`[${execTime}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
@@ -194,9 +194,9 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 								member.roles.add(server.roles.cache.get(ops.targetLevelRole)).catch(console.error);
 							}, 250);
 							setTimeout(() => {
-								profile.send(messagetxtReplace(messagetxt.successProfile, member, level));
+								profile.send(messagetxtReplace(messagetxt.successProfile, member, (level == "missing") ? `${ops.targetLevel}+` : level));
 							}, 3000);
-							msgtxt.push(messagetxtReplace(messagetxt.successDM, member, level));
+							msgtxt.push(messagetxtReplace(messagetxt.successDM, member, (level == "missing") ? `${ops.targetLevel}+` : level));
 							resolve(true);
 						}
 					}).then((given30) => {
