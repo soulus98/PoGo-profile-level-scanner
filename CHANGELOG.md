@@ -6,6 +6,9 @@
 * Added await to checkDateFolder so it doesn't error when making a new date folder
 * Removed some silly files that weren't neccesary: `pogo.traineddata`, `pogo_old.traineddata`, `./misc_and_unused`
 
+#### v2.1 (2021-Oct-??)
+* Changed the wording in successDM so that it can deal with ]c with missing level
+
 # v2.0 (2021-Sep-30)
 * Added a mail ticket handler for DM messages
 * Added a DM scanning system for profile screenshots
