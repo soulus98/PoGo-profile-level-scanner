@@ -392,6 +392,44 @@ if (ops.debugMode) {
 	});
 }
 
+if (ops.processInfoMode) {
+	process.on('beforeExit', (code) => {
+  	console.log(`[${dateToTime(new Date())}]: Process beforeExit event with code:`, code);
+	});
+
+	process.on('disconnect', () => {
+		console.log(`[${dateToTime(new Date())}]: Process disconnect`);
+	});
+
+	process.on('exit', (code) => {
+		console.log(`[${dateToTime(new Date())}]: Process exited with code:`, code);
+	});
+
+	process.on('message', (message, sendHandle) => {
+		console.log(`[${dateToTime(new Date())}]: Process emitted a message:`, message, "\nsendHandle:", sendHandle);
+	});
+
+	process.on('multipleResolves', (type, promise, value) => {
+		console.log(`[${dateToTime(new Date())}]: Process had a multipleResolves event with type:`, type, "\nPromise:", promise, "\nValue:", value);
+	});
+
+	process.on('rejectionHandled', (promise) => {
+		console.log(`[${dateToTime(new Date())}]: Process handled a rejection. Promise:`, promise);
+	});
+
+	process.on('warning', (warning) => {
+		console.log(`[${dateToTime(new Date())}]: Process warning: `, warning);
+	});
+
+	process.on('worker', (worker) => {
+		console.log(`[${dateToTime(new Date())}]: Process made a new worker: `, worker);
+	});
+	console.log("Starting memoryUsage timer.");
+	setInterval(function () {
+		console.log(`[${dateToTime(new Date())}]: Process memory usage = `, process.memoryUsage());
+	}, 60000);
+}
+
 client.on("error", (error) => {
 	console.error(`[${dateToTime(new Date())}]: Client Error: ${error}`);
 });
