@@ -9,6 +9,12 @@
 #### v2.1 (2021-Oct-??)
 * Changed the wording in successDM so that it can deal with ]c with missing level
 
+#### v2.1.1 (2021-Nov-??)
+* I literally forgot... will fix later
+
+#### v2.1.2 (2021-Nov-28)
+* Fixed a bug where `=open` could overwrite an existing channel
+
 # v2.0 (2021-Sep-30)
 * Added a mail ticket handler for DM messages
 * Added a DM scanning system for profile screenshots

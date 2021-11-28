@@ -80,6 +80,10 @@ function channelMsg(message) {
 		} else {
 			id = args;
 		}
+		if (queue.get(id)) {
+			message.reply(`A channel already exists for that user: <#${queue.get(id)}>`);
+			return;
+		}
 		server.members.fetch(id).then(async (member) => {
 			const embedIn = await newEmbed(message, "hostOpen");
 			embedIn.setTitle("New Ticket");
