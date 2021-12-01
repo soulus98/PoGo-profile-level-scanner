@@ -4,15 +4,16 @@
     "saveLocalCopy":"(Causes each image to be saved to the server storage)",
     "deleteScreens":"(Deletes the image from the channel after processing it)",
     "welcomeMsg":"(Sends a welcome message tagging new members explaining the screenshot system)",
-    "testMode":"(Provides more information about what is scanned and whatnot)",
-		"performanceMode":"(Provides more information (in the console) about exectution time and whatnot)",
 		"blacklistOneOff":"(Whether to blacklist off-by-one screenshots e.g. level 29. Turning this off allows them to repost immediately)",
 		"tagModOneOff":"(Whether to tag modRole in logs when a off-by-one screenshot is posted, e.g. level 29)",
 		"dmScanning":"(Whether to scan images in DMs or not)",
 		"dmMail":"(Whether to forward DMs to mailCategory or not)",
 		"attachmentURLs":"(Whether to add `Attachment #1: <URL>` to the mail embed when sending images)",
-		"debugMode":"(Whether to log the discord.js debug information. INCLUDING TOKEN! Don't post logs if this is on.)",
-		"dmAutoReply":"(Whether mail tickets will bypass needing a `=r ` or `=reply ` at the start of the message to successfully send.)",
+    "testMode":"(Provides more information about what is scanned and whatnot)",
+		"performanceMode":"(Provides more information (in the console) about exectution time and whatnot)",
+    "debugMode":"(Whether to log the discord.js debug information. INCLUDING TOKEN! Don't post logs if this is on.)",
+    "processInfoMode":"(Whether to log the Node JS process information)",
+    "dmAutoReply":"(Whether mail tickets will bypass needing a `=r ` or `=reply ` at the start of the message to successfully send.)",
 		"respondVerify":"(Whether to send a message every time someone successfully verifies through pokenav)"
   },
   "numbers":{
@@ -24,7 +25,8 @@
   },
   "chars":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a string of characters",
-    "prefix":"(Bot prefix for server commands)"
+    "prefix":"(Bot prefix for server commands)",
+    "prefix2":"(Another prefix)"
   },
   "ids":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a discord id",

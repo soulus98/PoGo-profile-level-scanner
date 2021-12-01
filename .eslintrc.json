@@ -10,7 +10,8 @@
 	"globals": {
   	"ops": "writable",
 		"imgStats": "writable",
-		"blacklist": "writable"
+		"blacklist": "writable",
+		"queue": "writable"
   },
 	"rules": {
 		"arrow-spacing": ["warn", { "before": true, "after": true }],

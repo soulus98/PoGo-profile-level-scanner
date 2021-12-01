@@ -393,39 +393,39 @@ if (ops.debugMode) {
 }
 
 if (ops.processInfoMode) {
-	process.on('beforeExit', (code) => {
-  	console.log(`[${dateToTime(new Date())}]: Process beforeExit event with code:`, code);
+	process.on("beforeExit", (code) => {
+		console.log(`[${dateToTime(new Date())}]: Process beforeExit event with code:`, code);
 	});
 
-	process.on('disconnect', () => {
+	process.on("disconnect", () => {
 		console.log(`[${dateToTime(new Date())}]: Process disconnect`);
 	});
 
-	process.on('exit', (code) => {
+	process.on("exit", (code) => {
 		console.log(`[${dateToTime(new Date())}]: Process exited with code:`, code);
 	});
 
-	process.on('message', (message, sendHandle) => {
+	process.on("message", (message, sendHandle) => {
 		console.log(`[${dateToTime(new Date())}]: Process emitted a message:`, message, "\nsendHandle:", sendHandle);
 	});
 
-	process.on('multipleResolves', (type, promise, value) => {
+	process.on("multipleResolves", (type, promise, value) => {
 		console.log(`[${dateToTime(new Date())}]: Process had a multipleResolves event with type:`, type, "\nPromise:", promise, "\nValue:", value);
 	});
 
-	process.on('rejectionHandled', (promise) => {
+	process.on("rejectionHandled", (promise) => {
 		console.log(`[${dateToTime(new Date())}]: Process handled a rejection. Promise:`, promise);
 	});
 
-	process.on('warning', (warning) => {
+	process.on("warning", (warning) => {
 		console.log(`[${dateToTime(new Date())}]: Process warning: `, warning);
 	});
 
-	process.on('worker', (worker) => {
+	process.on("worker", (worker) => {
 		console.log(`[${dateToTime(new Date())}]: Process made a new worker: `, worker);
 	});
 	console.log("Starting memoryUsage timer.");
-	setInterval(function () {
+	setInterval(() => {
 		console.log(`[${dateToTime(new Date())}]: Process memory usage = `, process.memoryUsage());
 	}, 60000);
 }
@@ -479,8 +479,8 @@ client.on("shardReconnecting", () => {
 });
 
 client.on("messageCreate", async message => {
-	if (message.author.id == 428187007965986826){
-		if (filterList.includes(message.channel.id)) {
+	if (message.author.id == 428187007965986826){ // pokenav message filtering
+		if (filterList.includes(message.channel.id)) { // Don't run `]add` to
 			filter(message);
 		} else if (ops.respondVerify){
 			respondVerify(message);
@@ -497,10 +497,11 @@ client.on("messageCreate", async message => {
 	}
 	let wasDelayed = false;
 	// image handler
-	if (ops.dmMail && !message.content.startsWith(ops.prefix) && message.channel.parent && message.channel.parent.id == ops.mailCategory) {
+	if (ops.dmMail && !message.content.startsWith(ops.prefix) && !message.content.startsWith(ops.prefix2) && message.channel.parent && message.channel.parent.id == ops.mailCategory) {
 		mail.channelMsg(message);
 		return;
-	} else if (message.attachments.size > 0 && (!dm || (dm && ops.dmScanning))) { // checks for an attachment.
+	} else if (message.content.startsWith(ops.prefix) || message.content.startsWith(ops.prefix2)) handleCommand(message, postedTime); // command handler
+	else if (message.attachments.size > 0 && (!dm || (dm && ops.dmScanning))) { // checks for an attachment.
 		if (ops.performanceMode) performanceLogger(`\n\n\n#${imgStats.imageLogCount + 1}: Image received\t`, postedTime.getTime());
 		if (dm) {
 			message.memb = await server.members.fetch(message.author.id);
@@ -666,7 +667,7 @@ You can use them in <#${ops.profileChannel}> once you show you are above level $
 			});
 		}
 		return;
-	} else handleCommand(message, postedTime); // command handler
+	} else return;
 });
 
 process.on("uncaughtException", (err) => {

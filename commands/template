@@ -9,7 +9,7 @@ module.exports = {
   usage: `\`${ops.prefix}\``,
 	guildOnly:true,
 	execute(message, args) {
-		return new Promise(function(resolve,reject) {
+		return new Promise(function(resolve, reject) {
 
 		});
 	},

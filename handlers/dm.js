@@ -70,124 +70,8 @@ function saveQueue() {
 
 // Function when a message is sent in the mailCategory
 function channelMsg(message) {
-	if (message.content.toLowerCase().startsWith("=open")){
-		if (message.content.length < 7) message.reply("You must supply a user or an ID to open a new ticket.");
-		const args = message.content.slice(6);
-		let id = 0;
-		if (args.startsWith("<@") && args.endsWith(">")) {
-			id = args.slice(2, -1);
-			if (id.startsWith("!")) id = id.slice(1);
-		} else {
-			id = args;
-		}
-		if (queue.get(id)) {
-			message.reply(`A channel already exists for that user: <#${queue.get(id)}>`);
-			return;
-		}
-		server.members.fetch(id).then(async (member) => {
-			const embedIn = await newEmbed(message, "hostOpen");
-			embedIn.setTitle("New Ticket");
-			const embedOut = new Discord.MessageEmbed(embedIn);
-			embedOut.setDescription(messagetxtReplace(messagetxt.dmHostOpen, message.author).replace(/<server>/g, `**${server.name}**`))
-			.setFooter(server.name, server.iconURL());
-			member.send({ embeds: [embedOut] }).then(() => {
-				newChannel(message, member).then(async ([channel, embedStart]) => {
-					console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} opened a new ticket with ${member.user.username}${member.user.toString()}`);
-					embedIn.setDescription(`Ticket opened with: ${member.user.toString()}\n${channel.toString()}\nOpened by: ${message.author.toString()}`)
-					.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
-					embedStart.addField("Ticket opened by:", message.author.toString());
-					await channel.send({ content: `${member.user} (${member.user.id})`, embeds: [embedStart] });
-					logs.send({ embeds: [embedIn] }).then(() => {
-						message.delete();
-					});
-				});
-			}).catch(() => {
-				message.reply("I can not message that member. They may have blocked me or turned off DMs.");
-			});
-		}).catch(() => {
-			message.reply("There may be a typo, or some other issue, which causes me to not be able to find this member.");
-		});
-	} else {
-		const channelId = message.channel.id;
-		getUser(channelId).then((userId) => {
-			if (!userId) return;
-			else {
-				new Promise((resolve) => {
-					server.members.fetch(userId).then((m) => {
-						resolve([m, false]);
-					}).catch((err) => {
-						if (err.httpStatus != 404) console.error(`[${dateToTime(new Date())}]: Error: member not found yet not 404. err: ${err}`);
-						message.client.users.fetch(userId).then((u) => {
-							resolve([false, u]);
-						}).catch((err) => {
-							console.error(`[${dateToTime(new Date())}]: Error: I can not find user ${userId} from a mail category. Error: ${err}`);
-							message.reply("An error occured, I can not fetch this user. Please tell Soul");
-						});
-					});
-				}).then(async ([member, user]) => {
-					if (message.content.startsWith("?") || message.content.startsWith("$") || message.content.startsWith("!") || message.content.startsWith(".")) return;
-					else if (message.content.toLowerCase().startsWith("=close")) { // Close ticket
-						const args = message.content.slice(7);
-						const embedIn = await newEmbed(message, "close");
-						embedIn.setTitle("Ticket closed");
-						if (args == "") embedIn.setDescription("No reason provided.");
-						else embedIn.setDescription(args);
-						const embedOut = new Discord.MessageEmbed(embedIn);
-						if (member) {
-							embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
-						} else {
-							embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }));
-						}
-						embedOut.setFooter(message.guild.name, message.guild.iconURL())
-						.addField("\u200b", `**${messagetxtReplace(messagetxt.dmClose, member.user)}**`);
-						if (member) {
-							member.send({ embeds: [embedOut] }).catch(() => {
-								console.error(`[${dateToTime(new Date())}]: Error: I can not send a close DM to ${member.user.username}${member.user.id}`);
-								return;
-							});
-						} else {
-							user.send({ embeds: [embedOut] }).catch(() => {
-								console.error(`[${dateToTime(new Date())}]: Error: I can not send a close DM to ${user.username}${user.id}`);
-								return;
-							});
-						}
-						logs.send({ embeds: [embedIn] });
-						message.channel.delete();
-						queue.delete(userId);
-						saveQueue();
-						if (member) {
-							console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${member.user.username}${member.user.toString()}`);
-						} else {
-							console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${user.username}${user.toString()}`);
-						}
-					} else if (
-						(ops.dmAutoReply && !message.content.startsWith("="))
-							|| (!ops.dmAutoReply && (
-								(message.content.toLowerCase().startsWith("=r") && message.content.length == 2 && message.attachments.first())
-								|| (message.content.toLowerCase().startsWith("=reply") && message.content.length == 6 && message.attachments.first())
-								|| message.content.toLowerCase().startsWith("=r ") || message.content.toLowerCase().startsWith("=reply ")
-							)
-						)
-					){
-						if (!member) {
-							console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${user.username}${user}`);
-							message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
-							return;
-						}
-						const embedIn = await newEmbed(message, "hostReply");
-						const embedOut = new Discord.MessageEmbed(embedIn);
-						embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }))
-						.setTitle("Message Sent");
-						embedOut.setFooter(message.guild.name, message.guild.iconURL())
-						.setTitle("Message Received");
-						sendWithImg(message, member.user, [embedOut]).then(() => {
-							logs.send({ embeds: [embedIn] });
-							sendWithImg(message, message.channel, [embedIn]).then(() => message.delete());
-						});
-					} else return;
-				});
-			}
-		});
+	if (ops.dmAutoReply) {
+		reply(message, false);
 	}
 }
 
@@ -288,6 +172,120 @@ async function mailDM(message, status, level) {
 	});
 }
 
+function hostOpen(message, args) {
+	return new Promise(function(resolve, reject) {
+		if (message.content.length < 7) message.reply("You must supply a user or an ID to open a new ticket.");
+		let id = 0;
+		if (args.startsWith("<@") && args.endsWith(">")) {
+			id = args.slice(2, -1);
+			if (id.startsWith("!")) id = id.slice(1);
+		} else {
+			id = args;
+		}
+		if (queue.get(id)) {
+			message.reply(`A channel already exists for that user: <#${queue.get(id)}>`);
+			reject(`, but it failed, as a channel already existed for user: ${id}. Channel: ${queue.get(id)}`);
+			return;
+		}
+		server.members.fetch(id).then(async (member) => {
+			const embedIn = await newEmbed(message, "hostOpen");
+			embedIn.setTitle("New Ticket");
+			const embedOut = new Discord.MessageEmbed(embedIn);
+			embedOut.setDescription(messagetxtReplace(messagetxt.dmHostOpen, message.author).replace(/<server>/g, `**${server.name}**`))
+			.setFooter(server.name, server.iconURL());
+			member.send({ embeds: [embedOut] }).then(() => {
+				newChannel(message, member).then(async ([channel, embedStart]) => {
+					console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} opened a new ticket with ${member.user.username}${member.user.toString()}`);
+					embedIn.setDescription(`Ticket opened with: ${member.user.toString()}\n${channel.toString()}\nOpened by: ${message.author.toString()}`)
+					.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
+					embedStart.addField("Ticket opened by:", message.author.toString());
+					await channel.send({ content: `${member.user} (${member.user.id})`, embeds: [embedStart] });
+					logs.send({ embeds: [embedIn] }).then(() => {
+						message.delete();
+						resolve();
+					});
+				});
+			}).catch(() => {
+				message.reply("I can not message that member. They may have blocked me or turned off DMs.");
+				reject(`, but it failed, as I could not message ${member.user.name}${member.user}`);
+			});
+		}).catch(() => {
+			message.reply("There may be a typo, or some other issue, which causes me to not be able to find this member.");
+			reject(`, but it failed, as I could not fetch member <@${id}>`);
+		});
+	});
+}
+
+async function close(message, args) {
+	return new Promise(function(resolve, reject) {
+		getUser(message).then(async ([member, user]) => {
+			const embedIn = await newEmbed(message, "close");
+			embedIn.setTitle("Ticket closed");
+			if (args == "") embedIn.setDescription("No reason provided.");
+			else embedIn.setDescription(args);
+			const embedOut = new Discord.MessageEmbed(embedIn);
+			if (member) {
+				embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
+			} else {
+				embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }));
+			}
+			embedOut.setFooter(message.guild.name, message.guild.iconURL())
+			.addField("\u200b", `**${messagetxtReplace(messagetxt.dmClose, member.user)}**`);
+			if (member) {
+				member.send({ embeds: [embedOut] }).catch(() => {
+					console.error(`[${dateToTime(new Date())}]: Error: I can not send a close DM to ${member.user.username}${member.user.id}`);
+					return;
+				});
+				queue.delete(member.user.id);
+			} else {
+				user.send({ embeds: [embedOut] }).catch(() => {
+					console.error(`[${dateToTime(new Date())}]: Error: I can not send a close DM to ${user.username}${user.id}`);
+					return;
+				});
+				queue.delete(user.id);
+			}
+			logs.send({ embeds: [embedIn] });
+			message.channel.delete();
+			saveQueue();
+			if (member) {
+				console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${member.user.username}${member.user.toString()}`);
+			} else {
+				console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${user.username}${user.toString()}`);
+			}
+			resolve();
+		}).catch(() => {
+			reject(`, but it failed, as channel ${message.channel.name}${message.channel} is not linked to a user.`);
+		});
+	});
+}
+
+function reply(message, content) {
+	return new Promise(function(resolve, reject) {
+		getUser(message).then(async ([member, user]) => {
+			if (message.content.startsWith("?") || message.content.startsWith("$") || message.content.startsWith("!") || message.content.startsWith(".")) return;
+			if (!member) {
+				console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${user.username}${user}`);
+				message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
+				if (content) reject(`, but it failed, as ${user.name}${user} was not found in the server, and is therefore unmessageable.`);
+				return;
+			}
+			const embedIn = await newEmbed(message, "hostReply", content || false);
+			const embedOut = new Discord.MessageEmbed(embedIn);
+			embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }))
+			.setTitle("Message Sent");
+			embedOut.setFooter(message.guild.name, message.guild.iconURL())
+			.setTitle("Message Received");
+			sendWithImg(message, member.user, [embedOut]).then(() => {
+				logs.send({ embeds: [embedIn] });
+				sendWithImg(message, message.channel, [embedIn]).then(() => message.delete());
+				resolve();
+			});
+		}).catch(() => {
+			if (content) reject(`, but it failed, as channel ${message.channel.name}${message.channel} is not linked to a user.`);
+		});
+	});
+}
+
 // function when a new ticket has to be created
 function newChannel(message, member) {
 	const user = member.user;
@@ -330,7 +328,7 @@ function newChannel(message, member) {
 	});
 }
 																		// green, orange, orange, 		green, 			red
-function newEmbed(message, status){ // open, hostOpen, hostReply, userReply, close
+function newEmbed(message, status, content){ // open, hostOpen, hostReply, userReply, close
 	return new Promise((resolve) => {
 		const embed = new Discord.MessageEmbed();
 		if (status == "close") {
@@ -348,20 +346,8 @@ function newEmbed(message, status){ // open, hostOpen, hostReply, userReply, clo
 					return `**Sticker #${i}:** ${s.name}#${s.id}`;
 				});
 			}
-			let content = message.content;
-			if (message.content.toLowerCase().startsWith("=reply")){
-				if (content.length == 6) {
-					content = "";
-				} else {
-					content = content.slice(6);
-				}
-			} else if (message.content.toLowerCase().startsWith("=r")) {
-				if (content.length == 2) {
-					content = "";
-				} else {
-					content = content.slice(2);
-				}
-			}
+			if (content == "emptyMessageLongStringToAvoidPotentialAccidentLol") content = "";
+			else if (!content) content = message.content;
 			if (ops.attachmentURLs && message.attachments.size > 0) {
 				let i = 0;
 				const files = message.attachments.map((a) => {
@@ -468,13 +454,38 @@ Please action it using \`]c ${message.author.id}\` if they are over halfway to $
 	});
 }
 // reverse lookups the queue collection to find a user from a channel ID
-function getUser(channelId){
-	return new Promise((resolve) => {
-	for (const [k, v] of queue){
-		if (v == channelId) resolve(k);
-	}
-	resolve(false);
-});
+function getUser(message){
+	return new Promise(function(resolve, reject) {
+		const channelId = message.channel.id;
+		new Promise((res) => {
+			let i = 0;
+			for (const [k, v] of queue){
+				i++;
+				if (v == channelId) {
+					res(k);
+					return;
+				} else if (queue.size == i) {
+					res(false);
+				}
+			}
+			return;
+		}).then(userId => {
+			if (!userId) reject();
+			else {
+				server.members.fetch(userId).then((m) => {
+					resolve([m, false]);
+				}).catch((err) => {
+					if (err.httpStatus != 404) console.error(`[${dateToTime(new Date())}]: Error: member not found yet not 404. err: ${err}`);
+					message.client.users.fetch(userId).then((u) => {
+						resolve([false, u]);
+					}).catch((err) => {
+						console.error(`[${dateToTime(new Date())}]: Error: I can not find user ${userId} from a mail category. Error: ${err}`);
+						message.reply("An error occured, I can not fetch this user. Please tell Soul");
+					});
+				});
+			}
+		});
+	});
 }
 
 function alertMsg(user, status, level, given30, given40, given50) {
@@ -526,4 +537,4 @@ function refreshMailLog() {
 	});
 }
 
-module.exports = { mailDM, channelMsg, passServ, refreshMailLog, loadMailQueue, alertMsg };
+module.exports = { mailDM, channelMsg, passServ, refreshMailLog, loadMailQueue, alertMsg, hostOpen, close, reply };

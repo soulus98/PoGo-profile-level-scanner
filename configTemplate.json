@@ -3,14 +3,15 @@
     "saveLocalCopy":true,
     "deleteScreens":false,
     "welcomeMsg":true,
-    "testMode":false,
-		"performanceMode":false,
 		"blacklistOneOff":false,
 		"tagModOneOff":true,
 		"dmScanning":false,
 		"dmMail":false,
 		"attachmentURLs":true,
+    "testMode":false,
+    "performanceMode":false,
 		"debugMode":false,
+    "processInfoMode":false,
 		"dmAutoReply":false,
 		"respondVerify":true
   },
@@ -21,7 +22,8 @@
 		"targetLevel":30
   },
   "chars":{
-    "prefix":"]"
+    "prefix":"]",
+    "prefix2":"="
   },
   "ids":{
     "screenshotChannel":"740670778516963339",
