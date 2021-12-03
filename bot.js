@@ -532,7 +532,7 @@ client.on("messageCreate", async message => {
 		if (ops.dmSymbolDenial) {
 			if (message.content.startsWith("$")) {
 				message.reply(`Commands starting with \`$\` are for a different bot (Pokénav).
-				You can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`).catch(() => {
+You can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`).catch(() => {
 					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 					message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`);
 				});
