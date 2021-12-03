@@ -1,9 +1,9 @@
 const { replyNoMention } = require("../func/misc.js");
 
 module.exports = {
-	name: "restart",
+	name: "restart-bot-server",
 	description: "Restarts the bot. I haven't (can't) thoroughly tested this, so sorry if t doesn't work",
-  aliases: ["rs"],
+  aliases: ["rs", "restart", "restart-server"],
   usage: `\`${ops.prefix}rs\``,
 	guildOnly:true,
 	execute(message) {

@@ -6,6 +6,7 @@
     "welcomeMsg":"(Sends a welcome message tagging new members explaining the screenshot system)",
 		"blacklistOneOff":"(Whether to blacklist off-by-one screenshots e.g. level 29. Turning this off allows them to repost immediately)",
 		"tagModOneOff":"(Whether to tag modRole in logs when a off-by-one screenshot is posted, e.g. level 29)",
+    "screenshotScanning":"(Whether to be aware of the screenshotChannel and scan images in that channel )",
 		"dmScanning":"(Whether to scan images in DMs or not)",
 		"dmMail":"(Whether to forward DMs to mailCategory or not)",
 		"attachmentURLs":"(Whether to add `Attachment #1: <URL>` to the mail embed when sending images)",

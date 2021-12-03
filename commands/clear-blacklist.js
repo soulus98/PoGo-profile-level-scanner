@@ -8,6 +8,7 @@ module.exports = {
   cooldown: 5,
 	guildOnly:true,
 	args: true,
+	scanningOnly: true,
 	execute(message, args) {
 		return new Promise(function(resolve) {
 			if (args[0] == "all"){

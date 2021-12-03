@@ -13,6 +13,7 @@ module.exports = {
 	usage: `\`${ops.prefix}r <@mention/ID>\``,
 	guildOnly: true,
 	args: true,
+	scanningOnly: true,
 	execute(message, args) {
 		return new Promise(function(bigResolve) {
 		if (args[1]){

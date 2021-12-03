@@ -1,7 +1,15 @@
-# v2.2 (2021-Nov-??)
+# v2.2 (2021-Dec-??)
+* Reworked the bot so that it can run without **screenshotChannel**, **logsChannel**, and **profileChannel** being set. **serverID** is still important, obviously.
+* Made certain commands not load on bot start if **screenshotScanning** or **dmMail** is set to false
 * Added a **screenshotScanning** toggle
 * Added **prefix2** and consolidated the commands. Now any command will work with either prefix. Leave it unset or the same as **prefix** to have everything the same
-* Changed the order in which things are handled, now it first checks prefix, then goes to scan images. i.e. it won't scan an image if the message starts with the prefix. This is necessary to send images in `]reply` 
+* Added **dmSymbolDenial** toggle for the `$`, `?` etc messages in DMs
+* Secured the bot so that we can emoji hoard
+* Changed the order in which things are handled, now it first checks prefix, then goes to scan images. i.e. it won't scan an image if the message starts with the prefix. This is necessary to send images in `]reply`
+* Added more to the *first setup.bat* files
+
+Todo:
+* Rewrote readme.md
 
 # v2.1 (2021-Oct-21)
 * Added a `$verify` responder that works in any channel that the bot can see that *isn't* being filtered.
@@ -24,7 +32,7 @@
 * Added a mail ticket handler for DM messages
 * Added a DM scanning system for profile screenshots
 * Integrated the two, so that failed screenshots are passed on to the mail section
-* Added dmMail and dmScanning toggles to enable these features
+* Added **dmMail** and **dmScanning** toggles to enable these features
 * Added a Pokenav message deletion filter
 * Added `]add` and `]remove` to add channels to the filter list
 * Added "DM" to some error messages

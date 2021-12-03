@@ -1,10 +1,11 @@
 const mail = require("../handlers/dm.js");
 module.exports = {
-	name: "close",
+	name: "close-mail-ticket",
 	description: "closes a mail ticket (must be used in a mail ticket)",
-  aliases: [""],
+  aliases: ["close"],
   usage: `\`${ops.prefix}close [reason]\``,
 	guildOnly:true,
+	mailOnly:true,
 	execute(message, args) {
 		return new Promise(function(resolve, reject) {
       if (ops.dmMail){

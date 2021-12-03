@@ -1,10 +1,11 @@
 {
   "toggles":{
-    "saveLocalCopy":true,
+    "saveLocalCopy":false,
     "deleteScreens":false,
-    "welcomeMsg":true,
+    "welcomeMsg":false,
 		"blacklistOneOff":false,
 		"tagModOneOff":true,
+    "screenshotScanning":true,
 		"dmScanning":false,
 		"dmMail":false,
 		"attachmentURLs":true,

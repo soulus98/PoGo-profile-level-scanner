@@ -7,6 +7,7 @@ function handleCommand(message, postedTime){
   } else if (message.content.startsWith(ops.prefix2)) {
     prefix = ops.prefix2;
   } else return;
+  if (prefix.length == 0) return;
   const client = message.client;
   if (message.author.bot) return; // Bot? Cancel
   // finangling the command and argument vars

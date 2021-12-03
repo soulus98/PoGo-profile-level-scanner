@@ -89,16 +89,18 @@ function loadConfigs(){
 			resolve();
 		} else {
 			(async () => {
-				channel = await client.channels.fetch(ops.screenshotChannel);
-				logs = await client.channels.fetch(ops.logsChannel);
-				profile = await client.channels.fetch(ops.profileChannel);
-				server = await client.guilds.fetch(ops.serverID);
-				const { passAppServ } = require("./commands/approve.js");
-				const { passRevServ } = require("./commands/revert.js");
-				const { passImgServ } = require("./handlers/images.js");
-				passAppServ([channel, profile, server, logs]);
-				passRevServ([channel, server]);
-				passImgServ(logs);
+				if (ops.serverID != "0") server = await client.guilds.fetch(ops.serverID);
+				if (ops.profileChannel != "0") profile = await client.channels.fetch(ops.profileChannel);
+				if (ops.screenshotScanning) {
+					if (ops.screenshotChannel != "0") channel = await client.channels.fetch(ops.screenshotChannel);
+					if (ops.logsChannel != "0") logs = await client.channels.fetch(ops.logsChannel);
+					const { passAppServ } = require("./commands/approve.js");
+					const { passRevServ } = require("./commands/revert.js");
+					const { passImgServ } = require("./handlers/images.js");
+					passAppServ([channel, profile, server, logs]);
+					passRevServ([channel, server]);
+					passImgServ(logs);
+				}
 				if (ops.dmMail) {
 					await mail.passServ(server);
 					mail.refreshMailLog();
@@ -155,13 +157,15 @@ function loadCommands(){
 		let commandFilesNames = "\nThe currently loaded commands and cooldowns are:\n";
 		for (const file of commandFiles) {		// Loads commands
 			const command = require(`./commands/${file}`);
-			commandFilesNames = commandFilesNames + ops.prefix + command.name;
-			if (command.cooldown){
-				commandFilesNames = commandFilesNames + ":\t" + command.cooldown + " seconds \n";
-			} else {
-				commandFilesNames = commandFilesNames + "\n";
+			if (!(command.scanningOnly && !ops.screenshotScanning || command.mailOnly && !ops.dmMail)){
+				commandFilesNames = commandFilesNames + ops.prefix + command.name;
+				if (command.cooldown){
+					commandFilesNames = commandFilesNames + ":\t" + command.cooldown + " seconds \n";
+				} else {
+					commandFilesNames = commandFilesNames + "\n";
+				}
+				client.commands.set(command.name, command);
 			}
-			client.commands.set(command.name, command);
 		}
 		console.log(commandFilesNames);
 		resolve();
@@ -232,90 +236,66 @@ function loadBlacklist(){
 		});
 	});
 }
-// Checks all the bot guilds and leaves them if they aren't the intended server
-// If it is called from the main event, it sends a reply message
-// This is vital, else someone could change the settings by simply inviting the bot to their server and being admin
-// TODO: Make different settings for different servers. It is not necessary, but would be good practice
-async function checkServer(message){
-	const dev = await client.users.fetch("146186496448135168", false, true);
-	// 216412752120381441
-	if (ops.serverID === undefined) return;
-	if (message){
-		await message.reply("This is not the intended server. Goodbye forever :wave:").catch(() => {
-				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.channel.send("This is not the intended server. Goodbye forever :wave:");
-			});
-		message.guild.leave().then(s => {
-			console.log(`Left: ${s}#${s.id}, as it is not the intended server.`);
-			dev.send(`**Dev message: **Left: ${s}#${s.id}`).catch(console.error);
-		}).catch(console.error);
-	}
-	const activeServers = client.guilds.cache;
-	activeServers.each(serv => {
-		if (serv.id != ops.serverID){
-			serv.leave().then(s => {
-				console.log(`Left: ${s}, as it is not the intended server.`);
-				dev.send(`**Dev message: **Left: ${s}#${s.id}`).catch(console.error);
-			}).catch(console.error);
-		}
-	});
-}
 
 load();
 
 client.once("ready", async () => {
-	channel = await client.channels.fetch(ops.screenshotChannel);
-	logs = await client.channels.fetch(ops.logsChannel);
-	profile = await client.channels.fetch(ops.profileChannel);
-	server = await client.guilds.fetch(ops.serverID);
-	const { passAppServ } = require("./commands/approve.js");
-	const { passRevServ } = require("./commands/revert.js");
-	const { passImgServ } = require("./handlers/images.js");
-	passAppServ([channel, profile, server, logs]);
-	passRevServ([channel, server]);
-	passImgServ(logs);
+	if (ops.serverID != "0") server = await client.guilds.fetch(ops.serverID);
+	if (ops.profileChannel != "0") profile = await client.channels.fetch(ops.profileChannel);
+	if (ops.logsChannel != "0") logs = await client.channels.fetch(ops.logsChannel);
+	if (ops.screenshotScanning) {
+		if (ops.screenshotChannel != "0") channel = await client.channels.fetch(ops.screenshotChannel);
+		const { passAppServ } = require("./commands/approve.js");
+		const { passRevServ } = require("./commands/revert.js");
+		const { passImgServ } = require("./handlers/images.js");
+		passAppServ([channel, profile, server, logs]);
+		passRevServ([channel, server]);
+		passImgServ(logs);
+	}
 	if (ops.dmMail) {
 		await mail.passServ(server);
 		mail.refreshMailLog();
 	}
 	const dev = await client.users.fetch("146186496448135168", false, true);
-	checkServer();
-	if (server == undefined){
-		console.log("\nOops the screenshot server is broken.");
+	if (ops.serverID == "0" || server == undefined){
+		console.log("\nOops the server is broken. Set \"serverID\" in the config.json");
 		return;
 	}
-	if (channel == undefined){
-		console.log("\nOops the screenshot channel is broken.");
+	if (ops.screenshotScanning && (ops.screenshotChannel == "0" || channel == undefined)){
+		console.log("\nOops the screenshot channel is broken. Set \"screenshotChannel\" in the config.json");
 		return;
 	}
-	if (logs == undefined){
-		console.log("\nOops the logs channel is broken.");
+	if (ops.logsChannel == "0" || logs == undefined){
+		console.log("\nOops the logs channel is broken. Set \"logsChannel\" in the config.json. It is neccesary for permission reasons.");
 		return;
 	}
-	if (profile == undefined){
-		console.log("\nOops the profile setup channel is broken.");
-		return;
-	}
-	channel.send(messagetxtReplace(messagetxt.load)).then(msg => {
-		if (ops.msgDeleteTime && !msg.deleted){
-			setTimeout(() => {
+	if (ops.screenshotChannel != "0"){
+		channel.send(messagetxtReplace(messagetxt.load)).then(msg => {
+			if (ops.msgDeleteTime && !msg.deleted){
+				setTimeout(() => {
+					msg.delete().catch(() => {
+						console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
+					});
+				}, ops.msgDeleteTime);
+			}
+		});
+		channel.messages.fetch({ limit:20 }).then(msgs => {
+			const closeMsg = msgs.filter(msg => (msg.author == client.user) && (msg.content.startsWith("The bot") || msg.content == "Restarting..."));
+			closeMsg.each((msg) => {
 				msg.delete().catch(() => {
-					console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
+					console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${closeMsg.url}\nContent of mesage: "${closeMsg.content}"`);
 				});
-			}, ops.msgDeleteTime);
-		}
-	});
-	channel.messages.fetch({ limit:20 }).then(msgs => {
-		const closeMsg = msgs.filter(msg => (msg.author == client.user) && (msg.content.startsWith("The bot") || msg.content == "Restarting..."));
-		closeMsg.each((msg) => {
-			msg.delete().catch(() => {
-				console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${closeMsg.url}\nContent of mesage: "${closeMsg.content}"`);
 			});
 		});
-	});
+	}
 	loaded = true;
-	dev.send(`**Dev message: **Loaded in guild: "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`);
-	console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in guild: "${server.name}"#${server.id} in channel: "${channel.name}"#${channel.id}`);
+	const activeServers = client.guilds.cache;
+	const activeServerList = [];
+	activeServers.each(serv => activeServerList.push(`"${serv.name}" aka #${serv.id}`));
+	dev.send(`**Dev message:** Active in:\n${activeServerList.join("\n")}`).catch(console.error);
+	dev.send(`**Dev message:** Loaded in guild: "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`).catch(console.error);
+	console.log(`\nActive in:\n${activeServerList.join("\n")}`);
+	console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in guild: "${server.name}"#${server.id} ${(ops.screenshotScanning) ? `in channel: "${channel.name}"#${channel.id}` : ""}`);
 	console.log("\n======================================================================================\n");
 });
 
@@ -381,103 +361,6 @@ function processImage(message, postedTime, wasDelayed){
 	});
 }
 
-if (ops.debugMode) {
-	client.on("debug", (info) => {
-		const d = new Date();
-		const dateTime = `${d.getFullYear()}-${(d.getMonth() + 1 < 10) ? `0${d.getMonth() + 1}` : d.getMonth() + 1}-${(d.getDate() < 10) ? `0${d.getDate()}` : d.getDate()} ${(d.getHours() < 10) ? `0${d.getHours()}` : d.getHours()}:${(d.getMinutes() < 10) ? `0${d.getMinutes()}` : d.getMinutes()}:${(d.getSeconds() < 10) ? `0${d.getSeconds()}` : d.getSeconds()}.${(d.getMilliseconds() < 10) ? `00${d.getMilliseconds()}` : `${(d.getMilliseconds() < 100) ? `0${d.getMilliseconds()}` : `${d.getMilliseconds()}`}`}`;
-		console.error(`[${dateTime}]: Debug info:.`, info);
-	});
-	client.on("rateLimit", (data) => {
-		console.error(`[${dateToTime(new Date())}]: Ratelimit hit:`, data);
-	});
-}
-
-if (ops.processInfoMode) {
-	process.on("beforeExit", (code) => {
-		console.log(`[${dateToTime(new Date())}]: Process beforeExit event with code:`, code);
-	});
-
-	process.on("disconnect", () => {
-		console.log(`[${dateToTime(new Date())}]: Process disconnect`);
-	});
-
-	process.on("exit", (code) => {
-		console.log(`[${dateToTime(new Date())}]: Process exited with code:`, code);
-	});
-
-	process.on("message", (message, sendHandle) => {
-		console.log(`[${dateToTime(new Date())}]: Process emitted a message:`, message, "\nsendHandle:", sendHandle);
-	});
-
-	process.on("multipleResolves", (type, promise, value) => {
-		console.log(`[${dateToTime(new Date())}]: Process had a multipleResolves event with type:`, type, "\nPromise:", promise, "\nValue:", value);
-	});
-
-	process.on("rejectionHandled", (promise) => {
-		console.log(`[${dateToTime(new Date())}]: Process handled a rejection. Promise:`, promise);
-	});
-
-	process.on("warning", (warning) => {
-		console.log(`[${dateToTime(new Date())}]: Process warning: `, warning);
-	});
-
-	process.on("worker", (worker) => {
-		console.log(`[${dateToTime(new Date())}]: Process made a new worker: `, worker);
-	});
-	console.log("Starting memoryUsage timer.");
-	setInterval(() => {
-		console.log(`[${dateToTime(new Date())}]: Process memory usage = `, process.memoryUsage());
-	}, 60000);
-}
-
-client.on("error", (error) => {
-	console.error(`[${dateToTime(new Date())}]: Client Error: ${error}`);
-});
-
-client.on("warn", (info) => {
-	console.error(`[${dateToTime(new Date())}]: Client Waring: ${info}`);
-});
-
-client.on("shardError", (error, id) => {
-	console.error(`[${dateToTime(new Date())}]: Websocket disconnect: ${error}. ID: ${id}`);
-});
-
-client.on("shardResume", () => {
-	if (imgStats.currentlyImage > 0){
-		imgStats.imageLogCount++;
-		imgStats.currentlyImage--;
-		console.error(`[${dateToTime(new Date())}]: Balancing imageLogCount`);
-	}
-	if (loaded) {
-		console.error(`[${dateToTime(new Date())}]: Resumed! Refreshing Activity...`);
-		client.user.setActivity(act, { type: "PLAYING" });
-	}
-});
-
-client.on("shardDisconnect", (evt, id) => {
-	console.error(`[${dateToTime(new Date())}]: Disconnected!`);
-	console.log(evt, id);
-});
-
-client.on("shardReady", (id, una) => {
-	if (imgStats.currentlyImage > 0){
-		imgStats.imageLogCount++;
-		imgStats.currentlyImage--;
-		console.error(`[${dateToTime(new Date())}]: Balancing imageLogCount`);
-	}
-	if (loaded) {
-		console.error(`[${dateToTime(new Date())}]: Reconnected! Refreshing Activity...`);
-		console.error(id, una);
-		client.user.setActivity(act, { type: "PLAYING" });
-	}
-});
-
-client.on("shardReconnecting", () => {
-	if (loaded) {
-		console.error(`[${dateToTime(new Date())}]: Reconnecting...`);
-	}
-});
-
 client.on("messageCreate", async message => {
 	if (message.author.id == 428187007965986826){ // pokenav message filtering
 		if (filterList.includes(message.channel.id)) { // Don't run `]add` to
@@ -486,13 +369,12 @@ client.on("messageCreate", async message => {
 			respondVerify(message);
 		}
 	}
-	if (message.channel == profile) return;
+	if (message.channel == profile) return; // Profile channel? Cancel
 	if (message.author.bot) return; // Bot? Cancel
 	const postedTime = new Date();
 	let dm = false;
 	if (message.channel.type == "DM") dm = true;
 	if (!dm && ops.serverID && message.guild.id != ops.serverID){ // If we are in the wrong server
-		checkServer(message); // It passes message so that it can respond to the message that triggered it
 		return;
 	}
 	let wasDelayed = false;
@@ -500,8 +382,8 @@ client.on("messageCreate", async message => {
 	if (ops.dmMail && !message.content.startsWith(ops.prefix) && !message.content.startsWith(ops.prefix2) && message.channel.parent && message.channel.parent.id == ops.mailCategory) {
 		mail.channelMsg(message);
 		return;
-	} else if (message.content.startsWith(ops.prefix) || message.content.startsWith(ops.prefix2)) handleCommand(message, postedTime); // command handler
-	else if (message.attachments.size > 0 && (!dm || (dm && ops.dmScanning))) { // checks for an attachment.
+	} else if ((message.content.startsWith(ops.prefix) || message.content.startsWith(ops.prefix2)) && message.guild == server) handleCommand(message, postedTime); // command handler
+	else if (ops.screenshotScanning && (message.attachments.size > 0 && (!dm || (dm && ops.dmScanning)))) { // checks for an attachment.
 		if (ops.performanceMode) performanceLogger(`\n\n\n#${imgStats.imageLogCount + 1}: Image received\t`, postedTime.getTime());
 		if (dm) {
 			message.memb = await server.members.fetch(message.author.id);
@@ -647,18 +529,22 @@ client.on("messageCreate", async message => {
 			processImage(message, postedTime, wasDelayed); // handles the image, then checks the queue for more images
 		});
 	} else if (dm) {
-		if (message.content.startsWith("$")) {
-			message.reply(`Commands starting with \`$\` are for a different bot (Pokénav).
-You can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`).catch(() => {
-				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`);
-			});
-		} else if (message.content.startsWith("/") || message.content.startsWith("!") || message.content.startsWith("?")) {
-			message.reply(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`).catch(() => {
-				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.author.send(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`);
-			});
-		} else if (ops.dmMail){
+		if (ops.dmSymbolDenial) {
+			if (message.content.startsWith("$")) {
+				message.reply(`Commands starting with \`$\` are for a different bot (Pokénav).
+				You can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`).catch(() => {
+					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+					message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`);
+				});
+			} else if (message.content.startsWith("/") || message.content.startsWith("!") || message.content.startsWith("?")) {
+				message.reply(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`).catch(() => {
+					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+					message.author.send(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`);
+				});
+			}
+			return;
+		}
+		if (ops.dmMail){
 			mail.mailDM(message);
 		} else {
 			message.reply(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${ops.screenshotChannel}>.`).catch(() => {
@@ -670,6 +556,103 @@ You can use them in <#${ops.profileChannel}> once you show you are above level $
 	} else return;
 });
 
+if (ops.debugMode) {
+	client.on("debug", (info) => {
+		const d = new Date();
+		const dateTime = `${d.getFullYear()}-${(d.getMonth() + 1 < 10) ? `0${d.getMonth() + 1}` : d.getMonth() + 1}-${(d.getDate() < 10) ? `0${d.getDate()}` : d.getDate()} ${(d.getHours() < 10) ? `0${d.getHours()}` : d.getHours()}:${(d.getMinutes() < 10) ? `0${d.getMinutes()}` : d.getMinutes()}:${(d.getSeconds() < 10) ? `0${d.getSeconds()}` : d.getSeconds()}.${(d.getMilliseconds() < 10) ? `00${d.getMilliseconds()}` : `${(d.getMilliseconds() < 100) ? `0${d.getMilliseconds()}` : `${d.getMilliseconds()}`}`}`;
+		console.error(`[${dateTime}]: Debug info:.`, info);
+	});
+	client.on("rateLimit", (data) => {
+		console.error(`[${dateToTime(new Date())}]: Ratelimit hit:`, data);
+	});
+}
+
+if (ops.processInfoMode) {
+	process.on("beforeExit", (code) => {
+		console.log(`[${dateToTime(new Date())}]: Process beforeExit event with code:`, code);
+	});
+
+	process.on("disconnect", () => {
+		console.log(`[${dateToTime(new Date())}]: Process disconnect`);
+	});
+
+	process.on("exit", (code) => {
+		console.log(`[${dateToTime(new Date())}]: Process exited with code:`, code);
+	});
+
+	process.on("message", (message, sendHandle) => {
+		console.log(`[${dateToTime(new Date())}]: Process emitted a message:`, message, "\nsendHandle:", sendHandle);
+	});
+
+	process.on("multipleResolves", (type, promise, value) => {
+		console.log(`[${dateToTime(new Date())}]: Process had a multipleResolves event with type:`, type, "\nPromise:", promise, "\nValue:", value);
+	});
+
+	process.on("rejectionHandled", (promise) => {
+		console.log(`[${dateToTime(new Date())}]: Process handled a rejection. Promise:`, promise);
+	});
+
+	process.on("warning", (warning) => {
+		console.log(`[${dateToTime(new Date())}]: Process warning: `, warning);
+	});
+
+	process.on("worker", (worker) => {
+		console.log(`[${dateToTime(new Date())}]: Process made a new worker: `, worker);
+	});
+	console.log("Starting memoryUsage timer.");
+	setInterval(() => {
+		console.log(`[${dateToTime(new Date())}]: Process memory usage = `, process.memoryUsage());
+	}, 60000);
+}
+
+client.on("error", (error) => {
+	console.error(`[${dateToTime(new Date())}]: Client Error: ${error}`);
+});
+
+client.on("warn", (info) => {
+	console.error(`[${dateToTime(new Date())}]: Client Waring: ${info}`);
+});
+
+client.on("shardError", (error, id) => {
+	console.error(`[${dateToTime(new Date())}]: Websocket disconnect: ${error}. ID: ${id}`);
+});
+
+client.on("shardResume", () => {
+	if (imgStats.currentlyImage > 0){
+		imgStats.imageLogCount++;
+		imgStats.currentlyImage--;
+		console.error(`[${dateToTime(new Date())}]: Balancing imageLogCount`);
+	}
+	if (loaded) {
+		console.error(`[${dateToTime(new Date())}]: Resumed! Refreshing Activity...`);
+		client.user.setActivity(act, { type: "PLAYING" });
+	}
+});
+
+client.on("shardDisconnect", (evt, id) => {
+	console.error(`[${dateToTime(new Date())}]: Disconnected!`);
+	console.log(evt, id);
+});
+
+client.on("shardReady", (id, una) => {
+	if (imgStats.currentlyImage > 0){
+		imgStats.imageLogCount++;
+		imgStats.currentlyImage--;
+		console.error(`[${dateToTime(new Date())}]: Balancing imageLogCount`);
+	}
+	if (loaded) {
+		console.error(`[${dateToTime(new Date())}]: Reconnected! Refreshing Activity...`);
+		console.error(id, una);
+		client.user.setActivity(act, { type: "PLAYING" });
+	}
+});
+
+client.on("shardReconnecting", () => {
+	if (loaded) {
+		console.error(`[${dateToTime(new Date())}]: Reconnecting...`);
+	}
+});
+
 process.on("uncaughtException", (err) => {
 	if (imgStats.currentlyImage > 0){
 		imgStats.imageLogCount++;
@@ -678,7 +661,7 @@ process.on("uncaughtException", (err) => {
 	if (err != null) {
 		if (err.message.substr(0, 35) == "Error: UNKNOWN: unknown error, open"){
 			console.error(`[${dateToTime(new Date())}]: Error: Known imageWrite crash. Consider turning off saveLocalCopy. This error should be handled correctly.`);
-			channel.send("An internal error occured. Please retry sending the screenshot(s) that failed.").then((errorMsg) => {
+			if (ops.screenshotChannel != "0") channel.send("An internal error occured. Please retry sending the screenshot(s) that failed.").then((errorMsg) => {
 				setTimeout(() => {
 					if (!errorMsg.deleted && ops.msgDeleteTime > 0){
 						errorMsg.delete().catch(() => {
@@ -689,7 +672,7 @@ process.on("uncaughtException", (err) => {
 			});
 		} else {
 			console.error(`Uncaught Exception: ${err}${err.stack}`);
-			channel.send(`<@&${ops.modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
+			if (ops.screenshotChannel != "0") channel.send(`<@&${ops.modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
     }
 	} else {
 		console.error(err);
@@ -710,7 +693,8 @@ process.on("unhandledRejection", (err, promise) => {
 
 process.on("SIGINT", () => {
   console.log(`Process ${process.pid} has been interrupted`);
-	channel.send("The bot is sleeping now. Goodbye :wave:").then(() => {
+	if (ops.screenshotChannel != "0") channel.send("The bot is sleeping now. Goodbye :wave:").then(() => {
 		process.exit(1);
 	});
+	else process.exit(1);
 });

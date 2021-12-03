@@ -1,11 +1,12 @@
 const mail = require("../handlers/dm.js");
 module.exports = {
-	name: "open",
+	name: "open-mail-ticket",
 	description: "Opens a new mail ticket with a member based on a tag or an ID. (Must be used in `mailCategory`)",
   aliases: [""],
   usage: `\`${ops.prefix}open <id/tag>\``,
 	args: true,
 	guildOnly:true,
+	mailOnly:true,
 	execute(message, args) {
 		return new Promise(function(resolve, reject) {
       if (ops.dmMail){

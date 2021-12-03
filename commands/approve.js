@@ -10,13 +10,14 @@ let server = {},
 		logs = {};
 
 module.exports = {
-	name: "confirm",
+	name: "confirm-screenshot",
 	description: "Manually approve/reject a user by telling the bot the user's level. `level` can be omitted, the bot will still approve.",
-  aliases: ["c", "con"],
+  aliases: ["c", "con", "confirm"],
   usage: `\`${ops.prefix}c <@mention/ID> [level]\``,
 	guildOnly:true,
   args: true,
 	permissions: "MANAGE_ROLES",
+	scanningOnly: true,
 	execute(input, args) {
 		return new Promise(function(bigResolve) {
 			const execTime = dateToTime(new Date());

@@ -1,10 +1,11 @@
 const mail = require("../handlers/dm.js");
 module.exports = {
-	name: "reply",
+	name: "reply-to-mail",
 	description: "Used to reply to a mail ticket if dmAutoReply is turned off.",
-  aliases: ["r"],
+  aliases: ["r", "reply"],
   usage: `\`${ops.prefix}r <message>\``,
 	guildOnly:true,
+	mailOnly:true,
 	execute(message, args) {
 		return new Promise(function(resolve, reject) {
       if (ops.dmMail){
