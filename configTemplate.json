@@ -14,7 +14,8 @@
 		"debugMode":false,
     "processInfoMode":false,
 		"dmAutoReply":false,
-		"respondVerify":true
+		"respondVerify":true,
+    "dmSymbolDenial":true
   },
   "numbers":{
     "threshold":228,
