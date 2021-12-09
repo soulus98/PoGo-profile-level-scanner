@@ -294,6 +294,7 @@ client.once("ready", async () => {
 	activeServers.each(serv => activeServerList.push(`"${serv.name}" aka #${serv.id}`));
 	dev.send(`**Dev message:** Active in:\n${activeServerList.join("\n")}`).catch(console.error);
 	dev.send(`**Dev message:** Loaded in guild: "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`).catch(console.error);
+	if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", -1);
 	console.log(`\nActive in:\n${activeServerList.join("\n")}`);
 	console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in guild: "${server.name}"#${server.id} ${(ops.screenshotScanning) ? `in channel: "${channel.name}"#${channel.id}` : ""}`);
 	console.log("\n======================================================================================\n");
@@ -349,7 +350,7 @@ function processImage(message, postedTime, wasDelayed){
 		imgStats.imageLogCount++;
 		imgStats.currentlyImage--;
 		if (imgStats.imageLogCount > 0 && imgStats.imageLogCount % 30 === 0) loadBlacklist();
-
+		if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", 1);
 		// Potential future queue optimisation here. Currently not neccesary
 		// todo: check queue
 		// todo: fetch message from queue id
@@ -384,6 +385,7 @@ client.on("messageCreate", async message => {
 		return;
 	} else if ((message.content.startsWith(ops.prefix) || message.content.startsWith(ops.prefix2)) && message.guild == server) handleCommand(message, postedTime); // command handler
 	else if (ops.screenshotScanning && (message.attachments.size > 0 && (!dm || (dm && ops.dmScanning)))) { // checks for an attachment.
+		if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", 0);
 		if (ops.performanceMode) performanceLogger(`\n\n\n#${imgStats.imageLogCount + 1}: Image received\t`, postedTime.getTime());
 		if (dm) {
 			message.memb = await server.members.fetch(message.author.id);
@@ -599,10 +601,43 @@ if (ops.processInfoMode) {
 	process.on("worker", (worker) => {
 		console.log(`[${dateToTime(new Date())}]: Process made a new worker: `, worker);
 	});
-	console.log("Starting memoryUsage timer.");
-	setInterval(() => {
-		console.log(`[${dateToTime(new Date())}]: Process memory usage = `, process.memoryUsage());
-	}, 60000);
+
+	let memBeforeScan = process.memoryUsage();
+	let memAfterScan = memBeforeScan;
+	let memNow = memBeforeScan;
+	process.on("logCurrentMemoryUsage", (state) => {
+		if (state == 1) {
+			console.log("After scan");
+			memAfterScan = process.memoryUsage();
+			console.log(memAfterScan);
+			console.log("Difference:\n");
+			for (const v in memAfterScan) {
+				console.log(v, ":", memAfterScan[v] - memBeforeScan[v]);
+			}
+		} else if (state == -1) {
+			const memNowArr = [];
+			for (const v in memNow) {
+				memNowArr.push(`\n ${v}: ${Math.round(memNow[v] / 1024 / 1024 * 100) / 100} MB`);
+			}
+			channel.send(`Starting memory usage:${memNowArr}`);
+			console.log(`Starting memory usage:${memNowArr}`);
+		} else if (state.id > 0) {
+			memNow = process.memoryUsage();
+			const memNowArr = [];
+			for (const v in memNow) {
+				memNowArr.push(`\n ${v}: ${Math.round(memNow[v] / 1024 / 1024 * 100) / 100} MB`);
+			}
+			const memDiff = [];
+			for (const v in memBeforeScan) {
+				memDiff.push(`\n ${v}: ${Math.round((memNow[v] - memBeforeScan[v]) / 1024 / 1024 * 100) / 100} MB`);
+			}
+			state.reply(`Current memory usage:${memNowArr} \n\nDifferences from last scan:${memDiff}`);
+		} else {
+			console.log("Before scan");
+			memBeforeScan = process.memoryUsage();
+			console.log(memBeforeScan);
+		}
+	});
 }
 
 client.on("error", (error) => {
