@@ -2,7 +2,7 @@ const mail = require("../handlers/dm.js");
 module.exports = {
 	name: "close-mail-ticket",
 	description: "closes a mail ticket (must be used in a mail ticket)",
-  aliases: ["close"],
+  aliases: ["close", "close-ticket"],
   usage: `\`${ops.prefix}close [reason]\``,
 	guildOnly:true,
 	mailOnly:true,

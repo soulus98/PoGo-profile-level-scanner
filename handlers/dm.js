@@ -453,11 +453,49 @@ Please action it using \`]c ${message.author.id}\` if they are over halfway to $
 		}
 	});
 }
-// reverse lookups the queue collection to find a user from a channel ID
-function getUser(message){
+
+function sync(message, args) {
 	return new Promise(function(resolve, reject) {
-		const channelId = message.channel.id;
+		let id = 0;
+		if (args.startsWith("<@") && args.endsWith(">")) {
+			id = args.slice(2, -1);
+			if (id.startsWith("!")) id = id.slice(1);
+		} else {
+			id = args;
+		}
+		if (queue.get(id)) {
+			message.reply(`A channel already exists for that user: <#${queue.get(id)}>`);
+			reject(`, but it failed, as a channel already existed for user: ${id}. Channel: ${queue.get(id)}`);
+			return;
+		}
+		getUser(message, id).then(([member, user]) => {
+			if (user) {
+				message.reply("This user is not a member of the server, I cannot DM them.");
+				reject(`, but it failed, as I could not find ${user} in the server.`);
+			} else {
+				queue.set(id, message.channel.id);
+				saveQueue();
+				message.react("👍");
+				resolve(`, tagging ${member.user}. And it was successful.`);
+			}
+		}).catch((err) => {
+			if (err == 1) {
+				message.reply("There may be a typo, or some other issue, which causes me to not be able to find this user.");
+				reject(", but it failed, perhaps due to a typo.");
+			} else {
+				console.error(`[${dateToTime(new Date())}]: Error: User: ${id} was false while syncing.`);
+				message.reply("An error occured, I can not fetch this user. Impossible error? Please tell Soul");
+			}
+		});
+	});
+}
+// reverse lookups the queue collection to find a user from a channel ID
+// Alternatively, finds them using a userID
+function getUser(message, id){
+	return new Promise(function(resolve, reject) {
 		new Promise((res) => {
+			if (id) res(id);
+			const channelId = message.channel.id;
 			let i = 0;
 			for (const [k, v] of queue){
 				i++;
@@ -479,8 +517,12 @@ function getUser(message){
 					message.client.users.fetch(userId).then((u) => {
 						resolve([false, u]);
 					}).catch((err) => {
-						console.error(`[${dateToTime(new Date())}]: Error: I can not find user ${userId} from a mail category. Error: ${err}`);
-						message.reply("An error occured, I can not fetch this user. Please tell Soul");
+						if (id) {
+							reject(1);
+						} else {
+							console.error(`[${dateToTime(new Date())}]: Error: I can not find user ${userId} from a mail category. Error: ${err}`);
+							message.reply("An error occured, I can not fetch this user. Please tell Soul");
+						}
 					});
 				});
 			}
@@ -537,4 +579,4 @@ function refreshMailLog() {
 	});
 }
 
-module.exports = { mailDM, channelMsg, passServ, refreshMailLog, loadMailQueue, alertMsg, hostOpen, close, reply };
+module.exports = { mailDM, channelMsg, passServ, refreshMailLog, loadMailQueue, alertMsg, hostOpen, close, reply, sync };

@@ -4,6 +4,7 @@
 * Added a **screenshotScanning** toggle
 * Added **prefix2** and consolidated the commands. Now any command will work with either prefix. Leave it unset or the same as **prefix** to have everything the same
 * Added **dmSymbolDenial** toggle for the `$`, `?` etc messages in DMs
+* Added `]sync` so we can fix the dead channels if ever they happen again
 * Secured the bot so that we can emoji hoard
 * Changed the order in which things are handled, now it first checks prefix, then goes to scan images. i.e. it won't scan an image if the message starts with the prefix. This is necessary to send images in `]reply`
 * Added more to the *first setup.bat* files
