@@ -380,12 +380,13 @@ client.on("messageCreate", async message => {
 	}
 	let wasDelayed = false;
 	// image handler
-	if (ops.dmMail && !message.content.startsWith(ops.prefix) && !message.content.startsWith(ops.prefix2) && message.channel.parent && message.channel.parent.id == ops.mailCategory) {
+	const prefix = (ops.prefix.length == 0) ? undefined : ops.prefix;
+	const prefix2 = (ops.prefix2.length == 0) ? undefined : ops.prefix;
+	if (ops.dmMail && !message.content.startsWith(prefix) && !message.content.startsWith(prefix2) && message.channel.parent && message.channel.parent.id == ops.mailCategory) {
 		mail.channelMsg(message);
 		return;
-	} else if ((message.content.startsWith(ops.prefix) || message.content.startsWith(ops.prefix2)) && message.guild == server) handleCommand(message, postedTime); // command handler
+	} else if ((message.content.startsWith(prefix) || message.content.startsWith(prefix2)) && message.guild == server) handleCommand(message, postedTime); // command handler
 	else if (ops.screenshotScanning && (message.attachments.size > 0 && (!dm || (dm && ops.dmScanning)))) { // checks for an attachment.
-		if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", 0);
 		if (ops.performanceMode) performanceLogger(`\n\n\n#${imgStats.imageLogCount + 1}: Image received\t`, postedTime.getTime());
 		if (dm) {
 			message.memb = await server.members.fetch(message.author.id);
@@ -394,9 +395,9 @@ client.on("messageCreate", async message => {
 			message.memb = message.member;
 		}
 		if (!dm && channel == undefined){
-			message.reply(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``).catch(() => {
+			message.reply(`The screenshot channel could not be found. Please set it correctly using \`${prefix || prefix2}set screenshotChannel <id>\``).catch(() => {
 				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${ops.prefix}set screenshotChannel <id>\``);
+				message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix || prefix2}set screenshotChannel <id>\``);
 			});
 			return;
 		}
@@ -527,6 +528,7 @@ client.on("messageCreate", async message => {
 				}, 250);
 			}
 		}).then(() => {
+			if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", 0);
 			if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Queue passed\t`, postedTime.getTime());
 			processImage(message, postedTime, wasDelayed); // handles the image, then checks the queue for more images
 		});
@@ -601,19 +603,26 @@ if (ops.processInfoMode) {
 	process.on("worker", (worker) => {
 		console.log(`[${dateToTime(new Date())}]: Process made a new worker: `, worker);
 	});
-
+	const memBoot = process.memoryUsage();
 	let memBeforeScan = process.memoryUsage();
 	let memAfterScan = memBeforeScan;
 	let memNow = memBeforeScan;
 	process.on("logCurrentMemoryUsage", (state) => {
 		if (state == 1) {
-			console.log("After scan");
 			memAfterScan = process.memoryUsage();
-			console.log(memAfterScan);
-			console.log("Difference:\n");
+			const memArr = [];
 			for (const v in memAfterScan) {
-				console.log(v, ":", memAfterScan[v] - memBeforeScan[v]);
+				memArr.push(`\n ${v}: ${Math.round(memAfterScan[v] / 1024 / 1024 * 100) / 100} MB`);
 			}
+			const memDiff = [];
+			for (const v in memBeforeScan) {
+				memDiff.push(`\n ${v}: ${Math.round((memAfterScan[v] - memBeforeScan[v]) / 1024 / 1024 * 100) / 100} MB`);
+			}
+			const memBootDiff = [];
+			for (const v in memBoot) {
+				memBootDiff.push(`\n ${v}: ${Math.round((memAfterScan[v] - memBoot[v]) / 1024 / 1024 * 100) / 100} MB`);
+			}
+			console.log(`\nAfter scan #${imgStats.imageLogCount}:${memArr}\n\nDifferences from last scan:${memDiff}\n\nDifferences since boot:${memBootDiff}`);
 		} else if (state == -1) {
 			const memNowArr = [];
 			for (const v in memNow) {
@@ -623,19 +632,22 @@ if (ops.processInfoMode) {
 			console.log(`Starting memory usage:${memNowArr}`);
 		} else if (state.id > 0) {
 			memNow = process.memoryUsage();
-			const memNowArr = [];
+			const memArr = [];
 			for (const v in memNow) {
-				memNowArr.push(`\n ${v}: ${Math.round(memNow[v] / 1024 / 1024 * 100) / 100} MB`);
+				memArr.push(`\n ${v}: ${Math.round(memNow[v] / 1024 / 1024 * 100) / 100} MB`);
 			}
 			const memDiff = [];
 			for (const v in memBeforeScan) {
 				memDiff.push(`\n ${v}: ${Math.round((memNow[v] - memBeforeScan[v]) / 1024 / 1024 * 100) / 100} MB`);
 			}
-			state.reply(`Current memory usage:${memNowArr} \n\nDifferences from last scan:${memDiff}`);
+			state.reply(`Current memory usage:${memArr} \n\nDifferences from last scan:${memDiff}`);
 		} else {
-			console.log("Before scan");
 			memBeforeScan = process.memoryUsage();
-			console.log(memBeforeScan);
+			const memArr = [];
+			for (const v in memBeforeScan) {
+				memArr.push(`\n ${v}: ${Math.round(memBeforeScan[v] / 1024 / 1024 * 100) / 100} MB`);
+			}
+			console.log(`Before scan #${imgStats.imageLogCount + 1}:${memArr}`);
 		}
 	});
 }
@@ -682,9 +694,9 @@ client.on("shardReady", (id, una) => {
 	}
 });
 
-client.on("shardReconnecting", () => {
+client.on("shardReconnecting", (id) => {
 	if (loaded) {
-		console.error(`[${dateToTime(new Date())}]: Reconnecting...`);
+		console.error(`[${dateToTime(new Date())}]: Reconnecting... [${id}]`);
 	}
 });
 

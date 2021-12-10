@@ -6,8 +6,12 @@ module.exports = {
 	guildOnly:true,
 	execute(message) {
 		return new Promise(function(resolve) {
-			process.emit("logCurrentMemoryUsage", message);
-			resolve();
+			if (ops.processInfoMode) {
+				process.emit("logCurrentMemoryUsage", message);
+				resolve();
+			} else {
+				message.reply("I cannot do that if `processInfoMode` is off.");
+			}
 		});
 	},
 };

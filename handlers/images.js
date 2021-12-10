@@ -102,7 +102,7 @@ function handleImage(message, postedTime, wasDelayed){
 									return;
 								} else { // this is the handler for role adding. It looks messy but is fine
 									if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Recog finished\t`, postedTime.getTime());
-									message.client.commands.get("confirm").execute([message, postedTime], [message.author.id, level]).then((addToLogString) => {
+									message.client.commands.get("confirm-screenshot").execute([message, postedTime], [message.author.id, level]).then((addToLogString) => {
 										if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Roles confirmed. Total time:`, postedTime.getTime());
 										console.log(logString + addToLogString + ` Time: ${(Date.now() - currentTime) / 1000}s`);
 									});
