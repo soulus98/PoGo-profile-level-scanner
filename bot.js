@@ -369,6 +369,7 @@ client.on("messageCreate", async message => {
 		} else if (ops.respondVerify){
 			respondVerify(message);
 		}
+		return;
 	}
 	if (message.channel == profile) return; // Profile channel? Cancel
 	if (message.author.bot) return; // Bot? Cancel

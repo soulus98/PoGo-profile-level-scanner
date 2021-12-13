@@ -1,3 +1,6 @@
+Todo:
+* Rewrote readme.md
+
 # v2.2 (2021-Dec-13)
 * Reworked the bot so that it can run without **screenshotChannel**, **logsChannel**, and **profileChannel** being set. **serverID** is still important, obviously.
 * Made certain commands not load on bot start if **screenshotScanning** or **dmMail** is set to false

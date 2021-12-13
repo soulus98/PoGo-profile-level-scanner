@@ -18,7 +18,7 @@ function handleImage(message, postedTime, wasDelayed){
 			const logAdd = new Promise((res) => {
 				if (wasDelayed == true){
 					const delayAmount = Math.round((Date.now() - postedTime) / 1000);
-					logString = logString + `. Delayed ${delayAmount}s. ${imgStats.currentlyImage - 1} more to process`;
+					logString = logString + `. Delayed ${delayAmount}s. ${imgStats.currentlyImage - 1} more`;
 					res();
 				} else res();
 			});
