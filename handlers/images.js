@@ -116,9 +116,9 @@ function handleImage(message, postedTime, wasDelayed){
 					}).catch((err) => {
 						if (err == "crash"){
 							errorMessage(postedTime, dm, "Error: An error occured while buffering \"imgTwo\".");
-							errorMessage(postedTime, dm, "Some info for soul:");
-							console.error("\nimage: ");
-							console.error(image);
+							// errorMessage(postedTime, dm, "Some info for soul:");
+							// console.error("\nimage: ");
+							// console.error(image);
 							logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nThis image was posted during a crash...`, files: [image] });
 						} else {
 							errorMessage(postedTime, dm, `Error occured while cropping image: ${err}`);

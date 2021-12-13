@@ -22,12 +22,13 @@ function crop(message){
 				.flatten()
 				.toBuffer((err, imgBuff) => {
 					if (err){
-						setTimeout(() => {
-							console.error("imgBuff: ");
-							console.error(imgBuff); 			// testo
-							console.error("imgTwo: ");
-							console.error(img); 			// testo
-						}, 250);
+						console.error(err);
+						// setTimeout(() => {
+						// 	console.error("imgBuff: ");
+						// 	console.error(imgBuff); 			// testo
+						// 	console.error("imgTwo: ");
+						// 	console.error(img); 			// testo
+						// }, 250);
 						reject("crash");
 						return;
 					}

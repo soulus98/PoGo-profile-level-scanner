@@ -603,26 +603,13 @@ if (ops.processInfoMode) {
 	process.on("worker", (worker) => {
 		console.log(`[${dateToTime(new Date())}]: Process made a new worker: `, worker);
 	});
-	const memBoot = process.memoryUsage();
 	let memBeforeScan = process.memoryUsage();
 	let memAfterScan = memBeforeScan;
 	let memNow = memBeforeScan;
 	process.on("logCurrentMemoryUsage", (state) => {
 		if (state == 1) {
 			memAfterScan = process.memoryUsage();
-			const memArr = [];
-			for (const v in memAfterScan) {
-				memArr.push(`\n ${v}: ${Math.round(memAfterScan[v] / 1024 / 1024 * 100) / 100} MB`);
-			}
-			const memDiff = [];
-			for (const v in memBeforeScan) {
-				memDiff.push(`\n ${v}: ${Math.round((memAfterScan[v] - memBeforeScan[v]) / 1024 / 1024 * 100) / 100} MB`);
-			}
-			const memBootDiff = [];
-			for (const v in memBoot) {
-				memBootDiff.push(`\n ${v}: ${Math.round((memAfterScan[v] - memBoot[v]) / 1024 / 1024 * 100) / 100} MB`);
-			}
-			console.log(`\nAfter scan #${imgStats.imageLogCount}:${memArr}\n\nDifferences from last scan:${memDiff}\n\nDifferences since boot:${memBootDiff}`);
+			logMemory("After", memAfterScan);
 		} else if (state == -1) {
 			const memNowArr = [];
 			for (const v in memNow) {
@@ -643,12 +630,20 @@ if (ops.processInfoMode) {
 			state.reply(`Current memory usage:${memArr} \n\nDifferences from last scan:${memDiff}`);
 		} else {
 			memBeforeScan = process.memoryUsage();
-			const memArr = [];
-			for (const v in memBeforeScan) {
-				memArr.push(`\n ${v}: ${Math.round(memBeforeScan[v] / 1024 / 1024 * 100) / 100} MB`);
-			}
-			console.log(`Before scan #${imgStats.imageLogCount + 1}:${memArr}`);
+			logMemory("Before", memBeforeScan);
 		}
+	});
+}
+
+function logMemory(state, mem) {
+	const rss = Math.round(mem.rss / 1024 / 1024);
+	const heapTot = Math.round(mem.heapTotal / 1024 / 1024);
+	const heapUsed = Math.round(mem.heapUsed / 1024 / 1024);
+	const external = Math.round(mem.external / 1024 / 1024 * 100) / 100;
+	const arrayBuffers = Math.round(mem.arrayBuffers / 1024 / 1024 * 100) / 100;
+	fs.appendFile(path.resolve(__dirname, "./server/memory.txt"),
+	`\n[${dateToTime(new Date())}]: ${state} scan #${(state == "Before") ? imgStats.imageLogCount + 1 : imgStats.imageLogCount}: rss = ${rss} Heap: ${heapUsed}/${heapTot} Ext:${external} arrayBuffs: ${arrayBuffers}`, (err) => {
+		if (err) console.error(err);
 	});
 }
 
