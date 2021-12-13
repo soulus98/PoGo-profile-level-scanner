@@ -1,16 +1,14 @@
-# v2.2 (2021-Dec-??)
+# v2.2 (2021-Dec-13)
 * Reworked the bot so that it can run without **screenshotChannel**, **logsChannel**, and **profileChannel** being set. **serverID** is still important, obviously.
 * Made certain commands not load on bot start if **screenshotScanning** or **dmMail** is set to false
 * Added a **screenshotScanning** toggle
 * Added **prefix2** and consolidated the commands. Now any command will work with either prefix. Leave it unset or the same as **prefix** to have everything the same
 * Added **dmSymbolDenial** toggle for the `$`, `?` etc messages in DMs
+* Added **processInfoMode** for monitoring the process memory usage
 * Added `]sync` so we can fix the dead channels if ever they happen again
 * Secured the bot so that we can emoji hoard
 * Changed the order in which things are handled, now it first checks prefix, then goes to scan images. i.e. it won't scan an image if the message starts with the prefix. This is necessary to send images in `]reply`
 * Added more to the *first setup.bat* files
-
-Todo:
-* Rewrote readme.md
 
 # v2.1 (2021-Oct-21)
 * Added a `$verify` responder that works in any channel that the bot can see that *isn't* being filtered.
