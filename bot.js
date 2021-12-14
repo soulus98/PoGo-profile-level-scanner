@@ -269,7 +269,7 @@ client.once("ready", async () => {
 		console.log("\nOops the logs channel is broken. Set \"logsChannel\" in the config.json. It is neccesary for permission reasons.");
 		return;
 	}
-	if (ops.screenshotChannel != "0"){
+	if (ops.screenshotScanning && ops.screenshotChannel != "0"){
 		channel.send(messagetxtReplace(messagetxt.load)).then(msg => {
 			if (ops.msgDeleteTime && !msg.deleted){
 				setTimeout(() => {
@@ -616,7 +616,7 @@ if (ops.processInfoMode) {
 			for (const v in memNow) {
 				memNowArr.push(`\n ${v}: ${Math.round(memNow[v] / 1024 / 1024 * 100) / 100} MB`);
 			}
-			channel.send(`Starting memory usage:${memNowArr}`);
+			if (ops.screenshotScanning) channel.send(`Starting memory usage:${memNowArr}`);
 			console.log(`Starting memory usage:${memNowArr}`);
 		} else if (state.id > 0) {
 			memNow = process.memoryUsage();
