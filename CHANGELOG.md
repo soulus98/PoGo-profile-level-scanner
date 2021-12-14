@@ -1,3 +1,6 @@
+# v2.2.1 (2021-Dec-)
+* Added `]heapdump-snapshot` aka `]hs` so we can further monitor the memory usage. This requires `npm install heapdump` which in turn may require a newer version of Visual Studio (with some dev c++ thingy)...? 🤷 
+
 Todo:
 * Rewrote readme.md
 
