@@ -1,4 +1,9 @@
-# v2.2.1 (2021-Dec-)
+# v2.2.2 (2021-Dec-16)
+hotfix:
+* Fixed a mail issue caused by **dmSymbolDenial**
+* Fixed an issue in **prefix2** caused by a typo
+
+# v2.2.1 (2021-Dec-16)
 * Added `]heapdump-snapshot` aka `]hs` so we can further monitor the memory usage. This requires `npm install heapdump` which in turn may require a newer version of Visual Studio (with some dev c++ thingy)...? 🤷
 * Changed `]c` to screenshot-logs perms, so we can remove manage roles from mods
 

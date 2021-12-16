@@ -9,10 +9,10 @@ module.exports = {
 			const client = message.client;
 			try {
 				message.reply(`Pong!
-Websocket heartbeat: ${client.ws.ping}ms.`).then(sent => {
+Websocket heartbeat: \`${client.ws.ping}ms\``).then(sent => {
 					sent.edit(`Pong!
-Websocket heartbeat: ${client.ws.ping}ms.
-Message delay: ${sent.createdTimestamp - message.createdTimestamp}ms.`);
+Websocket heartbeat: \`${client.ws.ping}ms\`
+Message delay: \`${sent.createdTimestamp - message.createdTimestamp}ms\``);
 				});
 				resolve();
 				return;

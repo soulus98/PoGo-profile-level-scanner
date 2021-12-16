@@ -380,13 +380,13 @@ client.on("messageCreate", async message => {
 		return;
 	}
 	let wasDelayed = false;
-	// image handler
 	const prefix = (ops.prefix.length == 0) ? undefined : ops.prefix;
-	const prefix2 = (ops.prefix2.length == 0) ? undefined : ops.prefix;
+	const prefix2 = (ops.prefix2.length == 0) ? undefined : ops.prefix2;
 	if (ops.dmMail && !message.content.startsWith(prefix) && !message.content.startsWith(prefix2) && message.channel.parent && message.channel.parent.id == ops.mailCategory) {
 		mail.channelMsg(message);
 		return;
 	} else if ((message.content.startsWith(prefix) || message.content.startsWith(prefix2)) && message.guild == server) handleCommand(message, postedTime); // command handler
+	// image handler
 	else if (ops.screenshotScanning && (message.attachments.size > 0 && (!dm || (dm && ops.dmScanning)))) { // checks for an attachment.
 		if (ops.performanceMode) performanceLogger(`\n\n\n#${imgStats.imageLogCount + 1}: Image received\t`, postedTime.getTime());
 		if (dm) {
@@ -541,13 +541,14 @@ You can use them in <#${ops.profileChannel}> once you show you are above level $
 					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 					message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`);
 				});
+				return;
 			} else if (message.content.startsWith("/") || message.content.startsWith("!") || message.content.startsWith("?")) {
 				message.reply(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`).catch(() => {
 					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
 					message.author.send(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`);
 				});
+				return;
 			}
-			return;
 		}
 		if (ops.dmMail){
 			mail.mailDM(message);
