@@ -26,7 +26,7 @@ module.exports = {
 						resolve(log);
 					});
 				} else {
-          message.reply(`That command can only be used in the mail category: <#${ops.mailCategory}>. Use \`${ops.prefix}set mailCategory <id>\` to set it if it is incorrect.`);
+          message.reply(`That command can only be used in the mail category: <#${ops.mailCategory}>. \nUse \`${ops.prefix}set mailCategory <id>\` to set it if it is incorrect.\nYou might be looking for \`]revert\` aka \`]re\``);
           reject(`, but it failed, as ${message.channel.name}${message.channel} is not in the mail category: ${ops.mailCategory}.`);
         }
       } else {
