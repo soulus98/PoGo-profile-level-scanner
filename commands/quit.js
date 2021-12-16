@@ -3,7 +3,7 @@ const { replyNoMention } = require("../func/misc.js");
 module.exports = {
 	name: "force-quit",
 	description: "Forcibly quit the bot server. IDK why you'd need to do this but I've included it just in case.",
-  aliases: ["quit", "end"],
+  aliases: ["quit"],
   usage: `\`${ops.prefix}quit\``,
 	guildOnly:true,
 	execute(message) {

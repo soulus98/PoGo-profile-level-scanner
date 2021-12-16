@@ -9,7 +9,7 @@ let server = {},
 module.exports = {
 	name: "revert-screenshot-role",
 	description: "Will revert one member from having the Remote Raids role and both vanity roles. Will also dm and add to blacklist",
-	aliases: ["r", "revert", "revert-role"],
+	aliases: ["re", "revert", "revert-role"],
 	usage: `\`${ops.prefix}r <@mention/ID>\``,
 	guildOnly: true,
 	args: true,
