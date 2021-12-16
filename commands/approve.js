@@ -16,7 +16,6 @@ module.exports = {
   usage: `\`${ops.prefix}c <@mention/ID> [level]\``,
 	guildOnly:true,
   args: true,
-	permissions: "MANAGE_ROLES",
 	scanningOnly: true,
 	execute(input, args) {
 		return new Promise(function(bigResolve) {
