@@ -10,7 +10,7 @@ module.exports = {
 	name: "revert-screenshot-role",
 	description: "Will revert one member from having the Remote Raids role and both vanity roles. Will also dm and add to blacklist",
 	aliases: ["re", "revert", "revert-role"],
-	usage: `\`${ops.prefix}r <@mention/ID>\``,
+	usage: `\`${ops.prefix}re <@mention/ID>\``,
 	guildOnly: true,
 	args: true,
 	scanningOnly: true,
