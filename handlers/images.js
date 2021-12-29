@@ -6,7 +6,6 @@ const Discord = require("discord.js"),
 			mail = require("../handlers/dm.js"),
 			messagetxt = require("../server/messagetxt.js"),
 			{ messagetxtReplace } = require("../func/misc.js");
-let logs = {};
 
 function handleImage(message, postedTime, wasDelayed){
 	return new Promise((resolve, reject) => {
@@ -35,6 +34,7 @@ function handleImage(message, postedTime, wasDelayed){
 					} else res();
 				});
 				writeFile.then(() => {
+					const logs = (ops.logsChannel != "0") ? message.client.channels.cache.get(ops.logsChannel) : undefined;
 					if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Crop started\t`, postedTime.getTime());
 					crop(message).then((imgBuff) => {
 						if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Crop finished\t`, postedTime.getTime());
@@ -80,6 +80,7 @@ function handleImage(message, postedTime, wasDelayed){
 									});
 								}
 								if (failed || level > 50 || level < 1){
+									console.log(logString + `. I failed to find a number. Scanned text: ${text}.`);
 									if (dm && ops.dmMail) {
 										mail.mailDM(message);
 										reject();
@@ -97,7 +98,6 @@ function handleImage(message, postedTime, wasDelayed){
 											errorMessage(postedTime, dm, `Error: Could not send DM to ${message.author.username}${message.author}`);
 										});
 									}
-									console.log(logString + `. I failed to find a number. Scanned text: ${text}.`);
 									reject("Fail");
 									return;
 								} else { // this is the handler for role adding. It looks messy but is fine
@@ -145,11 +145,4 @@ function handleImage(message, postedTime, wasDelayed){
 	});
 }
 
-function passImgServ(l) {
-	return new Promise((res) => {
-		logs = l;
-		res();
-	});
-}
-
-module.exports = { handleImage, passImgServ };
+module.exports = { handleImage };

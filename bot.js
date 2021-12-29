@@ -45,10 +45,6 @@ imgStats = {
 blacklist = new Discord.Collection();
 let loaded = false,
 		config = {},
-		channel = {},
-		logs = {},
-		profile = {},
-		server = {},
 		filterList = [],
 		screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 ops = {};
@@ -89,21 +85,21 @@ function loadConfigs(){
 			resolve();
 		} else {
 			(async () => {
-				if (ops.serverID != "0") server = await client.guilds.fetch(ops.serverID);
-				if (ops.profileChannel != "0") profile = await client.channels.fetch(ops.profileChannel);
-				if (ops.screenshotScanning) {
-					if (ops.screenshotChannel != "0") channel = await client.channels.fetch(ops.screenshotChannel);
-					if (ops.logsChannel != "0") logs = await client.channels.fetch(ops.logsChannel);
-					const { passAppServ } = require("./commands/approve.js");
-					const { passRevServ } = require("./commands/revert.js");
-					const { passImgServ } = require("./handlers/images.js");
-					passAppServ([channel, profile, server, logs]);
-					passRevServ([channel, server]);
-					passImgServ(logs);
-				}
+				// if (ops.serverID != "0") server = await client.guilds.fetch(ops.serverID);
+				// if (ops.profileChannel != "0") profile = await client.channels.fetch(ops.profileChannel);
+				// if (ops.screenshotScanning) {
+				// 	if (ops.screenshotChannel != "0") channel = await client.channels.fetch(ops.screenshotChannel);
+				// 	if (ops.logsChannel != "0") logs = await client.channels.fetch(ops.logsChannel);
+				// 	const { passAppServ } = require("./commands/approve.js");
+				// 	const { passRevServ } = require("./commands/revert.js");
+				// 	const { passImgServ } = require("./handlers/images.js");
+				// 	passAppServ([channel, profile, server, logs]);
+				// 	passRevServ([channel, server]);
+				// 	passImgServ(logs);
+				// }
 				if (ops.dmMail) {
-					await mail.passServ(server);
-					mail.refreshMailLog();
+					const server = (ops.serverID != "0") ? await client.guilds.fetch(ops.serverID) : undefined;
+					await mail.passServ(server.name, server.iconURL());
 				}
 				console.log("\nReloaded configs\n");
 				resolve();
@@ -240,21 +236,21 @@ function loadBlacklist(){
 load();
 
 client.once("ready", async () => {
-	if (ops.serverID != "0") server = await client.guilds.fetch(ops.serverID);
-	if (ops.profileChannel != "0") profile = await client.channels.fetch(ops.profileChannel);
-	if (ops.logsChannel != "0") logs = await client.channels.fetch(ops.logsChannel);
-	if (ops.screenshotScanning) {
-		if (ops.screenshotChannel != "0") channel = await client.channels.fetch(ops.screenshotChannel);
-		const { passAppServ } = require("./commands/approve.js");
-		const { passRevServ } = require("./commands/revert.js");
-		const { passImgServ } = require("./handlers/images.js");
-		passAppServ([channel, profile, server, logs]);
-		passRevServ([channel, server]);
-		passImgServ(logs);
-	}
+	const server = (ops.serverID != "0") ? await client.guilds.fetch(ops.serverID) : undefined;
+	const logs = (ops.logsChannel != "0") ? await client.channels.fetch(ops.logsChannel) : undefined;
+	const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? await client.channels.fetch(ops.screenshotChannel) : undefined;
+	// if (ops.profileChannel != "0") profile = await client.channels.fetch(ops.profileChannel);
+	// if (ops.screenshotScanning) {
+	// 	if (ops.screenshotChannel != "0") channel = await client.channels.fetch(ops.screenshotChannel);
+	// 	const { passAppServ } = require("./commands/approve.js");
+	// 	const { passRevServ } = require("./commands/revert.js");
+	// 	const { passImgServ } = require("./handlers/images.js");
+	// 	passAppServ([channel, profile, server, logs]);
+	// 	passRevServ([channel, server]);
+	// 	passImgServ(logs);
+	// }
 	if (ops.dmMail) {
-		await mail.passServ(server);
-		mail.refreshMailLog();
+		await mail.passServ(server.name, server.iconURL());
 	}
 	const dev = await client.users.fetch("146186496448135168", false, true);
 	if (ops.serverID == "0" || server == undefined){
@@ -269,7 +265,7 @@ client.once("ready", async () => {
 		console.log("\nOops the logs channel is broken. Set \"logsChannel\" in the config.json. It is neccesary for permission reasons.");
 		return;
 	}
-	if (ops.screenshotScanning && ops.screenshotChannel != "0"){
+	if (ops.screenshotScanning){
 		channel.send(messagetxtReplace(messagetxt.load)).then(msg => {
 			if (ops.msgDeleteTime && !msg.deleted){
 				setTimeout(() => {
@@ -288,13 +284,13 @@ client.once("ready", async () => {
 			});
 		});
 	}
+	logs.send(messagetxtReplace(messagetxt.load));
 	loaded = true;
 	const activeServers = client.guilds.cache;
 	const activeServerList = [];
 	activeServers.each(serv => activeServerList.push(`"${serv.name}" aka #${serv.id}`));
 	dev.send(`**Dev message:** Active in:\n${activeServerList.join("\n")}`).catch(console.error);
 	dev.send(`**Dev message:** Loaded in guild: "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`).catch(console.error);
-	if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", -1);
 	console.log(`\nActive in:\n${activeServerList.join("\n")}`);
 	console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in guild: "${server.name}"#${server.id} ${(ops.screenshotScanning) ? `in channel: "${channel.name}"#${channel.id}` : ""}`);
 	console.log("\n======================================================================================\n");
@@ -359,6 +355,7 @@ function processImage(message, postedTime, wasDelayed){
 			imgStats.imageLogCount++;
 			imgStats.currentlyImage--;
 			if (err == "Fail") saveStats("Failure");
+			if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", 1);
 	});
 }
 
@@ -371,6 +368,7 @@ client.on("messageCreate", async message => {
 		}
 		return;
 	}
+	const profile = (ops.profileChannel != "0") ? client.channels.cache.get(ops.profileChannel) : undefined;
 	if (message.channel == profile) return; // Profile channel? Cancel
 	if (message.author.bot) return; // Bot? Cancel
 	if (message.content == `${client.user.toString().slice(0, 2) + "!" + client.user.toString().slice(2, client.user.toString().length)} wassup` || message.content == `${client.user} wassup`) return message.reply("nm, you?");
@@ -387,181 +385,186 @@ client.on("messageCreate", async message => {
 	if (ops.dmMail && !message.content.startsWith(prefix) && !message.content.startsWith(prefix2) && message.channel.parent && message.channel.parent.id == ops.mailCategory) {
 		mail.channelMsg(message);
 		return;
-	} else if ((message.content.startsWith(prefix) || message.content.startsWith(prefix2)) && message.guild == server) handleCommand(message, postedTime); // command handler
-	// image handler
-	else if (ops.screenshotScanning && (message.attachments.size > 0 && (!dm || (dm && ops.dmScanning)))) { // checks for an attachment.
-		if (ops.performanceMode) performanceLogger(`\n\n\n#${imgStats.imageLogCount + 1}: Image received\t`, postedTime.getTime());
-		if (dm) {
-			message.memb = await server.members.fetch(message.author.id);
-			saveStats("dm");
-		} else {
-			message.memb = message.member;
-		}
-		if (!dm && channel == undefined){
-			message.reply(`The screenshot channel could not be found. Please set it correctly using \`${prefix || prefix2}set screenshotChannel <id>\``).catch(() => {
-				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix || prefix2}set screenshotChannel <id>\``);
-			});
-			return;
-		}
-		if (ops.saveLocalCopy && screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
-			screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
-			await checkDateFolder(postedTime);
-		}
-		if (!dm && message.channel != channel) {
+	} else {
+		const server = client.guilds.cache.get(ops.serverID);
+		if ((message.content.startsWith(prefix) || message.content.startsWith(prefix2)) && message.guild == server) handleCommand(message, postedTime); // command handler
+		// image handler
+		else if (ops.screenshotScanning && (message.attachments.size > 0 && (!dm || (dm && ops.dmScanning)))) { // checks for an attachment.
+			if (ops.performanceMode) performanceLogger(`\n\n\n#${imgStats.imageLogCount + 1}: Image received\t`, postedTime.getTime());
+			if (dm) {
+				message.memb = await server.members.fetch(message.author.id);
+				saveStats("dm");
+			} else {
+				message.memb = message.member;
+			}
+			const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? client.channels.cache.get(ops.screenshotChannel) : undefined;
+			if (!dm && channel == undefined){
+				message.reply(`The screenshot channel could not be found. Please set it correctly using \`${prefix || prefix2}set screenshotChannel <id>\``).catch(() => {
+					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+					message.channel.send(`The screenshot channel could not be found. Please set it correctly using \`${prefix || prefix2}set screenshotChannel <id>\``);
+				});
+				return;
+			}
+			if (ops.saveLocalCopy && screensFolder != `./screens/Auto/${postedTime.toDateString()}`) {
+				screensFolder = `./screens/Auto/${postedTime.toDateString()}`;
+				await checkDateFolder(postedTime);
+			}
+			if (!dm && message.channel != channel) {
 
-// Some mail-ticket handling code should go here in the future
+	// Some mail-ticket handling code should go here in the future
 
-// This is no longer necessary, especially since other channels might be mail channels. Still should stress the importance of security
-// 			console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
-// 			message.reply(`I cannot scan an image in this channel. Please send it in ${channel}.
-// <@&${ops.modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`).catch(()=>{
-// 				errorMessage(postedTime, dm, `Error: I can not send a message in ${message.channel.name}${message.channel}`);
-// 			});
-			return;
-		}
-		const image = message.attachments.first();
-		const fileType = image.url.split(".").pop().toLowerCase();
-		const acceptedFileTypes = ["png", "jpg", "jpeg", "jfif", "tiff", "bmp"];
-		if (!acceptedFileTypes.includes(fileType) && !(image.contentType.split("/")[0] == "image")){
-			if (ops.dmMail && dm) return mail.mailDM(message, "wrong");
-			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused as ${fileType} is an invalid file type: `);
-			message.reply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`).catch(() => {
-				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.channel.send(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`);
-			});
-			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nFile is not an image. Not scanned.\n`, files: [image] });
-			saveStats("wrong");
-			return;
-		}
-		if (image.height < 50 || image.width < 50 || fileType.length > 6){
-			if (ops.dmMail && dm) return mail.mailDM(message, "tiny");
-			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused for being Empty/Tiny`);
-			message.reply("I cannot scan tiny images or images with no size information.\nIf you think this is in error, please tell a moderator.").catch(() => {
-				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.channel.send("I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.");
-			});
-			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nEmpty/Tiny image file. Not scanned.\n`, files: [image] });
-			saveStats("wrong");
-			return;
-		}
-		if (image.size / 1048576 > 15){ //
-			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused for being over 15mb: ${(image.size / 1048576).toFixed(2)}MB.`);
-			message.reply("I cannot handle such a large file.\nIf you think this is in error, please tell a moderator.").catch(() => {
-				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.channel.send("I cannot handle such a large file.\nIf you think this is in error, please tell a moderator.");
-			});
-			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nLarge file over 15MB: ${(image.size / 1048576).toFixed(2)}MB. Not scanned.\nFile url: ${image.url}` });
-			saveStats("wrong");
-			return;
-		}
-		if (message.memb == null){
-			if (ops.dmMail && dm) return mail.mailDM(message, "left");
-			errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, but left the server.`);
-			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nLeft the server. Not scanned.\n`, files: [image] });
-			saveStats("left");
-			return;
-		}
-		if (message.memb.roles.cache.has(ops.blacklistRole) && ops.blacklistRole){
-			if (ops.dmMail && dm) return mail.mailDM(message, "man-black");
-			message.reply(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`).catch(() => {
-				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.channel.send(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`);
-			});
-			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nNot scanned due to manual blacklist:\n<@&${ops.blacklistRole}>`, files: [image] });
-			console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, which was refused due to the manual blacklist`);
-			saveStats("black");
-			return;
-		}
-		if (message.memb.roles.cache.has(ops.level50Role) && message.memb.roles.cache.has(ops.level40Role) && message.memb.roles.cache.has(ops.targetLevelRole)){
-			if (ops.dmMail && dm) return mail.mailDM(message, "all");
-			message.author.send("You already have all available roles.").catch(() => {
-				errorMessage(postedTime, dm, `Error: Could not send DM to ${message.author.username}${message.author}`);
-			});
-			logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nRoles: All 3 already possessed`, files: [image] });
-			console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
-			if (!dm && ops.deleteScreens && !message.deleted) message.delete().catch(() => {
-				errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
-			});
-			saveStats("all");
-			return;
-		}
-		if (ops.blacklistTime > 0 && blacklist.has(message.author.id)){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
-			if (postedTime.getTime() - blacklist.get(message.author.id) < ops.blacklistTime){
-				if (ops.dmMail && dm) return mail.mailDM(message, "black");
+	// This is no longer necessary, especially since other channels might be mail channels. Still should stress the importance of security
+	// 			console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, but it was not scanned, since the channel ${message.channel.name}${message.channel} is not the correct channel. My access to this channel should be removed.`);
+	// 			message.reply(`I cannot scan an image in this channel. Please send it in ${channel}.
+	// <@&${ops.modRole}>, perhaps you should prohibit my access from this (and all other) channels except for ${channel}.`).catch(()=>{
+	// 				errorMessage(postedTime, dm, `Error: I can not send a message in ${message.channel.name}${message.channel}`);
+	// 			});
+				return;
+			}
+			const image = message.attachments.first();
+			const fileType = image.url.split(".").pop().toLowerCase();
+			const acceptedFileTypes = ["png", "jpg", "jpeg", "jfif", "tiff", "bmp"];
+			const logs = (ops.logsChannel != "0") ? client.channels.cache.get(ops.logsChannel) : undefined;
+			if (!acceptedFileTypes.includes(fileType) && !(image.contentType.split("/")[0] == "image")){
+				if (ops.dmMail && dm) return mail.mailDM(message, "wrong");
+				errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused as ${fileType} is an invalid file type: `);
+				message.reply(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`).catch(() => {
+					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+					message.channel.send(`I cannot scan this filetype: \`.${fileType}\`.\nIf you think this is in error, please tell a moderator.`);
+				});
+				logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nFile is not an image. Not scanned.\n`, files: [image] });
+				saveStats("wrong");
+				return;
+			}
+			if (image.height < 50 || image.width < 50 || fileType.length > 6){
+				if (ops.dmMail && dm) return mail.mailDM(message, "tiny");
+				errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused for being Empty/Tiny`);
+				message.reply("I cannot scan tiny images or images with no size information.\nIf you think this is in error, please tell a moderator.").catch(() => {
+					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+					message.channel.send("I cannot scan tiny or blank images.\nIf you think this is in error, please tell a moderator.");
+				});
+				logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nEmpty/Tiny image file. Not scanned.\n`, files: [image] });
+				saveStats("wrong");
+				return;
+			}
+			if (image.size / 1048576 > 15){ //
+				errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused for being over 15mb: ${(image.size / 1048576).toFixed(2)}MB.`);
+				message.reply("I cannot handle such a large file.\nIf you think this is in error, please tell a moderator.").catch(() => {
+					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+					message.channel.send("I cannot handle such a large file.\nIf you think this is in error, please tell a moderator.");
+				});
+				logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nLarge file over 15MB: ${(image.size / 1048576).toFixed(2)}MB. Not scanned.\nFile url: ${image.url}` });
+				saveStats("wrong");
+				return;
+			}
+			if (message.memb == null){
+				if (ops.dmMail && dm) return mail.mailDM(message, "left");
+				errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, but left the server.`);
+				logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nLeft the server. Not scanned.\n`, files: [image] });
+				saveStats("left");
+				return;
+			}
+			if (message.memb.roles.cache.has(ops.blacklistRole) && ops.blacklistRole){
+				if (ops.dmMail && dm) return mail.mailDM(message, "man-black");
+				message.reply(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`).catch(() => {
+					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+					message.channel.send(`<@&${ops.modRole}> This message was not scanned due to the manual blacklist.`);
+				});
+				logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nNot scanned due to manual blacklist:\n<@&${ops.blacklistRole}>`, files: [image] });
+				console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, which was refused due to the manual blacklist`);
 				saveStats("black");
-				message.author.send(messagetxtReplace(messagetxt.denyBlacklist, message.author)).catch(() => {
+				return;
+			}
+			if (message.memb.roles.cache.has(ops.level50Role) && message.memb.roles.cache.has(ops.level40Role) && message.memb.roles.cache.has(ops.targetLevelRole)){
+				if (ops.dmMail && dm) return mail.mailDM(message, "all");
+				message.author.send("You already have all available roles.").catch(() => {
 					errorMessage(postedTime, dm, `Error: Could not send DM to ${message.author.username}${message.author}`);
 				});
-				logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((ops.blacklistTime - (postedTime.getTime() - blacklist.get(message.author.id))) / 3600000).toFixed(1)} hours`, files: [image] });
+				logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nRoles: All 3 already possessed`, files: [image] });
+				console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
 				if (!dm && ops.deleteScreens && !message.deleted) message.delete().catch(() => {
 					errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 				});
-				console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, which was refused due to the auto blacklist`);
-				return;
-			} else {
-				blacklist.delete(message.author.id);
-				console.log(`[${dateToTime(postedTime)}]: Removed ${message.author.username}${message.author} from the blacklist.`);
-			}
-		}
-		if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Checks complete\t`, postedTime.getTime());
-// This checks whether a new image can be processed every second
-// It checks the current instance against the total amount of images completed so far
-// That way, only the next image in row can be processed
-// It is probably the most janky part of the bot
-// If the instance and the imageLogCount fall out of sync somehow, It breaks
-// an error should be handled properly (as uncaughtException iterates imageLogCount)
-// but would break if for example, 2 errors are caused by the same image
-// a better queue system might involve adding the image to a collection. not sure how I would do that
-// anyway, this definitely caused half of my issues when developing
-// hopefully it is bodged well enough to be stable
-		imgStats.imageAttempts++;
-		imgStats.currentlyImage++;
-		const instance = imgStats.imageAttempts;
-		new Promise((res) => {
-			if (imgStats.imageLogCount + 1 == instance){
-				res();
-			} else {
-				wasDelayed = true;
-				const intervalID = setInterval(function() {
-					if (imgStats.imageLogCount + 1 == instance){
-						res();
-						clearInterval(intervalID);
-					}
-				}, 250);
-			}
-		}).then(() => {
-			if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", 0);
-			if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Queue passed\t`, postedTime.getTime());
-			processImage(message, postedTime, wasDelayed); // handles the image, then checks the queue for more images
-		});
-	} else if (dm) {
-		if (ops.dmSymbolDenial) {
-			if (message.content.startsWith("$")) {
-				message.reply(`Commands starting with \`$\` are for a different bot (Pokénav).
-You can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`).catch(() => {
-					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-					message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`);
-				});
-				return;
-			} else if (message.content.startsWith("/") || message.content.startsWith("!") || message.content.startsWith("?")) {
-				message.reply(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`).catch(() => {
-					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-					message.author.send(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`);
-				});
+				saveStats("all");
 				return;
 			}
-		}
-		if (ops.dmMail){
-			mail.mailDM(message);
-		} else {
-			message.reply(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${ops.screenshotChannel}>.`).catch(() => {
-				errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.author.send(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${ops.screenshotChannel}>.`);
+			if (ops.blacklistTime > 0 && blacklist.has(message.author.id)){ // The blacklist is intended to prevent people from instantly bypassing the bot when their first screenshot fails
+				if (postedTime.getTime() - blacklist.get(message.author.id) < ops.blacklistTime){
+					if (ops.dmMail && dm) return mail.mailDM(message, "black");
+					saveStats("black");
+					message.author.send(messagetxtReplace(messagetxt.denyBlacklist, message.author)).catch(() => {
+						errorMessage(postedTime, dm, `Error: Could not send DM to ${message.author.username}${message.author}`);
+					});
+					logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((ops.blacklistTime - (postedTime.getTime() - blacklist.get(message.author.id))) / 3600000).toFixed(1)} hours`, files: [image] });
+					if (!dm && ops.deleteScreens && !message.deleted) message.delete().catch(() => {
+						errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
+					});
+					console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, which was refused due to the auto blacklist`);
+					return;
+				} else {
+					blacklist.delete(message.author.id);
+					console.log(`[${dateToTime(postedTime)}]: Removed ${message.author.username}${message.author} from the blacklist.`);
+				}
+			}
+			if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Checks complete\t`, postedTime.getTime());
+	// This checks whether a new image can be processed every second
+	// It checks the current instance against the total amount of images completed so far
+	// That way, only the next image in row can be processed
+	// It is probably the most janky part of the bot
+	// If the instance and the imageLogCount fall out of sync somehow, It breaks
+	// an error should be handled properly (as uncaughtException iterates imageLogCount)
+	// but would break if for example, 2 errors are caused by the same image
+	// a better queue system might involve adding the image to a collection. not sure how I would do that
+	// anyway, this definitely caused half of my issues when developing
+	// hopefully it is bodged well enough to be stable
+			imgStats.imageAttempts++;
+			imgStats.currentlyImage++;
+			const instance = imgStats.imageAttempts;
+			new Promise((res) => {
+				if (imgStats.imageLogCount + 1 == instance){
+					res();
+				} else {
+					wasDelayed = true;
+					const intervalID = setInterval(function() {
+						if (imgStats.imageLogCount + 1 == instance){
+							res();
+							clearInterval(intervalID);
+						}
+					}, 250);
+				}
+			}).then(() => {
+				if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", 0);
+				if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Queue passed\t`, postedTime.getTime());
+				processImage(message, postedTime, wasDelayed); // handles the image, then checks the queue for more images
 			});
-		}
-		return;
-	} else return;
+		} else if (dm) {
+			if (ops.dmSymbolDenial) {
+				if (message.content.startsWith("$")) {
+					message.reply(`Commands starting with \`$\` are for a different bot (Pokénav).
+	You can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`).catch(() => {
+						errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+						message.author.send(`Commands starting with \`$\` are for a different bot (Pokénav).\nYou can use them in <#${ops.profileChannel}> once you show you are above level ${ops.targetLevel}.`);
+					});
+					return;
+				} else if (message.content.startsWith("/") || message.content.startsWith("!") || message.content.startsWith("?")) {
+					message.reply(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`).catch(() => {
+						errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+						message.author.send(`That command is likely for a different bot.${(ops.dmMail) ? "\nIf you need any help just reply to this message to talk to the staff." : ""}`);
+					});
+					return;
+				}
+			}
+			if (ops.dmMail){
+				mail.mailDM(message);
+			} else {
+				message.reply(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${ops.screenshotChannel}>.`).catch(() => {
+					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+					message.author.send(`This bot does not currently work in dms.\nPlease send your profile screenshot in <#${ops.screenshotChannel}>.`);
+				});
+			}
+			return;
+		} else return;
+	}
 });
 
 if (ops.debugMode) {
@@ -610,17 +613,11 @@ if (ops.processInfoMode) {
 	let memBeforeScan = process.memoryUsage();
 	let memAfterScan = memBeforeScan;
 	let memNow = memBeforeScan;
+	logMemory("Start", memNow);
 	process.on("logCurrentMemoryUsage", (state) => {
 		if (state == 1) {
 			memAfterScan = process.memoryUsage();
 			logMemory("After", memAfterScan);
-		} else if (state == -1) {
-			const memNowArr = [];
-			for (const v in memNow) {
-				memNowArr.push(`\n ${v}: ${Math.round(memNow[v] / 1024 / 1024 * 100) / 100} MB`);
-			}
-			if (ops.screenshotScanning) channel.send(`Starting memory usage:${memNowArr}`);
-			console.log(`Starting memory usage:${memNowArr}`);
 		} else if (state.id > 0) {
 			memNow = process.memoryUsage();
 			const memArr = [];
@@ -646,7 +643,7 @@ function logMemory(state, mem) {
 	const external = Math.round(mem.external / 1024 / 1024 * 100) / 100;
 	const arrayBuffers = Math.round(mem.arrayBuffers / 1024 / 1024 * 100) / 100;
 	fs.appendFile(path.resolve(__dirname, "./server/memory.txt"),
-	`\n[${dateToTime(new Date())}]: ${state} scan #${(state == "Before") ? imgStats.imageLogCount + 1 : imgStats.imageLogCount}: rss = ${rss} Heap: ${heapUsed}/${heapTot} Ext:${external} arrayBuffs: ${arrayBuffers}`, (err) => {
+	`\n[${dateToTime(new Date())}]: ${(state == "Start") ? "Starting memory usage: " : `${state} scan #${(state == "Before") ? imgStats.imageLogCount + 1 : imgStats.imageLogCount}: `}rss = ${rss} Heap: ${heapUsed}/${heapTot} Ext:${external} arrayBuffs: ${arrayBuffers}`, (err) => {
 		if (err) console.error(err);
 	});
 }
@@ -705,6 +702,7 @@ process.on("uncaughtException", (err) => {
 		imgStats.currentlyImage--;
 	}
 	if (err != null) {
+		const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? client.channels.cache.get(ops.screenshotChannel) : undefined;
 		if (err.message.substr(0, 35) == "Error: UNKNOWN: unknown error, open"){
 			console.error(`[${dateToTime(new Date())}]: Error: Known imageWrite crash. Consider turning off saveLocalCopy. This error should be handled correctly.`);
 			if (ops.screenshotChannel != "0") channel.send("An internal error occured. Please retry sending the screenshot(s) that failed.").then((errorMsg) => {
@@ -739,6 +737,7 @@ process.on("unhandledRejection", (err, promise) => {
 
 process.on("SIGINT", () => {
   console.log(`Process ${process.pid} has been interrupted`);
+	const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? client.channels.cache.get(ops.screenshotChannel) : undefined;
 	if (ops.screenshotChannel != "0") channel.send("The bot is sleeping now. Goodbye :wave:").then(() => {
 		process.exit(1);
 	});

@@ -4,9 +4,7 @@ const Discord = require("discord.js"),
 			{ messagetxtReplace } = require("../func/misc.js"),
 			fs = require("fs"),
 			path = require("path");
-let queue = new Discord.Collection(),
-		server = {},
-		logs = {};
+let queue = new Discord.Collection();
 const tempQueue = [],
 trapEmbed = new Discord.MessageEmbed();
 
@@ -77,6 +75,7 @@ function channelMsg(message) {
 
 // function when a dm comes in
 async function mailDM(message, status, level) {
+	const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
   server.members.fetch(message.author.id).then((member) => {
 		let wasTemp = false;
 		if (tempQueue.includes(member.id)) {
@@ -113,6 +112,7 @@ async function mailDM(message, status, level) {
 				} else {
 					sendWithImg(message, channel, [embedIn]);
 				}
+				const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 				logs.send({ embeds: [embedIn] });
 				member.send({ embeds: [embedOut] });
 			});
@@ -123,7 +123,7 @@ async function mailDM(message, status, level) {
 			}
 			tempQueue.push(member.id);
 			message.reply({ embeds: [trapEmbed] }).then((msg) => {
-				console.log(`Pending mail ticket from ${message.author.username}`);
+				console.log(`[${dateToTime(new Date())}]: Pending mail ticket from ${message.author.username}`);
 				msg.react("✅").then(() => msg.react("❌"));
 				const filter = (reaction, usr) => {
 					return ["✅", "❌"].includes(reaction.emoji.name) && usr.id === message.author.id;
@@ -147,20 +147,21 @@ async function mailDM(message, status, level) {
 									sendWithImg(message, channel, [embedIn]);
 								}
 								embedIn.setTitle("New Ticket Created");
+								const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 								logs.send({ embeds: [embedIn] });
 								member.send({ embeds: [embedOut] });
 							});
 						});
 					} else {
 						tempQueue.splice(tempQueue.indexOf(member.id));
-						console.log(`Pending ticket from ${message.author.username} cancelled`);
+						console.log(`[${dateToTime(new Date())}]: Pending ticket from ${message.author.username} cancelled`);
 						msg.delete()
 						.catch((err) => console.error("Failed to delete dm trap:", err));
 						member.send("Message not sent. Please send another message if you need support.");
 					}
 				}).catch(() => {
 					tempQueue.splice(tempQueue.indexOf(member.id));
-					console.log(`Pending ticket from ${message.author.username} expired`);
+					console.log(`[${dateToTime(new Date())}]: Pending ticket from ${message.author.username} expired`);
 					msg.delete()
 					.catch((err) => console.error("Failed to delete dm trap:", err));
 				});
@@ -187,6 +188,7 @@ function hostOpen(message, args) {
 			reject(`, but it failed, as a channel already existed for user: ${id}. Channel: ${queue.get(id)}`);
 			return;
 		}
+		const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
 		server.members.fetch(id).then(async (member) => {
 			const embedIn = await newEmbed(message, "hostOpen");
 			embedIn.setTitle("New Ticket");
@@ -200,6 +202,7 @@ function hostOpen(message, args) {
 					.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
 					embedStart.addField("Ticket opened by:", message.author.toString());
 					await channel.send({ content: `${member.user} (${member.user.id})`, embeds: [embedStart] });
+					const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 					logs.send({ embeds: [embedIn] }).then(() => {
 						message.delete();
 						resolve();
@@ -244,6 +247,7 @@ async function close(message, args) {
 				});
 				queue.delete(user.id);
 			}
+			const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 			logs.send({ embeds: [embedIn] });
 			message.channel.delete();
 			saveQueue();
@@ -276,6 +280,7 @@ function reply(message, content) {
 			embedOut.setFooter(message.guild.name, message.guild.iconURL())
 			.setTitle("Message Received");
 			sendWithImg(message, member.user, [embedOut]).then(() => {
+				const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 				logs.send({ embeds: [embedIn] });
 				sendWithImg(message, message.channel, [embedIn]).then(() => message.delete());
 				resolve();
@@ -291,6 +296,7 @@ function newChannel(message, member) {
 	const user = member.user;
 	return new Promise((resolve) => {
 		const ticketName = `${user.username}-${user.discriminator}`;
+		const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
 		server.channels.create(ticketName, {
 			parent:ops.mailCategory,
 		}).then((channel) => {
@@ -510,6 +516,7 @@ function getUser(message, id){
 		}).then(userId => {
 			if (!userId) reject();
 			else {
+				const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
 				server.members.fetch(userId).then((m) => {
 					resolve([m, false]);
 				}).catch((err) => {
@@ -548,6 +555,7 @@ function alertMsg(user, status, level, given30, given40, given50) {
 				sendMsg = "Impossible error alertMsg status switch broke. Please tell soul";
 				console.error(`[${dateToTime(new Date())}]: Error: alertMsg status switch broke. Impossible bug? Status: ${status}`);
 			}
+			const server = (ops.serverID != "0") ? user.client.guilds.cache.get(ops.serverID) : undefined;
 			server.channels.fetch(queue.get(user.id)).then((channel) => {
 				channel.send(`**==================================================================
 Bot note:** ${sendMsg}
@@ -561,22 +569,16 @@ Bot note:** ${sendMsg}
 }
 
 
-function passServ(s) {
+function passServ(name, icon) {
 	return new Promise((res) => {
-		server = s;
 		trapEmbed.setTitle("Server Staff Mail")
-		.setDescription(`Would you like to make a new support ticket by sending that message to the staff at ${server.name}?
+		.setDescription(`Would you like to make a new support ticket by sending that message to the staff at ${name}?
 	React with ✅ for yes and ❌ for no. (This will last 60 seconds)`)
 		.setColor("#4B85FF")
-		.setFooter(server.name, server.iconURL());
+		.setFooter(name, icon);
 		res();
 	});
 }
 
-function refreshMailLog() {
-	server.client.channels.fetch(ops.mailLogChannel).then((l) => {
-		logs = l;
-	});
-}
 
-module.exports = { mailDM, channelMsg, passServ, refreshMailLog, loadMailQueue, alertMsg, hostOpen, close, reply, sync };
+module.exports = { mailDM, passServ, channelMsg, loadMailQueue, alertMsg, hostOpen, close, reply, sync };
