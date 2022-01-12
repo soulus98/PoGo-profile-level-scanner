@@ -6,7 +6,8 @@ const Discord = require("discord.js"),
 			path = require("path");
 let queue = new Discord.Collection();
 const tempQueue = [],
-trapEmbed = new Discord.MessageEmbed();
+trapEmbed = new Discord.MessageEmbed(),
+closeList = new Discord.Collection();
 
 function loadMailQueue() {
 	return new Promise(function(resolve, reject) {
@@ -564,6 +565,30 @@ Bot note:** ${sendMsg}
 	});
 }
 
+function addToCloseList(t, ch, date) {
+	deleteAndClearTimer(ch);
+	closeList.set(ch, { timeout: t, timeoutTime: date });
+}
+
+function printCloseList() {
+	if (closeList.size == 0) {
+		return "There are no current timers";
+	}
+	const listArr = [];
+	for (const t of closeList) {
+		listArr.push(`<#${t[0]}>: ${((t[1].timeoutTime - Date.now()) / 3600000).toFixed(2)}hrs`);
+	}
+	return listArr.join("\n");
+}
+
+function deleteAndClearTimer(ch) {
+	return new Promise(function(resolve) {
+		if (!closeList.get(ch)) return resolve("not found");
+		clearTimeout(closeList.get(ch).timeout);
+		closeList.delete(ch);
+		resolve();
+	});
+}
 
 function passServ(name, icon) {
 	return new Promise((res) => {
@@ -577,4 +602,4 @@ function passServ(name, icon) {
 }
 
 
-module.exports = { mailDM, passServ, channelMsg, loadMailQueue, alertMsg, hostOpen, close, reply, sync };
+module.exports = { mailDM, passServ, channelMsg, loadMailQueue, alertMsg, hostOpen, close, reply, sync, addToCloseList, deleteAndClearTimer, printCloseList };
