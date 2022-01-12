@@ -4,10 +4,11 @@ const { saveStats } = require("../func/stats.js"),
 			mail = require("../handlers/dm.js"),
 			messagetxt = require("../server/messagetxt.js"),
 			{ messagetxtReplace } = require("../func/misc.js");
-let server = {},
-		channel = {},
-		profile = {},
-		logs = {};
+
+// const server = (ops.serverID != "0") ? client.guilds.cache.get(ops.serverID) : undefined;
+// const logs = (ops.logsChannel != "0") ? client.guilds.cache.get(ops.logsChannel) : undefined;
+// const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? client.guilds.cache.get(ops.screenshotChannel) : undefined;
+// const profile = (ops.profileChannel != "0") ? client.guilds.cache.get(ops.profileChannel) : undefined;
 
 module.exports = {
 	name: "confirm-screenshot",
@@ -24,6 +25,7 @@ module.exports = {
 				if (input[1] == undefined) {
 					const inCommand = true;
 					const message = input;
+					const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
 					if (args[2] || args[1] > 50 || args[1] < 1 || (args[1] && isNaN(args[1]))){
 						message.reply(`Please provide only one user and one level in the format \`${ops.prefix}c <@mention/ID> [level]\``);
 						bigResolve(", but it failed, since the format was wrong.");
@@ -98,6 +100,10 @@ module.exports = {
 			// role id === undefined
 			// any other mistype === undefined
 			prom.then(function([inCommand, message, postedTime, image, level, id, member]) {
+				const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
+				const logs = (ops.logsChannel != "0") ? message.client.channels.cache.get(ops.logsChannel) : undefined;
+				const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
+				const profile = (ops.profileChannel != "0") ? message.client.channels.cache.get(ops.profileChannel) : undefined;
 				const dm = (message.channel.type == "DM") ? true : false;
 				if (member === null){
 					console.error(`[${execTime}]: Error: #${id} left the server before they could be processed.`);
@@ -291,18 +297,10 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 			});
 		});
 	},
-	passAppServ([c, p, s, l]) {
-		return new Promise((res) => {
-			channel = c;
-			profile = p;
-			server = s;
-			logs = l;
-			res();
-		});
-	},
 };
 
 function deleteStuff(message, execTime, id){
+	const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
 	if (!message.deleted && ops.msgDeleteTime && !(message.channel.parent && message.channel.parent.id == ops.mailCategory)){
 		setTimeout(function() {
 			message.delete().catch(() => {
@@ -315,7 +313,7 @@ function deleteStuff(message, execTime, id){
 			((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0, 4) != "Hey,") // bot messages
 			|| ((msg.author.id == id) && !msg.pinned)); // member messages
 		channel.bulkDelete(selfMsgs).catch((err) => {
-			console.error(`[${execTime}]: Error: Could not bulk delete messages: ${selfMsgs}. Error message: ${err}`);
+			console.error(`[${execTime}]: Error: Could not bulk delete ${selfMsgs.size} messages. Error message: ${err}`);
 		});
 	});
 }

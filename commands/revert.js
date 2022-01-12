@@ -3,8 +3,6 @@ const { saveStats } = require("../func/stats.js"),
 			{ saveBlacklist } = require("../func/saveBlacklist.js"),
 			messagetxt = require("../server/messagetxt.js"),
 			{ messagetxtReplace } = require("../func/misc.js");
-let server = {},
-		channel = {};
 
 module.exports = {
 	name: "revert-screenshot-role",
@@ -15,6 +13,8 @@ module.exports = {
 	args: true,
 	scanningOnly: true,
 	execute(message, args) {
+		const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
+		const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
 		return new Promise(function(bigResolve) {
 		if (args[1]){
 			message.reply(`Please provide only one user in the format \`${ops.prefix}r <@mention/ID>\``);
@@ -142,7 +142,7 @@ module.exports = {
 								((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0, 4) != "Hey,") // bot messages
 								|| ((msg.author.id == id) && !msg.pinned)); // member messages
 							channel.bulkDelete(selfMsgs).catch((err) => {
-								console.error(`[${execTime}]: Error: Could not bulk delete messages: ${selfMsgs}. Error message: ${err}`);
+								console.error(`[${execTime}]: Error: Could not bulk delete ${selfMsgs.size} messages. Error message: ${err}`);
 							});
 						});
 					} else {
@@ -151,13 +151,6 @@ module.exports = {
 					}
 				});
 			});
-		});
-	},
-	passRevServ([c, s]) {
-		return new Promise((res) => {
-			channel = c;
-			server = s;
-			res();
 		});
 	},
 };
