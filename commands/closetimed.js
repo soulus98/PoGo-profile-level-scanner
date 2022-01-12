@@ -38,7 +38,7 @@ module.exports = {
 			}
 			const timehr = (isNaN(args[0])) ? undefined : args[0];
 			if (!timehr) {
-				message.reply("I cannot discern an amount of hours from:`", timehr, "`");
+				message.reply("I cannot discern an amount of hours from:`", args[0], "`");
 				resolve(`, but it failed, as ${timehr} is not a number.`);
 				return;
 			}
