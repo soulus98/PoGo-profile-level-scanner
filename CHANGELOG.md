@@ -1,4 +1,5 @@
 # v2.3 (2021-Jan-12)
+* Added tclose (timedclose)
 * Removed some always active variables (the guild and 4 channels) to save memory. Hopefully DJS cleaners work well to fix the rest
 
 # v2.2.2 (2021-Dec-16)
