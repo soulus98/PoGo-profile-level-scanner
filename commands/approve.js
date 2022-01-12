@@ -101,9 +101,9 @@ module.exports = {
 			// any other mistype === undefined
 			prom.then(function([inCommand, message, postedTime, image, level, id, member]) {
 				const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
-				const logs = (ops.logsChannel != "0") ? message.client.guilds.cache.get(ops.logsChannel) : undefined;
-				const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.guilds.cache.get(ops.screenshotChannel) : undefined;
-				const profile = (ops.profileChannel != "0") ? message.client.guilds.cache.get(ops.profileChannel) : undefined;
+				const logs = (ops.logsChannel != "0") ? message.client.channels.cache.get(ops.logsChannel) : undefined;
+				const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
+				const profile = (ops.profileChannel != "0") ? message.client.channels.cache.get(ops.profileChannel) : undefined;
 				const dm = (message.channel.type == "DM") ? true : false;
 				if (member === null){
 					console.error(`[${execTime}]: Error: #${id} left the server before they could be processed.`);
@@ -300,7 +300,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 };
 
 function deleteStuff(message, execTime, id){
-	const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.guilds.cache.get(ops.screenshotChannel) : undefined;
+	const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
 	if (!message.deleted && ops.msgDeleteTime && !(message.channel.parent && message.channel.parent.id == ops.mailCategory)){
 		setTimeout(function() {
 			message.delete().catch(() => {
@@ -313,7 +313,7 @@ function deleteStuff(message, execTime, id){
 			((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0, 4) != "Hey,") // bot messages
 			|| ((msg.author.id == id) && !msg.pinned)); // member messages
 		channel.bulkDelete(selfMsgs).catch((err) => {
-			console.error(`[${execTime}]: Error: Could not bulk delete messages: ${selfMsgs}. Error message: ${err}`);
+			console.error(`[${execTime}]: Error: Could not bulk delete ${selfMsgs.size} messages. Error message: ${err}`);
 		});
 	});
 }

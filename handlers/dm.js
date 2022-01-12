@@ -500,17 +500,13 @@ function sync(message, args) {
 function getUser(message, id){
 	return new Promise(function(resolve, reject) {
 		new Promise((res) => {
-			if (id) res(id);
+			if (id) return res(id);
 			const channelId = message.channel.id;
 			let i = 0;
 			for (const [k, v] of queue){
 				i++;
-				if (v == channelId) {
-					res(k);
-					return;
-				} else if (queue.size == i) {
-					res(false);
-				}
+				if (v == channelId)	return res(k);
+				else if (queue.size == i) return res(false);
 			}
 			return;
 		}).then(userId => {
