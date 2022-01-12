@@ -116,8 +116,9 @@ async function mailDM(message, status, level) {
 				const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 				logs.send({ embeds: [embedIn] });
 				member.send({ embeds: [embedOut] });
-				deleteAndClearTimer(channel.id).then(() => {
-					channel.send("Close timer cancelled");
+				deleteAndClearTimer(channel.id).then((msg) => {
+					if (msg == "not found") return;
+					else channel.send("Close timer cancelled");
 				});
 			});
 		} else {
@@ -288,8 +289,9 @@ function reply(message, content) {
 				logs.send({ embeds: [embedIn] });
 				sendWithImg(message, message.channel, [embedIn]).then(() => message.delete());
 				resolve();
-				deleteAndClearTimer(message.channel.id).then(() => {
-					message.channel.send("Close timer cancelled");
+				deleteAndClearTimer(message.channel.id).then((msg) => {
+					if (msg == "not found") return;
+					else message.channel.send("Close timer cancelled");
 				});
 			});
 		}).catch(() => {
