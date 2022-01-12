@@ -1,5 +1,5 @@
 # v2.3 (2021-Jan-12)
-* Added tclose (timedclose)
+* Added `]tclose` (timed-close). Use it to set an amount of hours (0.1-48) to close the ticket after. It will cancel itself on a new reply being sent or received. Use `]tclose cancel` to cancel a timer and `]tclose list` to list all active timers. The list is only informational, the actual work is done using a simple setTimeout so it is very unstable. i.e. will disappear on a bot restart
 * Removed some always active variables (the guild and 4 channels) to save memory. Hopefully DJS cleaners work well to fix the rest
 
 # v2.2.2 (2021-Dec-16)

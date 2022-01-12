@@ -116,6 +116,9 @@ async function mailDM(message, status, level) {
 				const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 				logs.send({ embeds: [embedIn] });
 				member.send({ embeds: [embedOut] });
+				deleteAndClearTimer(channel.id).then(() => {
+					channel.send("Close timer cancelled");
+				});
 			});
 		} else {
 			if (message.content.length < 10 && !message.attachments.first()) {
@@ -285,6 +288,9 @@ function reply(message, content) {
 				logs.send({ embeds: [embedIn] });
 				sendWithImg(message, message.channel, [embedIn]).then(() => message.delete());
 				resolve();
+				deleteAndClearTimer(message.channel.id).then(() => {
+					message.channel.send("Close timer cancelled");
+				});
 			});
 		}).catch(() => {
 			if (content) reject(`, but it failed, as channel ${message.channel.name}${message.channel} is not linked to a user.`);
