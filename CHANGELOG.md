@@ -1,4 +1,8 @@
-# v2.3.1 (2021-Jan-xx)
+# v2.3.2 (2021-Feb-16)
+* Updated README and cleaned up some setup stuff
+* Should now be a normal setup for first-timers
+
+# v2.3.1 (2021-Jan-??)
 * Added a check for images over 8MB/50MB
 * Some small backend changes
 
