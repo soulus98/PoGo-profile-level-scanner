@@ -76,6 +76,10 @@ function channelMsg(message) {
 
 // function when a dm comes in
 async function mailDM(message, status, level) {
+	// if (message.attachments.first() && message.attachments.first().size / 1048576 > 50){ // size checking
+	// 	message.reply("I cannot handle such a large file.\nThe limit is 50MB.\nPlease reduce the file size using paint or something similar.");
+	// 	return;
+	// }
 	const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
   server.members.fetch(message.author.id).then((member) => {
 		let wasTemp = false;
@@ -103,22 +107,19 @@ async function mailDM(message, status, level) {
 			}).then(async (channel) => {
 				const embedIn = await newEmbed(message, "userReply");
 				const embedOut = new Discord.MessageEmbed(embedIn);
-				embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.id, member.user.avatarURL({ dynamic:true }))
+				embedIn.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.id, iconURL: member.user.avatarURL({ dynamic:true }) })
 				.setTitle("Message Received");
-				embedOut.setFooter(server.name, server.iconURL())
+				embedOut.setFooter({ text: server.name, iconURL: server.iconURL() })
 				.setTitle("Message Sent");
-				if (status && ops.dmScanning) {
-					await checkStatus(status, message, channel, level);
-					sendWithImg(message, channel, [embedIn]);
-				} else {
-					sendWithImg(message, channel, [embedIn]);
-				}
-				const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
-				logs.send({ embeds: [embedIn] });
-				member.send({ embeds: [embedOut] });
-				deleteAndClearTimer(channel.id).then((msg) => {
-					if (msg == "not found") return;
-					else channel.send("Close timer cancelled");
+				if (status && ops.dmScanning) await checkStatus(status, message, channel, level);
+				sendWithImg(message, channel, [embedIn]).then(() => {
+					const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
+					logs.send({ embeds: [embedIn] });
+					member.send({ embeds: [embedOut] });
+					deleteAndClearTimer(channel.id).then((msg) => {
+						if (msg == "not found") return;
+						else channel.send("Close timer cancelled");
+					});
 				});
 			});
 		} else {
@@ -127,6 +128,7 @@ async function mailDM(message, status, level) {
 				return;
 			}
 			tempQueue.push(member.id);
+			trapEmbed.setTimestamp();
 			message.reply({ embeds: [trapEmbed] }).then((msg) => {
 				console.log(`[${dateToTime(new Date())}]: Pending mail ticket from ${message.author.username}`);
 				msg.react("✅").then(() => msg.react("❌"));
@@ -139,22 +141,21 @@ async function mailDM(message, status, level) {
 							console.log(`[${dateToTime(new Date())}]: ${member.user.username}${member} opened a new ticket via DM`);
 							const embedIn = await newEmbed(message, "userReply");
 							const embedOut = new Discord.MessageEmbed(embedIn);
-							embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.id, member.user.avatarURL({ dynamic:true }))
+							embedIn.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.id, iconURL: member.user.avatarURL({ dynamic:true }) })
 							.setTitle("Message Received");
-							embedOut.setFooter(server.name, server.iconURL())
+							embedOut.setFooter({ text: server.name, iconURL: server.iconURL() })
 							.setTitle("New Ticket Created")
 							.addField("\u200b", `**${messagetxtReplace(messagetxt.dmOpen, member.user)}**`);
 							channel.send({ content: `${member} (${member.id})`, embeds: [embedStart] }).then(async () => {
 								if (status && ops.dmScanning) {
 									await checkStatus(status, message, channel, level);
-									sendWithImg(message, channel, [embedIn]);
-								} else {
-									sendWithImg(message, channel, [embedIn]);
 								}
-								embedIn.setTitle("New Ticket Created");
-								const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
-								logs.send({ embeds: [embedIn] });
-								member.send({ embeds: [embedOut] });
+								sendWithImg(message, channel, [embedIn]).then(() => {
+									embedIn.setTitle("New Ticket Created");
+									const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
+									logs.send({ embeds: [embedIn] });
+									member.send({ embeds: [embedOut] });
+								});
 							});
 						});
 					} else {
@@ -199,17 +200,17 @@ function hostOpen(message, args) {
 			embedIn.setTitle("New Ticket");
 			const embedOut = new Discord.MessageEmbed(embedIn);
 			embedOut.setDescription(messagetxtReplace(messagetxt.dmHostOpen, message.author).replace(/<server>/g, `**${server.name}**`))
-			.setFooter(server.name, server.iconURL());
+			.setFooter({ text: server.name, iconURL: server.iconURL() });
 			member.send({ embeds: [embedOut] }).then(() => {
 				newChannel(message, member).then(async ([channel, embedStart]) => {
 					console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} opened a new ticket with ${member.user.username}${member.user.toString()}`);
 					embedIn.setDescription(`Ticket opened with: ${member.user.toString()}\n${channel.toString()}\nOpened by: ${message.author.toString()}`)
-					.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
+					.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.user.id, iconURL: member.user.avatarURL({ dynamic:true }) });
 					embedStart.addField("Ticket opened by:", message.author.toString());
 					await channel.send({ content: `${member.user} (${member.user.id})`, embeds: [embedStart] });
 					const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 					logs.send({ embeds: [embedIn] }).then(() => {
-						message.delete();
+						message.delete().catch(() => console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`)); // eslint-disable-line max-nested-callbacks
 						resolve();
 					});
 				});
@@ -233,11 +234,11 @@ async function close(message, args) {
 			else embedIn.setDescription(args);
 			const embedOut = new Discord.MessageEmbed(embedIn);
 			if (member) {
-				embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }));
+				embedIn.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.user.id, iconURL: member.user.avatarURL({ dynamic:true }) });
 			} else {
-				embedIn.setFooter(user.tag + " | " + user.id, user.avatarURL({ dynamic:true }));
+				embedIn.setFooter({ text: user.tag + " | " + user.id, iconURL: user.avatarURL({ dynamic:true }) });
 			}
-			embedOut.setFooter(message.guild.name, message.guild.iconURL())
+			embedOut.setFooter({ text: message.guild.name, iconURL: message.guild.iconURL() })
 			.addField("\u200b", `**${messagetxtReplace(messagetxt.dmClose, member.user)}**`);
 			if (member) {
 				member.send({ embeds: [embedOut] }).catch(() => {
@@ -254,7 +255,10 @@ async function close(message, args) {
 			}
 			const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 			logs.send({ embeds: [embedIn] });
-			message.channel.delete();
+			message.channel.delete().catch(() => {
+				console.error(`[${dateToTime(new Date())}]: Error: Could not delete channel: ${message.channel.url}\nI likely need "Manage Channels" permission."`);
+				message.reply(`I can not delete the channel, I may need the \`MANAGE_CHANNELS\` permission in <#${ops.mailCategory}>`);
+			});
 			saveQueue();
 			if (member) {
 				console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} closed the ticket with ${member.user.username}${member.user.toString()}`);
@@ -280,9 +284,9 @@ function reply(message, content) {
 			}
 			const embedIn = await newEmbed(message, "hostReply", content || false);
 			const embedOut = new Discord.MessageEmbed(embedIn);
-			embedIn.setFooter((member.nickname || member.user.tag) + " | " + member.user.id, member.user.avatarURL({ dynamic:true }))
+			embedIn.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.user.id, iconURL: member.user.avatarURL({ dynamic:true }) })
 			.setTitle("Message Sent");
-			embedOut.setFooter(message.guild.name, message.guild.iconURL())
+			embedOut.setFooter({ text: message.guild.name, iconURL: message.guild.iconURL() })
 			.setTitle("Message Received");
 			sendWithImg(message, member.user, [embedOut]).then(() => {
 				const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
@@ -315,7 +319,7 @@ function newChannel(message, member) {
 			const embedStart = new Discord.MessageEmbed()
 			.setColor("#4B85FF")
 			.setTitle("New Ticket")
-			.setFooter((member.nickname || user.tag) + " | " + user.id, user.avatarURL({ dynamic:true }))
+			.setFooter({ text: (member.nickname || user.tag) + " | " + user.id, iconURL: user.avatarURL({ dynamic:true }) })
 			.addField("User", user.toString() + "\n" + user.id, true);
 			if (ops.dmAutoReply) {
 				embedStart.setDescription("Type a message in this channel to reply. Messages starting with the mail prefix '=' are ignored, and can be used for staff discussion. Use the command `=close [reason]` to close this ticket.");
@@ -348,10 +352,10 @@ function newEmbed(message, status, content){ // open, hostOpen, hostReply, userR
 		const embed = new Discord.MessageEmbed();
 		if (status == "close") {
 			embed.setColor("#FF0000")
-			.setAuthor(message.member.nickname || message.author.tag, message.author.avatarURL({ dynamic:true }));
+			.setAuthor({ name: message.member.nickname || message.author.tag, iconURL: message.author.avatarURL({ dynamic:true }), url: `https://discord.com/users/${message.author.id}` });
 		} else if (status == "hostOpen") {
 			embed.setColor("#F94819")
-			.setAuthor(message.member.nickname || message.author.tag, message.author.avatarURL({ dynamic:true }));
+			.setAuthor({ name: message.member.nickname || message.author.tag, iconURL: message.author.avatarURL({ dynamic:true }), url: `https://discord.com/users/${message.author.id}` });
 		} else {
 			let stickers;
 			if (message.stickers.size > 0) {
@@ -377,7 +381,7 @@ function newEmbed(message, status, content){ // open, hostOpen, hostReply, userR
 				embed.setColor("#00FF0A");
 			} else if (status == "hostReply") {
 				embed.setColor("#F94819")
-				.setAuthor(message.member.nickname || message.author.tag, message.author.avatarURL({ dynamic:true }));
+				.setAuthor({ name: message.member.nickname || message.author.tag, iconURL: message.author.avatarURL({ dynamic:true }), url: `https://discord.com/users/${message.author.id}` });
 			} else if (status == "userReply") {
 				embed.setColor("#00FF0A");
 			}
@@ -393,39 +397,25 @@ function sendWithImg(message, target, embArr) { // hostReply
 		if (message.attachments.size > 0) {
 			filesArr = message.attachments.map(a => a);
 		}
-		if (filesArr){
-			target.send({ embeds: embArr, files: filesArr }).then(() => resolve()).catch((err) => {
-				if (target instanceof Discord.User && err.httpStatus == 403) {
-					console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${target.username}${target}.`);
-					message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
-					return;
-				} else {
-					console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg... Error: ${err}`);
-					console.error("message:");
-					console.error(message);
-					console.error("target");
-					console.error(target);
-					message.reply("An error occured... please tell a moderator");
-					return;
-				}
-			});
-		} else {
-			target.send({ embeds: embArr }).then(() => resolve()).catch((err) => {
-				if (target instanceof Discord.User && err.httpStatus == 403) {
-					console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${target.username}${target}.`);
-					message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
-					return;
-				} else {
-					console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg... Error: ${err}`);
-					console.error("message:");
-					console.error(message);
-					console.error("target");
-					console.error(target);
-					message.reply("An error occured... please tell a moderator");
-					return;
-				}
-			});
-		}
+		const msgOpts = (filesArr) ? { embeds: embArr, files: filesArr } : { embeds: embArr };
+		target.send(msgOpts).then(() => resolve()).catch((err) => {
+			if (target instanceof Discord.User && err.httpStatus == 403) {
+				console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${target.username}${target}.`);
+				message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
+			} else if (err.code == 40005) {
+				message.reply("That image was too large to send.\nThe limit is 50MB (8MB for staff)\nPlease reduce the file size using paint or something similar.");
+			} else if (err.code == 500) {
+				message.reply("That image took over 15 seconds to send, and was timed out by Discord\nPlease reduce the file size using paint or something similar.");
+			} else {
+				console.error(`[${dateToTime(new Date())}]: An error occured when sendWithImg... Error:`);
+				console.error(err);
+				console.error("message:");
+				console.error(message);
+				console.error("target");
+				console.error(target);
+				message.reply("An error occured... please tell a moderator that `sendWithImg` failed.");
+			}
+		});
 	});
 }
 
@@ -604,7 +594,7 @@ function passServ(name, icon) {
 		.setDescription(`Would you like to make a new support ticket by sending that message to the staff at ${name}?
 	React with ✅ for yes and ❌ for no. (This will last 60 seconds)`)
 		.setColor("#4B85FF")
-		.setFooter(name, icon);
+		.setFooter({ text: name, iconURL: icon });
 		res();
 	});
 }

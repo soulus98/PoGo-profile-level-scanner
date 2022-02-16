@@ -1,4 +1,5 @@
-const { addFilterChannel } = require("../func/filter.js");
+const { addFilterChannel } = require("../func/filter.js"),
+			{ dateToTime } = require("../func/misc.js");
 
 module.exports = {
 	name: "add-filter-channel",
@@ -20,11 +21,11 @@ module.exports = {
 			}
 			message.guild.channels.fetch(id).then((ch) => {
 				addFilterChannel(id).then(() => {
-					if (!message.deleted) {
-						setTimeout(() => {
-							message.delete();
-						}, 1000);
-					}
+					setTimeout(() => {
+						message.delete().catch(() => {
+							console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
+						});
+					}, 1000);
 					resolve(`, and added ${ch.name}#${id} to the Pokenav filter list.`);
 					return;
 				}).catch(() => {

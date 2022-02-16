@@ -267,7 +267,7 @@ client.once("ready", async () => {
 	}
 	if (ops.screenshotScanning){
 		channel.send(messagetxtReplace(messagetxt.load)).then(msg => {
-			if (ops.msgDeleteTime && !msg.deleted){
+			if (ops.msgDeleteTime){
 				setTimeout(() => {
 					msg.delete().catch(() => {
 						console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${msg.url}\nContent of mesage: "${msg.content}"`);
@@ -482,7 +482,7 @@ client.on("messageCreate", async message => {
 				});
 				logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nRoles: All 3 already possessed`, files: [image] });
 				console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, but already possessed all 3 roles.`);
-				if (!dm && ops.deleteScreens && !message.deleted) message.delete().catch(() => {
+				if (!dm && ops.deleteScreens) message.delete().catch(() => {
 					errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 				});
 				saveStats("all");
@@ -496,7 +496,7 @@ client.on("messageCreate", async message => {
 						errorMessage(postedTime, dm, `Error: Could not send DM to ${message.author.username}${message.author}`);
 					});
 					logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nNot scanned due to automatic blacklist. \nTime left: ${((ops.blacklistTime - (postedTime.getTime() - blacklist.get(message.author.id))) / 3600000).toFixed(1)} hours`, files: [image] });
-					if (!dm && ops.deleteScreens && !message.deleted) message.delete().catch(() => {
+					if (!dm && ops.deleteScreens) message.delete().catch(() => {
 						errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
 					console.log(`[${dateToTime(postedTime)}]: ${message.author.username}${message.author} sent an image, which was refused due to the auto blacklist`);
@@ -572,8 +572,7 @@ if (ops.debugMode) {
 		const d = new Date();
 		const dateTime = `${d.getFullYear()}-${(d.getMonth() + 1 < 10) ? `0${d.getMonth() + 1}` : d.getMonth() + 1}-${(d.getDate() < 10) ? `0${d.getDate()}` : d.getDate()} ${(d.getHours() < 10) ? `0${d.getHours()}` : d.getHours()}:${(d.getMinutes() < 10) ? `0${d.getMinutes()}` : d.getMinutes()}:${(d.getSeconds() < 10) ? `0${d.getSeconds()}` : d.getSeconds()}.${(d.getMilliseconds() < 10) ? `00${d.getMilliseconds()}` : `${(d.getMilliseconds() < 100) ? `0${d.getMilliseconds()}` : `${d.getMilliseconds()}`}`}`;
 		console.error(`[${dateTime}]: Debug info:.`, info);
-	});
-	client.on("rateLimit", (data) => {
+	}).on("rateLimit", (data) => {
 		console.error(`[${dateToTime(new Date())}]: Ratelimit hit:`, data);
 	});
 }
@@ -581,33 +580,26 @@ if (ops.debugMode) {
 if (ops.processInfoMode) {
 	process.on("beforeExit", (code) => {
 		console.log(`[${dateToTime(new Date())}]: Process beforeExit event with code:`, code);
-	});
-
-	process.on("disconnect", () => {
+	})
+	.on("disconnect", () => {
 		console.log(`[${dateToTime(new Date())}]: Process disconnect`);
-	});
-
-	process.on("exit", (code) => {
+	})
+	.on("exit", (code) => {
 		console.log(`[${dateToTime(new Date())}]: Process exited with code:`, code);
-	});
-
-	process.on("message", (message, sendHandle) => {
+	})
+	.on("message", (message, sendHandle) => {
 		console.log(`[${dateToTime(new Date())}]: Process emitted a message:`, message, "\nsendHandle:", sendHandle);
-	});
-
-	process.on("multipleResolves", (type, promise, value) => {
+	})
+	.on("multipleResolves", (type, promise, value) => {
 		console.log(`[${dateToTime(new Date())}]: Process had a multipleResolves event with type:`, type, "\nPromise:", promise, "\nValue:", value);
-	});
-
-	process.on("rejectionHandled", (promise) => {
+	})
+	.on("rejectionHandled", (promise) => {
 		console.log(`[${dateToTime(new Date())}]: Process handled a rejection. Promise:`, promise);
-	});
-
-	process.on("warning", (warning) => {
+	})
+	.on("warning", (warning) => {
 		console.log(`[${dateToTime(new Date())}]: Process warning: `, warning);
-	});
-
-	process.on("worker", (worker) => {
+	})
+	.on("worker", (worker) => {
 		console.log(`[${dateToTime(new Date())}]: Process made a new worker: `, worker);
 	});
 	let memBeforeScan = process.memoryUsage();
@@ -650,17 +642,14 @@ function logMemory(state, mem) {
 
 client.on("error", (error) => {
 	console.error(`[${dateToTime(new Date())}]: Client Error: ${error}`);
-});
-
-client.on("warn", (info) => {
+})
+.on("warn", (info) => {
 	console.error(`[${dateToTime(new Date())}]: Client Waring: ${info}`);
-});
-
-client.on("shardError", (error, id) => {
+})
+.on("shardError", (error, id) => {
 	console.error(`[${dateToTime(new Date())}]: Websocket disconnect: ${error}. ID: ${id}`);
-});
-
-client.on("shardResume", () => {
+})
+.on("shardResume", () => {
 	if (imgStats.currentlyImage > 0){
 		imgStats.imageLogCount++;
 		imgStats.currentlyImage--;
@@ -670,14 +659,12 @@ client.on("shardResume", () => {
 		console.error(`[${dateToTime(new Date())}]: Resumed! Refreshing Activity...`);
 		client.user.setActivity(act, { type: "PLAYING" });
 	}
-});
-
-client.on("shardDisconnect", (evt, id) => {
+})
+.on("shardDisconnect", (evt, id) => {
 	console.error(`[${dateToTime(new Date())}]: Disconnected!`);
 	console.log(evt, id);
-});
-
-client.on("shardReady", (id, una) => {
+})
+.on("shardReady", (id, una) => {
 	if (imgStats.currentlyImage > 0){
 		imgStats.imageLogCount++;
 		imgStats.currentlyImage--;
@@ -688,9 +675,8 @@ client.on("shardReady", (id, una) => {
 		console.error(id, una);
 		client.user.setActivity(act, { type: "PLAYING" });
 	}
-});
-
-client.on("shardReconnecting", (id) => {
+})
+.on("shardReconnecting", (id) => {
 	if (loaded) {
 		console.error(`[${dateToTime(new Date())}]: Reconnecting... [${id}]`);
 	}
@@ -707,7 +693,7 @@ process.on("uncaughtException", (err) => {
 			console.error(`[${dateToTime(new Date())}]: Error: Known imageWrite crash. Consider turning off saveLocalCopy. This error should be handled correctly.`);
 			if (ops.screenshotChannel != "0") channel.send("An internal error occured. Please retry sending the screenshot(s) that failed.").then((errorMsg) => {
 				setTimeout(() => {
-					if (!errorMsg.deleted && ops.msgDeleteTime > 0){
+					if (ops.msgDeleteTime > 0){
 						errorMsg.delete().catch(() => {
 							console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${errorMsg.url}\nContent of mesage: "${errorMsg.content}"`);
 						});

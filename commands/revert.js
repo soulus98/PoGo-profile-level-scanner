@@ -130,7 +130,7 @@ module.exports = {
 						saveBlacklist(blacklist);
 						saveStats("revert");
 						bigResolve(logggString + `. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}${(tookVH ? `${took30 || took40 || took50 ? ", " : ""}VH` : "")}.`);
-						if (!message.deleted && ops.msgDeleteTime && !(message.channel.parent && message.channel.parent.id == ops.mailCategory)){
+						if (ops.msgDeleteTime && !(message.channel.parent && message.channel.parent.id == ops.mailCategory)){
 							setTimeout(function() {
 								message.delete().catch(() => {
 									console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);

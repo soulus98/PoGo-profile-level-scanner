@@ -143,10 +143,10 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 						bigResolve((logString || "") + `, but it failed. They already have RR, so cannot be rejected${(!inCommand) ? ` for level ${level}` : ""}.`);
 						return;
 					}
-					if (!dm && !inCommand && !ops.deleteScreens && !message.deleted) message.react("👎").catch(() => {
+					if (!dm && !inCommand && !ops.deleteScreens) message.react("👎").catch(() => {
 						console.error(`[${execTime}]: Error: Could not react 👎 (thumbsdown) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
-					if (inCommand && !message.deleted) message.react("👍").catch(() => {
+					if (inCommand) message.react("👍").catch(() => {
 						console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
 					if (level < ops.targetLevel - 1 || ops.blacklistOneOff) {
@@ -251,11 +251,11 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 										console.log(err);
 									}
 								});
-								if ((!ops.deleteScreens || inCommand) && !message.deleted) message.react("👍").catch(() => {
+								if ((!ops.deleteScreens || inCommand)) message.react("👍").catch(() => {
 									console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								});
 							}
-							if (!(given30 || given40 || given50) && !message.deleted && inCommand) {
+							if (!(given30 || given40 || given50) && inCommand) {
 								message.react("🤷").catch(() => {
 									console.error(`[${execTime}]: Error: Could not react 🤷 (person_shrugging) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 								});
@@ -301,7 +301,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 
 function deleteStuff(message, execTime, id){
 	const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
-	if (!message.deleted && ops.msgDeleteTime && !(message.channel.parent && message.channel.parent.id == ops.mailCategory)){
+	if (ops.msgDeleteTime && !(message.channel.parent && message.channel.parent.id == ops.mailCategory)){
 		setTimeout(function() {
 			message.delete().catch(() => {
 				console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);

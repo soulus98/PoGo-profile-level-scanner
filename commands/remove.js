@@ -1,4 +1,5 @@
-const { removeFilterChannel } = require("../func/filter.js");
+const { removeFilterChannel } = require("../func/filter.js"),
+			{ dateToTime } = require("../func/misc.js");
 
 module.exports = {
 	name: "remove-filter-channel",
@@ -20,11 +21,11 @@ module.exports = {
 			}
 			message.guild.channels.fetch(id).then((ch) => {
 				removeFilterChannel(id).then(() => {
-					if (!message.deleted) {
-						setTimeout(() => {
-							message.delete();
-						}, 1000);
-					}
+					setTimeout(() => {
+						message.delete().catch(() => {
+							console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
+						});
+					}, 1000);
 					resolve(`, and removed ${ch.name}#${id} from the Pokenav filter list.`);
 				}).catch(() => {
 					message.reply(`${(args[0]) ? "That" : "This"} channel was not found in the filter list.`);

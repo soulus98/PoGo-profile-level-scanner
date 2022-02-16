@@ -69,7 +69,7 @@ function handleImage(message, postedTime, wasDelayed){
 						});
 						Promise.all([testSend, saveCropped]).then(async () => {
 							if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Recog starting\t`, postedTime.getTime());
-							if (!message.deleted && !dm) await message.react("👀").catch(() => {
+							if (!dm) await message.react("👀").catch(() => {
 								errorMessage(postedTime, dm, `Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 							});
 							recog(imgBuff, message).then(([level, failed, text]) => {
@@ -107,7 +107,7 @@ function handleImage(message, postedTime, wasDelayed){
 										console.log(logString + addToLogString + ` Time: ${(Date.now() - currentTime) / 1000}s`);
 									});
 									resolve();
-									if (!dm && ops.deleteScreens && !message.deleted) message.delete().catch(() => {
+									if (!dm && ops.deleteScreens) message.delete().catch(() => {
 										errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 									});
 								}

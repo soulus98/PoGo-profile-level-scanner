@@ -23,6 +23,11 @@ function filter(message){
 					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
 				}, 5000);
 				return;
+			}).catch(() => {
+				console.error(`[${new Date()}]: Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
+				setTimeout(() => {
+					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+				}, 5000);
 			});
 		}
 		if (message.embeds[0].title == "Badge Revoked!") {
@@ -36,7 +41,7 @@ function filter(message){
 		// if (message.embeds[0].title == "No Change Made To Trainer's Badge") {
 		// 	message.react("👀").then(() => {
 		// 		setTimeout(() => {
-		// 			message.delete();
+		// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
 		// 		}, 5000);
 		// 		return;
 		// 	});
@@ -63,7 +68,7 @@ function filter(message){
 		return;
 	}
 	// if (new RegExp(/\d{12}/).test(message.content)) {
-	// 	message.delete();
+	// 	message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
 	// 	return;
 	// }
 }
