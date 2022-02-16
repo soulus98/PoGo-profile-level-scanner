@@ -18,11 +18,11 @@ module.exports = {
 			if (!message.member.permissionsIn(ops.logsChannel).has("VIEW_CHANNEL")){
 				replyNoMention(message, `Hey trainer,
 
-	Welcome to the server!
-	To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
-	Please do so in this channel.
+Welcome to the server!
+To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
+Please do so in this channel.
 
-	Thank you. `);
+Thank you. `);
 				resolve();
 				return;
 			} else {
