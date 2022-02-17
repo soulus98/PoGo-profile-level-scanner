@@ -2,7 +2,7 @@ const mail = require("../handlers/dm.js");
 module.exports = {
 	name: "timed-close-mail-ticket",
 	description: `closes a mail ticket after a certain amount of hours. Use \`${ops.prefix}tclose list\` to see all current timers or use \`${ops.prefix}tclose cancel\` to cancel the timer for this channel. The timer will automatically cancel if a reply is sent or received.`,
-  aliases: ["tclose", "tclose-ticket", "close-timed", "close-timer", "timed-close", "timer-close"],
+  aliases: ["tc", "tclose", "tclose-ticket", "close-timed", "close-timer", "timed-close", "timer-close"],
   usage: `\`${ops.prefix}tclose <hours> [reason]\``,
 	guildOnly:true,
 	args: true,
