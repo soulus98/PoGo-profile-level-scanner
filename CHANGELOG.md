@@ -1,26 +1,15 @@
-# v2.3.2 (2021-Feb-16)
-* Updated README and cleaned up some setup stuff
-* Should now be a normal setup for first-timers
-
-# v2.3.1 (2021-Jan-??)
-* Added a check for images over 8MB/50MB
-* Some small backend changes
-
 # v2.3 (2021-Jan-12)
 * Added `]tclose` (timed-close). Use it to set an amount of hours (0.1-48) to close the ticket after. It will cancel itself on a new reply being sent or received. Use `]tclose cancel` to cancel a timer and `]tclose list` to list all active timers. The list is only informational, the actual work is done using a simple setTimeout so it is very unstable. i.e. will disappear on a bot restart
 * Removed some always active variables (the guild and 4 channels) to save memory. Hopefully DJS cleaners work well to fix the rest
 
-# v2.2.2 (2021-Dec-16)
-hotfix:
-* Fixed a mail issue caused by **dmSymbolDenial**
-* Fixed an issue in **prefix2** caused by a typo
+#### v2.3.1 (2021-Jan-??)
+* Added a check for images over 8MB/50MB
+* Some small backend changes
 
-# v2.2.1 (2021-Dec-16)
-* Added `]heapdump-snapshot` aka `]hs` so we can further monitor the memory usage. This requires `npm install heapdump` which in turn may require a newer version of Visual Studio (with some dev c++ thingy)...? 🤷
-* Changed `]c` to screenshot-logs perms, so we can remove manage roles from mods
-
-Todo:
-* Rewrote readme.md
+#### v2.3.2 (2021-Feb-16)
+* Updated README and cleaned up some setup stuff
+* Should now be a normal setup for first-timers
+* Hotfixes: ]tc alias for ]tclose and a bug in ]cbl
 
 # v2.2 (2021-Dec-13)
 * Reworked the bot so that it can run without **screenshotChannel**, **logsChannel**, and **profileChannel** being set. **serverID** is still important, obviously.
@@ -33,6 +22,15 @@ Todo:
 * Secured the bot so that we can emoji hoard
 * Changed the order in which things are handled, now it first checks prefix, then goes to scan images. i.e. it won't scan an image if the message starts with the prefix. This is necessary to send images in `]reply`
 * Added more to the *first setup.bat* files
+
+#### v2.2.1 (2021-Dec-16)
+* Added `]heapdump-snapshot` aka `]hs` so we can further monitor the memory usage. This requires `npm install heapdump` which in turn may require a newer version of Visual Studio (with some dev c++ thingy)...? 🤷
+* Changed `]c` to screenshot-logs perms, so we can remove manage roles from mods
+
+#### v2.2.2 (2021-Dec-16)
+hotfix:
+* Fixed a mail issue caused by **dmSymbolDenial**
+* Fixed an issue in **prefix2** caused by a typo
 
 # v2.1 (2021-Oct-21)
 * Added a `$verify` responder that works in any channel that the bot can see that *isn't* being filtered.
