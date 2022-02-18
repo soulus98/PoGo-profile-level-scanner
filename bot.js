@@ -314,12 +314,12 @@ if (ops.dmMail) {
 function clearBlacklist(message, idToDelete){
 	if (idToDelete){
 		if (blacklist.has(idToDelete)) {
-			blacklist.delete(idToDelete[0]);
-			replyNoMention(message, `Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`).catch(() => {
+			blacklist.delete(idToDelete);
+			replyNoMention(message, `Removed <@${idToDelete}>${idToDelete} from the blacklist.`).catch(() => {
 				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.channel.send(`Removed <@${idToDelete[0]}>${idToDelete[0]} from the blacklist.`);
+				message.channel.send(`Removed <@${idToDelete}>${idToDelete} from the blacklist.`);
 			});
-			console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete[0]} from the blacklist.`);
+			console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete} from the blacklist.`);
 			saveBlacklist(blacklist);
 		} else {
 			message.reply("I can not find that user's ID in the blacklist. Please try again");

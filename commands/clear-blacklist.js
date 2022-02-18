@@ -15,7 +15,7 @@ module.exports = {
 				clearBlacklist(message);
 				resolve();
 			} else {
-				clearBlacklist(message, args);
+				clearBlacklist(message, args[0]);
 				resolve();
 			}
 		});
