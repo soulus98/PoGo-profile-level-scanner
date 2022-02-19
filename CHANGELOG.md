@@ -9,7 +9,13 @@
 #### v2.3.2 (2021-Feb-16)
 * Updated README and cleaned up some setup stuff
 * Should now be a normal setup for first-timers
-* Hotfixes: ]tc alias for ]tclose and a bug in ]cbl
+* Hotfixes:  and a bug in ]cbl
+
+#### v2.3.3 (2021-Feb-19)
+* `]tc` alias for `]tclose`
+* Changed :eyes: to 👍 in `]tclose`
+* Fixed a bug that broke `]cbl`
+
 
 # v2.2 (2021-Dec-13)
 * Reworked the bot so that it can run without **screenshotChannel**, **logsChannel**, and **profileChannel** being set. **serverID** is still important, obviously.
