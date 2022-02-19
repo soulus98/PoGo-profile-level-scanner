@@ -49,7 +49,7 @@ module.exports = {
 			}
 			const timems = args[0] * 3600000;
 			args.splice(0, 1);
-			message.react("👀");
+			message.react("👍");
 			const t = setTimeout(() => {
 				mail.close(message, args.join(" ")).then(() => {
 					mail.deleteAndClearTimer(message.channel.id);
