@@ -3,75 +3,83 @@ const fs = require("fs"),
 			{ errorMessage } = require("../func/misc.js");
 let list = [];
 
-function filter(message){
-	if (message.embeds[0]) {
-		if (message.embeds[0].title == ":white_check_mark: Complete") {
-			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-			return;
-		}
-		if (message.embeds[0].title == "Success") {
-			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-			return;
-		}
-		if (message.embeds[0].title == "Error") {
-			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-			return;
-		}
-		if (message.embeds[0].title == "Badge Granted!") {
-			message.react("👀").then(() => {
-				setTimeout(() => {
-					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-				}, 5000);
-				return;
-			}).catch(() => {
-				console.error(`[${new Date()}]: Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-				setTimeout(() => {
-					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-				}, 5000);
-			});
-		}
-		if (message.embeds[0].title == "Badge Revoked!") {
-			message.react("👀").then(() => {
-				setTimeout(() => {
-					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-				}, 5000);
-				return;
-			});
-		}
-		// if (message.embeds[0].title == "No Change Made To Trainer's Badge") {
-		// 	message.react("👀").then(() => {
-		// 		setTimeout(() => {
-		// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-		// 		}, 5000);
-		// 		return;
-		// 	});
-		// }
-		if (new RegExp(/Your .+ has been updated!/).test(message.embeds[0].description)) {
-			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-			return;
-		}
-	}
-	if (message.content.startsWith("Error: role_name")) {
+function filter(message) {
+	if (message.embeds[0] && message.embeds[0].title && message.embeds[0].title.toLowerCase().includes("raid")) return;
+	else {
 		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
 		return;
 	}
-	if (message.content.startsWith("Use `$help`")) {
-		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-		return;
-	}
-	if (message.content.startsWith("You do not have permission to use")) {
-		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-		return;
-	}
-	if (message.content.startsWith("User is on cooldown")) {
-		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-		return;
-	}
-	// if (new RegExp(/\d{12}/).test(message.content)) {
-	// 	message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-	// 	return;
-	// }
 }
+
+// function filter(message){
+// 	if (message.embeds[0]) {
+// 		if (message.embeds[0].title == ":white_check_mark: Complete") {
+// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 			return;
+// 		}
+// 		if (message.embeds[0].title == "Success") {
+// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 			return;
+// 		}
+// 		if (message.embeds[0].title == "Error") {
+// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 			return;
+// 		}
+// 		if (message.embeds[0].title == "Badge Granted!") {
+// 			message.react("👀").then(() => {
+// 				setTimeout(() => {
+// 					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 				}, 5000);
+// 				return;
+// 			}).catch(() => {
+// 				console.error(`[${new Date()}]: Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
+// 				setTimeout(() => {
+// 					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 				}, 5000);
+// 			});
+// 		}
+// 		if (message.embeds[0].title == "Badge Revoked!") {
+// 			message.react("👀").then(() => {
+// 				setTimeout(() => {
+// 					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 				}, 5000);
+// 				return;
+// 			});
+// 		}
+// 		// if (message.embeds[0].title == "No Change Made To Trainer's Badge") {
+// 		// 	message.react("👀").then(() => {
+// 		// 		setTimeout(() => {
+// 		// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 		// 		}, 5000);
+// 		// 		return;
+// 		// 	});
+// 		// }
+// 		if (new RegExp(/Your .+ has been updated!/).test(message.embeds[0].description)) {
+// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 			return;
+// 		}
+// 	}
+// 	if (message.content.startsWith("Error: role_name")) {
+// 		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 		return;
+// 	}
+// 	if (message.content.startsWith("Use `$help`")) {
+// 		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 		return;
+// 	}
+// 	if (message.content.startsWith("You do not have permission to use")) {
+// 		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 		return;
+// 	}
+// 	if (message.content.startsWith("User is on cooldown")) {
+// 		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 		return;
+// 	}
+// 	// if (new RegExp(/\d{12}/).test(message.content)) {
+// 	// 	message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+// 	// 	return;
+// 	// }
+// }
 
 function addFilterChannel(id) {
 	return new Promise((resolve, reject) => {
