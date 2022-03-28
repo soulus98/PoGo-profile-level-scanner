@@ -10,6 +10,7 @@ module.exports = {
   usage: `\`${ops.prefix}set <setting> <value>\``,
 	guildOnly:true,
 	args:true,
+	type:"Admin",
 	execute(message, args) {
 		let config = {};
 		delete require.cache[require.resolve("../server/config.json")];

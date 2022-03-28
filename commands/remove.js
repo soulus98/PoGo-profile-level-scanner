@@ -7,6 +7,7 @@ module.exports = {
   aliases: ["remove", "rem"],
   usage: `\`${ops.prefix}remove [channel id/tag]\``,
 	guildOnly:true,
+	type:"Filter",
 	execute(message, args) {
 		message.react("👀");
 		return new Promise(function(resolve) {

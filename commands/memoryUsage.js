@@ -4,6 +4,7 @@ module.exports = {
   aliases: ["mem"],
   usage: `\`${ops.prefix}mem\``,
 	guildOnly:true,
+	type:"Info",
 	execute(message) {
 		return new Promise(function(resolve) {
 			if (ops.processInfoMode) {

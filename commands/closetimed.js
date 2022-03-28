@@ -7,6 +7,7 @@ module.exports = {
 	guildOnly:true,
 	args: true,
 	mailOnly:true,
+	type:"Mail",
 	execute(message, args) {
 		return new Promise(function(resolve) {
 			if (args[0] == "list") {

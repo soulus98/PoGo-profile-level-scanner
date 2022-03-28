@@ -6,6 +6,7 @@ module.exports = {
   usage: `\`${ops.prefix}r <message>\``,
 	guildOnly:true,
 	mailOnly:true,
+	type:"Mail",
 	execute(message, args) {
 		return new Promise(function(resolve, reject) {
       if (!ops.dmMail){

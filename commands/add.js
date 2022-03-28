@@ -7,6 +7,7 @@ module.exports = {
   aliases: ["add"],
   usage: `\`${ops.prefix}add [channel id/tag]\``,
 	guildOnly:true,
+	type:"Filter",
 	execute(message, args) {
 		message.react("👀");
 		return new Promise(function(resolve) {

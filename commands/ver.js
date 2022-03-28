@@ -7,6 +7,7 @@ module.exports = {
   aliases: ["ver"],
   usage: `\`${ops.prefix}ver\``,
 	permissions: "VIEW_CHANNEL",
+	type:"Info",
 	execute(message) {
     return new Promise(function(resolve) {
 			replyNoMention(message, `Current version: \`${ver}\``);

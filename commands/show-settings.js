@@ -7,6 +7,7 @@ module.exports = {
   aliases: ["settings", "options", "opts", "show"],
   usage: `${ops.prefix}settings`,
 	guildOnly:true,
+	type:"Info",
 	execute(message) {
 		let config = {};
 		delete require.cache[require.resolve("../server/config.json")];

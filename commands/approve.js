@@ -18,6 +18,7 @@ module.exports = {
 	guildOnly:true,
   args: true,
 	scanningOnly: true,
+	type:"Screenshots",
 	execute(input, args) {
 		return new Promise(function(bigResolve) {
 			const execTime = dateToTime(new Date());

@@ -6,6 +6,7 @@ module.exports = {
   aliases: ["command", "commands"],
   usage: `\`${ops.prefix}help [command name]\``,
 	permissions: "VIEW_CHANNEL",
+	type:"Info",
 	execute(message, args) {
 		return new Promise(function(resolve) {
 			const data = [];
@@ -48,7 +49,7 @@ Thank you. `);
 					return;
 				} catch (err){
 					resolve(`, but it failed, due to an unexpected error. Error: ${err}
-	Stack: ${err.stack}`);
+Stack: ${err.stack}`);
 					return;
 				}
 			}

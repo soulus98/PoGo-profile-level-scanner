@@ -7,6 +7,7 @@ module.exports = {
 	args: true,
 	guildOnly:true,
 	mailOnly:true,
+	type:"Mail",
 	execute(message, args) {
 		return new Promise(function(resolve, reject) {
       if (ops.dmMail){

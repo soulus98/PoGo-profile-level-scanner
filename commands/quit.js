@@ -6,6 +6,7 @@ module.exports = {
   aliases: ["quit"],
   usage: `\`${ops.prefix}quit\``,
 	guildOnly:true,
+	type:"Admin",
 	execute(message) {
 		return new Promise(function(resolve) {
 			replyNoMention(message, "The bot is sleeping now. Goodbye :wave:").then(() => {

@@ -12,6 +12,7 @@ module.exports = {
 	guildOnly: true,
 	args: true,
 	scanningOnly: true,
+	type:"Screenshots",
 	execute(message, args) {
 		const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
 		const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;

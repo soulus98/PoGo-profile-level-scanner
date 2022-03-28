@@ -6,6 +6,7 @@ module.exports = {
   aliases: ["rs", "restart", "restart-server"],
   usage: `\`${ops.prefix}rs\``,
 	guildOnly:true,
+	type:"Admin",
 	execute(message) {
 		return new Promise(function(resolve) {
 			console.log(`${message.author.username}${message.author} force quit the server at ${message.createdAt.toLocaleString()}.`);

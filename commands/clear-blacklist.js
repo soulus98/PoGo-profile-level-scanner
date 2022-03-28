@@ -9,6 +9,7 @@ module.exports = {
 	guildOnly:true,
 	args: true,
 	scanningOnly: true,
+	type:"Screenshots",
 	execute(message, args) {
 		return new Promise(function(resolve) {
 			if (args[0] == "all"){

@@ -8,6 +8,7 @@ module.exports = {
   aliases: ["stats", "stat", "analytics", "analytic", "anals"],
   usage: `\`${ops.prefix}stats [statistic]\``,
 	guildOnly:true,
+	type:"Info",
 	execute(message, args) {
 		return new Promise((resolve) => {
 			if (args[0]){
