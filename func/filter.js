@@ -1,9 +1,10 @@
 const fs = require("fs"),
 			path = require("path"),
-			{ errorMessage } = require("../func/misc.js");
-let list = [];
+			{ errorMessage } = require("../func/misc.js"),
+			Discord = require("discord.js");
+let list = new Discord.Collection();
 
-function filter(message) {
+function cleanup(message) {
 	if (message.embeds[0] && message.embeds[0].title && message.embeds[0].title.toLowerCase().includes("raid")) return;
 	else {
 		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
@@ -11,75 +12,75 @@ function filter(message) {
 	}
 }
 
-// function filter(message){
-// 	if (message.embeds[0]) {
-// 		if (message.embeds[0].title == ":white_check_mark: Complete") {
-// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 			return;
-// 		}
-// 		if (message.embeds[0].title == "Success") {
-// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 			return;
-// 		}
-// 		if (message.embeds[0].title == "Error") {
-// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 			return;
-// 		}
-// 		if (message.embeds[0].title == "Badge Granted!") {
-// 			message.react("👀").then(() => {
-// 				setTimeout(() => {
-// 					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 				}, 5000);
-// 				return;
-// 			}).catch(() => {
-// 				console.error(`[${new Date()}]: Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-// 				setTimeout(() => {
-// 					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 				}, 5000);
-// 			});
-// 		}
-// 		if (message.embeds[0].title == "Badge Revoked!") {
-// 			message.react("👀").then(() => {
-// 				setTimeout(() => {
-// 					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 				}, 5000);
-// 				return;
-// 			});
-// 		}
-// 		// if (message.embeds[0].title == "No Change Made To Trainer's Badge") {
-// 		// 	message.react("👀").then(() => {
-// 		// 		setTimeout(() => {
-// 		// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 		// 		}, 5000);
-// 		// 		return;
-// 		// 	});
-// 		// }
-// 		if (new RegExp(/Your .+ has been updated!/).test(message.embeds[0].description)) {
-// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 			return;
-// 		}
-// 	}
-// 	if (message.content.startsWith("Error: role_name")) {
-// 		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 		return;
-// 	}
-// 	if (message.content.startsWith("Use `$help`")) {
-// 		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 		return;
-// 	}
-// 	if (message.content.startsWith("You do not have permission to use")) {
-// 		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 		return;
-// 	}
-// 	if (message.content.startsWith("User is on cooldown")) {
-// 		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 		return;
-// 	}
-// 	// if (new RegExp(/\d{12}/).test(message.content)) {
-// 	// 	message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-// 	// 	return;
-// 	// }
-// }
+function filter(message){
+	if (message.embeds[0]) {
+		if (message.embeds[0].title == ":white_check_mark: Complete") {
+			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+			return;
+		}
+		if (message.embeds[0].title == "Success") {
+			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+			return;
+		}
+		if (message.embeds[0].title == "Error") {
+			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+			return;
+		}
+		if (message.embeds[0].title == "Badge Granted!") {
+			message.react("👀").then(() => {
+				setTimeout(() => {
+					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+				}, 5000);
+				return;
+			}).catch(() => {
+				console.error(`[${new Date()}]: Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
+				setTimeout(() => {
+					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+				}, 5000);
+			});
+		}
+		if (message.embeds[0].title == "Badge Revoked!") {
+			message.react("👀").then(() => {
+				setTimeout(() => {
+					message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+				}, 5000);
+				return;
+			});
+		}
+		// if (message.embeds[0].title == "No Change Made To Trainer's Badge") {
+		// 	message.react("👀").then(() => {
+		// 		setTimeout(() => {
+		// 			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+		// 		}, 5000);
+		// 		return;
+		// 	});
+		// }
+		if (new RegExp(/Your .+ has been updated!/).test(message.embeds[0].description)) {
+			message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+			return;
+		}
+	}
+	if (message.content.startsWith("Error: role_name")) {
+		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+		return;
+	}
+	if (message.content.startsWith("Use `$help`")) {
+		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+		return;
+	}
+	if (message.content.startsWith("You do not have permission to use")) {
+		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+		return;
+	}
+	if (message.content.startsWith("User is on cooldown")) {
+		message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+		return;
+	}
+	// if (new RegExp(/\d{12}/).test(message.content)) {
+	// 	message.delete().catch(() => console.error(`Can not filter pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
+	// 	return;
+	// }
+}
 
 function addFilterChannel(id) {
 	return new Promise((resolve, reject) => {
@@ -151,7 +152,106 @@ function saveFilterList() {
 	return new Promise((resolve) => {
 		fs.writeFile(path.resolve(__dirname, "../server/filterList.json"), JSON.stringify(Array.from(list)), (err) => {
 			if (err){
-				errorMessage(new Date(), false, `Error: An error occured while saving stats. Error: ${err}`);
+				errorMessage(new Date(), false, `Error: An error occured while saving the filter list. Error: ${err}`);
+				return;
+			} else {
+				resolve();
+				return;
+			}
+		});
+	});
+}
+
+function addCleanupChannel(id, group) {
+	return new Promise((resolve, reject) => {
+		if (list[group].includes(id)) return reject();
+		list[group].push(id);
+		saveCleanupList().then(() => {
+			resolve();
+			return;
+		});
+	});
+}
+function removeCleanupChannel(id) {
+	return new Promise((resolve, reject) => {
+	let x = 0;
+	// const contains = [];
+	// for (const g in list) {
+	// 	if (list[g].includes(id)) contains.push("true");
+	// 	else contains.push("false");
+	//
+	// }
+	//
+	//
+		for (const g in list) {
+			console.log(list[g].includes(id));
+			if (list[g].includes(id)) {
+				list[g].splice(list[g].indexOf(id));
+				saveCleanupList().then(() => {
+					resolve();
+					return;
+				});
+			}
+			x++;
+			console.log(x);
+			console.log(Object.keys(list).length);
+			console.log(x == Object.keys(list).length);
+			if (x == Object.keys(list).length) {
+				reject();
+				return;
+			}
+		}
+	});
+}
+function loadCleanupList() {
+	return new Promise(function(resolve, reject) {
+		list = {
+			raid:[],
+			badge:[],
+			pvpiv:[],
+		};
+		new Promise((res) => {
+			try {
+				delete require.cache[require.resolve("../server/cleanupList.json")];
+				res();
+			} catch (e){
+				if (e.code == "MODULE_NOT_FOUND") {
+					// do nothing
+					res();
+				} else {
+					reject(`Error thrown when loading cleanup list. Error: ${e}`);
+					return;
+				}
+			}
+		}).then(() => {
+			try {
+				list = require("../server/cleanupList.json");
+				console.log(`\nCleanup list loaded. It contains ${Object.keys(list).length} channels.`);
+				resolve(list);
+			} catch (e) {
+				if (e.code == "MODULE_NOT_FOUND") {
+					fs.writeFile(path.resolve(__dirname, "../server/cleanupList.json"), JSON.stringify(list), (err) => {
+						if (err){
+							reject(`Error thrown when writing the cleanup list file. Error: ${err}`);
+							return;
+						}
+						console.log("Could not find cleanupList.json. Making a new one...");
+						list = require("../server/cleanupList.json");
+						resolve(list);
+					});
+				}	else {
+					reject(`Error thrown when loading the cleanup list (2). Error: ${e}`);
+					return;
+				}
+			}
+		});
+	});
+}
+function saveCleanupList() {
+	return new Promise((resolve) => {
+		fs.writeFile(path.resolve(__dirname, "../server/cleanupList.json"), JSON.stringify(list), (err) => {
+			if (err){
+				errorMessage(new Date(), false, `Error: An error occured while saving the cleanup list. Error: ${err}`);
 				return;
 			} else {
 				resolve();
@@ -162,8 +262,13 @@ function saveFilterList() {
 }
 
 module.exports = { filter,
+	cleanup,
 	addFilterChannel,
 	removeFilterChannel,
+	addCleanupChannel,
+	removeCleanupChannel,
 	loadFilterList,
 	saveFilterList,
+	loadCleanupList,
+	saveCleanupList,
 };

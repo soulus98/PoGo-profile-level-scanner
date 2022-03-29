@@ -9,7 +9,7 @@ const { token } = require("./server/keys.json"),
 			{ dateToTime, performanceLogger, replyNoMention, errorMessage } = require("./func/misc.js"),
 			{ saveStats, loadStats } = require("./func/stats.js"),
 			{ saveBlacklist } = require("./func/saveBlacklist.js"),
-			{ filter, loadFilterList } = require("./func/filter.js"),
+			{ filter, loadFilterList, cleanup, loadCleanupList } = require("./func/filter.js"),
 			{ respondVerify } = require("./func/verify.js"),
 			mail = require("./handlers/dm.js"),
 			ver = require("./package.json").version,
@@ -46,6 +46,7 @@ blacklist = new Discord.Collection();
 let loaded = false,
 		config = {},
 		filterList = [],
+		cleanupList = new Discord.Collection(),
 		screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 ops = {};
 module.exports = { loadConfigs, clearBlacklist, cooldowns, screensFolder };
@@ -67,7 +68,10 @@ async function load(){
 		}).catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
 		await loadFilterList().then((list) => {
 			filterList = list;
-		});
+		}).catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
+		await loadCleanupList().then((list) => {
+			cleanupList = list;
+		}).catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
 		client.login(token);
 }
 // Loads (or re-loads) the bot settings

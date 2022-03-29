@@ -1,13 +1,13 @@
-const { removeFilterChannel } = require("../func/filter.js"),
+const { removeCleanupChannel } = require("../func/filter.js"),
 			{ dateToTime } = require("../func/misc.js");
 
 module.exports = {
-	name: "remove-filter-channel",
-	description: "Removes a channel from the list that is watched for Pokenav filtering. Run in the intended channel or include a [channel id/tag] if you run it from an admin channel.",
+	name: "remove-cleanup-channel",
+	description: "Removes a channel from the list that is watched for Pokenav cleanup. Run in the intended channel or include a [channel id/tag] if you run it from an admin channel.",
   aliases: ["remove", "rem"],
   usage: `\`${ops.prefix}remove [channel id/tag]\``,
 	guildOnly:true,
-	type:"Filter",
+	type:"Pokenav Cleanup",
 	execute(message, args) {
 		message.react("👀");
 		return new Promise(function(resolve) {
@@ -21,16 +21,16 @@ module.exports = {
 				id = message.channel.id;
 			}
 			message.guild.channels.fetch(id).then((ch) => {
-				removeFilterChannel(id).then(() => {
+				removeCleanupChannel(id).then(() => {
 					setTimeout(() => {
 						message.delete().catch(() => {
 							console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 						});
 					}, 1000);
-					resolve(`, and removed ${ch.name}#${id} from the Pokenav filter list.`);
+					resolve(`, and removed ${ch.name}#${id} from the Pokenav cleanup list.`);
 				}).catch(() => {
-					message.reply(`${(args[0]) ? "That" : "This"} channel was not found in the filter list.`);
-					resolve(`, but it failed, since ${ch.name}#${id} was not found in the list.`);
+					message.reply(`${(args[0]) ? "That" : "This"} channel was not found in the cleanup lists.`);
+					resolve(`, but it failed, since ${ch.name}#${id} was not found in the cleanup lists.`);
 				});
 			}).catch(() => {
 				message.reply("There may be a typo, or some other issue, which causes me to not be able to find this channel.");
