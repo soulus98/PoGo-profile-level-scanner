@@ -26,32 +26,38 @@ Please do so in this channel.
 Thank you. `);
 				resolve();
 				return;
-			} else {
-				if (!args.length) {
-					data.push("Here's a list of all my commands:");
-					data.push(commands.map(command => "`" + ops.prefix + command.name).join("`\n"));
-					data.push(`\`You can use \`${ops.prefix}help [command name]\` for information on a specific command.`);
-					replyNoMention(message, data.join("\n"));
-					resolve(", and it was successful.");
-					return;
+			}
+			if (!args.length) {
+				data.push("Here's a list of all my commands:");
+				const cg = groupCommands(commands);
+				let x = 0;
+				for (const group in cg) {
+					data.push(group + ":");
+					data.push(cg[group].map(command => "`" + ops.prefix + command.name).join("`\n"));
+					x++;
+					if (x < Object.keys(cg).length) data.push("`");
 				}
-				const name = args[0].toLowerCase();
-				const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
-				if (!command) {
-					message.reply(`\`${ops.prefix}${name}\` is not a valid command.`);
-					resolve(`, but it failed, as ${ops.prefix}${name} not a valid command.`);
-					return;
-				}
-				try {
-					dataPush(data, command);
-					replyNoMention(message, data.join("\n"), { split: true });
-					resolve(", and it was successful.");
-					return;
-				} catch (err){
-					resolve(`, but it failed, due to an unexpected error. Error: ${err}
+				data.push(`\`You can use \`${ops.prefix}help [command name]\` for information on a specific command.`);
+				replyNoMention(message, data.join("\n"));
+				resolve(", and it was successful.");
+				return;
+			}
+			const name = args[0].toLowerCase();
+			const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
+			if (!command) {
+				message.reply(`\`${ops.prefix}${name}\` is not a valid command.`);
+				resolve(`, but it failed, as ${ops.prefix}${name} not a valid command.`);
+				return;
+			}
+			try {
+				dataPush(data, command);
+				replyNoMention(message, data.join("\n"), { split: true });
+				resolve(", and it was successful.");
+				return;
+			} catch (err){
+				resolve(`, but it failed, due to an unexpected error. Error: ${err}
 Stack: ${err.stack}`);
-					return;
-				}
+				return;
 			}
 		});
 	},
@@ -63,4 +69,13 @@ function dataPush(data, command){
 	if (command.usage) data.push(`**Usage:** ${command.usage}`);
 	if (command.cooldown) data.push(`**Cooldown:** ${command.cooldown} second(s)`);
 	return data;
+}
+function groupCommands(commands) {
+	const commandGroups = commands.reduce((groups, item) => {
+		const group = (groups[item.type] || []);
+		group.push(item);
+		groups[item.type] = group;
+		return groups;
+	}, {});
+	return commandGroups;
 }
