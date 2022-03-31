@@ -9,7 +9,7 @@ const { token } = require("./server/keys.json"),
 			{ dateToTime, performanceLogger, replyNoMention, errorMessage } = require("./func/misc.js"),
 			{ saveStats, loadStats } = require("./func/stats.js"),
 			{ saveBlacklist } = require("./func/saveBlacklist.js"),
-			{ filter, loadFilterList, cleanup, loadCleanupList } = require("./func/filter.js"),
+			{ cleanup, loadCleanupList } = require("./func/filter.js"),
 			{ respondVerify } = require("./func/verify.js"),
 			mail = require("./handlers/dm.js"),
 			ver = require("./package.json").version,
@@ -45,7 +45,6 @@ imgStats = {
 blacklist = new Discord.Collection();
 let loaded = false,
 		config = {},
-		filterList = [],
 		cleanupList = new Discord.Collection(),
 		screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 ops = {};
@@ -65,9 +64,6 @@ async function load(){
 		await loadStats().then((s) => {
 			const { passStats } = require("./commands/stats.js");
 			passStats(s);
-		}).catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
-		await loadFilterList().then((list) => {
-			filterList = list;
 		}).catch((err) => { console.error(`[${dateToTime(new Date())}]: `, err);});
 		await loadCleanupList().then((list) => {
 			cleanupList = list;
@@ -363,15 +359,28 @@ function processImage(message, postedTime, wasDelayed){
 	});
 }
 
-client.on("messageCreate", async message => {
-	if (message.author.id == 428187007965986826){ // pokenav message filtering
-		if (filterList.includes(message.channel.id)) { // Don't run `]add` to
-			filter(message);
-		} else if (ops.respondVerify){
-			respondVerify(message);
+async function checkCleanupList(message) {
+	if (message.author.id != 428187007965986826) return; // pokenav message filtering
+	console.log("message.embeds.length via event:\n", message.embeds.length);
+	const filtered = [];
+	for (const g of cleanupList) {
+		if (g[1].includes(message.channel.id)) {
+			cleanup(message, g[0]);
+			filtered.push(true);
+		} else {
+			filtered.push(false);
 		}
-		return;
+		if (filtered.length == cleanupList.size) {
+			if (ops.respondVerify && !filtered.includes(true)) {
+				respondVerify(message);
+			}
+			return;
+		}
 	}
+}
+
+client.on("messageCreate", async message => {
+	await checkCleanupList(message);
 	const profile = (ops.profileChannel != "0") ? client.channels.cache.get(ops.profileChannel) : undefined;
 	if (message.channel == profile) return; // Profile channel? Cancel
 	if (message.author.bot) return; // Bot? Cancel

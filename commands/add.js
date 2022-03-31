@@ -1,6 +1,5 @@
 const { addCleanupChannel } = require("../func/filter.js"),
-			{ dateToTime } = require("../func/misc.js"),
-			groupList = ["raid", "badge", "pvpiv"];
+			{ dateToTime, groupList } = require("../func/misc.js");
 
 module.exports = {
 	name: "add-cleanup-channel",
@@ -15,7 +14,7 @@ module.exports = {
 		return new Promise(function(resolve) {
 			const group = args[0].toLowerCase();
 			if (!groupList.includes(group)) {
-				message.reply(`Please specifiy which \`group\` of cleanup you want to add the channel from: \`${groupList.join("`, `")}\``);
+				message.reply(`Please specifiy which \`group\` of cleanup you want to add the channel to out of: \`${groupList.join("`, `")}\``);
 				return;
 			}
 			let id = 0;
