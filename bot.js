@@ -361,7 +361,6 @@ function processImage(message, postedTime, wasDelayed){
 
 async function checkCleanupList(message) {
 	if (message.author.id != 428187007965986826) return; // pokenav message filtering
-	console.log("message.embeds.length via event:\n", message.embeds.length);
 	const filtered = [];
 	for (const g of cleanupList) {
 		if (g[1].includes(message.channel.id)) {
