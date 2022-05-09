@@ -1,41 +1,23 @@
-const https = require("https");
 const gm = require("gm");
-const { rect } = require("../func/rect.js");
+const { rect } = require("../func/rect.js"),
+      ops = require("../ops.json");
 
-function crop(message){
-	const image = message.attachments.first();
-  return new Promise ((resolve, reject) => {
-    new Promise ((res) => {
-			const size = { };
-			size.width = image.width;
-			size.height = image.height;
-			rect(size).then((cropSize) => {
-				res(cropSize);
-			});
-    }).then((cropSize) => {
-			https.get(image.url, function(response){
-				const img = gm(response);
-				img
-				.blackThreshold(ops.threshold)
-				.whiteThreshold(ops.threshold + 1)
-				.crop(cropSize.wid, cropSize.hei, cropSize.x, cropSize.y)
-				.flatten()
-				.toBuffer((err, imgBuff) => {
-					if (err){
-						console.error(err);
-						// setTimeout(() => {
-						// 	console.error("imgBuff: ");
-						// 	console.error(imgBuff); 			// testo
-						// 	console.error("imgTwo: ");
-						// 	console.error(img); 			// testo
-						// }, 250);
-						reject("crash");
-						return;
-					}
-					resolve(imgBuff);
-				});
-			});
-		});
+function crop(filePath, size){
+  return new Promise ((resolve) => {
+    rect(size).then((cropSize) => {
+      const img = gm(filePath);
+      img
+      .blackThreshold(ops.threshold)
+      .whiteThreshold(ops.threshold + 1)
+      .crop(cropSize.wid, cropSize.hei, cropSize.x, cropSize.y)
+      .flatten()
+      .toBuffer((err, imgBuff) => {
+        if (err){
+          throw (err);
+        }
+        resolve(imgBuff);
+      });
+    });
   });
 }
 
