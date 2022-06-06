@@ -1,6 +1,11 @@
 /*
 
 This is a template for new commands:
+The types that I use are: 
+Screenshots
+Mail
+Info
+Admin
 
 module.exports = {
 	name: "",
