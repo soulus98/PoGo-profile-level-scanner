@@ -2,8 +2,7 @@ const https = require("https");
 const gm = require("gm");
 const { rect } = require("../func/rect.js");
 
-function crop(message){
-	const image = message.attachments.first();
+function crop(image){
   return new Promise ((resolve, reject) => {
     new Promise ((res) => {
 			const size = { };

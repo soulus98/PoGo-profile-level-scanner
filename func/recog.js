@@ -34,7 +34,7 @@ async function recog(imgBuff, message, failInc) {
 						});
 					});
 				} else {
-					resolve(["Failure", true, text]);
+					resolve(["Fail", true, text]);
 					return;
 				}
 			}

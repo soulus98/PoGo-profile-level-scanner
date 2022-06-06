@@ -36,7 +36,7 @@ function handleImage(message, postedTime, wasDelayed){
 				writeFile.then(() => {
 					const logs = (ops.logsChannel != "0") ? message.client.channels.cache.get(ops.logsChannel) : undefined;
 					if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Crop started\t`, postedTime.getTime());
-					crop(message).then((imgBuff) => {
+					crop(message.attachments.first()).then((imgBuff) => {
 						if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Crop finished\t`, postedTime.getTime());
 						const testSend = new Promise(function(res) {
 							if (ops.testMode && !dm){
