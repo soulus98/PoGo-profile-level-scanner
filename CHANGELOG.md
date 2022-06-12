@@ -1,3 +1,10 @@
+# v2.4 (2021-Mar-31)
+* Renamed the Pokenav filter to "cleanup", as that makes more sense and helps be with organisation
+* Updated cleanup to work with slash commands, and made 3 groups: `raid`, `badge`, and `pvpiv`.
+* Added a mandatory `group` argument to the `]add` and `]rem` commands. `]rem` can have `all` as the group to easily remove it from all 3 groups
+
+The filter is now very greedy, so, for example, the raid group will delete *anything* that isn't a remote raid. Error messages and all. If something seems wrong, temporarily `]remove` the channel from the group and try again. I am personally a little bit weary of `pvpiv`... it might be a bit broken
+
 # v2.3 (2021-Jan-12)
 * Added `]tclose` (timed-close). Use it to set an amount of hours (0.1-48) to close the ticket after. It will cancel itself on a new reply being sent or received. Use `]tclose cancel` to cancel a timer and `]tclose list` to list all active timers. The list is only informational, the actual work is done using a simple setTimeout so it is very unstable. i.e. will disappear on a bot restart
 * Removed some always active variables (the guild and 4 channels) to save memory. Hopefully DJS cleaners work well to fix the rest
