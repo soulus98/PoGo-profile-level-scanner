@@ -5,6 +5,9 @@
 
 The filter is now very greedy, so, for example, the raid group will delete *anything* that isn't a remote raid. Error messages and all. If something seems wrong, temporarily `]remove` the channel from the group and try again. I am personally a little bit weary of `pvpiv`... it might be a bit broken
 
+#### v2.4.1 (2022-Jun-14)
+* Changed command usage access to **modRole** rather than access to see **logsChannel**.
+
 # v2.3 (2021-Jan-12)
 * Added `]tclose` (timed-close). Use it to set an amount of hours (0.1-48) to close the ticket after. It will cancel itself on a new reply being sent or received. Use `]tclose cancel` to cancel a timer and `]tclose list` to list all active timers. The list is only informational, the actual work is done using a simple setTimeout so it is very unstable. i.e. will disappear on a bot restart
 * Removed some always active variables (the guild and 4 channels) to save memory. Hopefully DJS cleaners work well to fix the rest
