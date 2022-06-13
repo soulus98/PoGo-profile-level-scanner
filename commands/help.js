@@ -16,12 +16,12 @@ module.exports = {
 				resolve();
 				return;
 			}
-			if (!message.member.permissionsIn(ops.logsChannel).has("VIEW_CHANNEL")){
+			if (!(message.member.roles.cache.has(ops.modRole) || message.member.permissions.has("ADMINISTRATOR"))){
 				replyNoMention(message, `Hey trainer,
 
 Welcome to the server!
 To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
-Please do so in this channel.
+Please do so in <#${ops.screenshotChannel}>.
 
 Thank you. `);
 				resolve();
