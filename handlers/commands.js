@@ -30,7 +30,7 @@ function handleCommand(message, postedTime){
       console.log(logString);
       return message.reply(`You must possess the ${command.permissions} permission to execute \`${prefix}${commandName}\``);
     }
-  } else if (!message.member.roles.cache.has(ops.modRole)) return;
+  } else if (!(message.member.roles.cache.has(ops.modRole) || message.member.permissions.has("ADMINISTRATOR"))) return;
   if (command.args && !args.length) {																// Checking for arguments if an argument is required
     let reply = "You didn't provide any arguments.";
     if (command.usage) {
