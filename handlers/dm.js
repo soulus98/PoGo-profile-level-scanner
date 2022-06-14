@@ -80,7 +80,7 @@ async function mailDM(message, status, level) {
 	// 	message.reply("I cannot handle such a large file.\nThe limit is 50MB.\nPlease reduce the file size using paint or something similar.");
 	// 	return;
 	// }
-	const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
+	const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
   server.members.fetch(message.author.id).then((member) => {
 		let wasTemp = false;
 		if (tempQueue.includes(member.id)) {
@@ -113,7 +113,7 @@ async function mailDM(message, status, level) {
 				.setTitle("Message Sent");
 				if (status && ops.dmScanning) await checkStatus(status, message, channel, level);
 				sendWithImg(message, channel, [embedIn]).then(() => {
-					const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
+					const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 					logs.send({ embeds: [embedIn] });
 					member.send({ embeds: [embedOut] });
 					deleteAndClearTimer(channel.id).then((msg) => {
@@ -152,7 +152,7 @@ async function mailDM(message, status, level) {
 								}
 								sendWithImg(message, channel, [embedIn]).then(() => {
 									embedIn.setTitle("New Ticket Created");
-									const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
+									const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 									logs.send({ embeds: [embedIn] });
 									member.send({ embeds: [embedOut] });
 								});
@@ -194,7 +194,7 @@ function hostOpen(message, args) {
 			reject(`, but it failed, as a channel already existed for user: ${id}. Channel: ${queue.get(id)}`);
 			return;
 		}
-		const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
+		const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
 		server.members.fetch(id).then(async (member) => {
 			const embedIn = await newEmbed(message, "hostOpen");
 			embedIn.setTitle("New Ticket");
@@ -208,7 +208,7 @@ function hostOpen(message, args) {
 					.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.user.id, iconURL: member.user.avatarURL({ dynamic:true }) });
 					embedStart.addField("Ticket opened by:", message.author.toString());
 					await channel.send({ content: `${member.user} (${member.user.id})`, embeds: [embedStart] });
-					const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
+					const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 					logs.send({ embeds: [embedIn] }).then(() => {
 						message.delete().catch(() => console.error(`[${dateToTime(new Date())}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`)); // eslint-disable-line max-nested-callbacks
 						resolve();
@@ -253,7 +253,7 @@ async function close(message, args) {
 				});
 				queue.delete(user.id);
 			}
-			const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
+			const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 			logs.send({ embeds: [embedIn] });
 			message.channel.delete().catch(() => {
 				console.error(`[${dateToTime(new Date())}]: Error: Could not delete channel: ${message.channel.url}\nI likely need "Manage Channels" permission."`);
@@ -289,7 +289,7 @@ function reply(message, content) {
 			embedOut.setFooter({ text: message.guild.name, iconURL: message.guild.iconURL() })
 			.setTitle("Message Received");
 			sendWithImg(message, member.user, [embedOut]).then(() => {
-				const logs = (ops.mailLogChannel != "0") ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
+				const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 				logs.send({ embeds: [embedIn] });
 				sendWithImg(message, message.channel, [embedIn]).then(() => message.delete());
 				resolve();
@@ -309,7 +309,7 @@ function newChannel(message, member) {
 	const user = member.user;
 	return new Promise((resolve) => {
 		const ticketName = `${user.username}-${user.discriminator}`;
-		const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
+		const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
 		server.channels.create(ticketName, {
 			parent:ops.mailCategory,
 		}).then((channel) => {
@@ -511,7 +511,7 @@ function getUser(message, id){
 		}).then(userId => {
 			if (!userId) reject();
 			else {
-				const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
+				const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
 				server.members.fetch(userId).then((m) => {
 					resolve([m, false]);
 				}).catch((err) => {
@@ -550,7 +550,7 @@ function alertMsg(user, status, level, given30, given40, given50) {
 				sendMsg = "Impossible error alertMsg status switch broke. Please tell soul";
 				console.error(`[${dateToTime(new Date())}]: Error: alertMsg status switch broke. Impossible bug? Status: ${status}`);
 			}
-			const server = (ops.serverID != "0") ? user.client.guilds.cache.get(ops.serverID) : undefined;
+			const server = (ops.serverID) ? user.client.guilds.cache.get(ops.serverID) : undefined;
 			server.channels.fetch(queue.get(user.id)).then((channel) => {
 				channel.send(`**==================================================================
 Bot note:** ${sendMsg}

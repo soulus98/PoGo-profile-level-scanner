@@ -85,11 +85,11 @@ function loadConfigs(){
 			resolve();
 		} else {
 			(async () => {
-				// if (ops.serverID != "0") server = await client.guilds.fetch(ops.serverID);
-				// if (ops.profileChannel != "0") profile = await client.channels.fetch(ops.profileChannel);
+				// if (ops.serverID) server = await client.guilds.fetch(ops.serverID);
+				// if (ops.profileChannel) profile = await client.channels.fetch(ops.profileChannel);
 				// if (ops.screenshotScanning) {
-				// 	if (ops.screenshotChannel != "0") channel = await client.channels.fetch(ops.screenshotChannel);
-				// 	if (ops.logsChannel != "0") logs = await client.channels.fetch(ops.logsChannel);
+				// 	if (ops.screenshotChannel)  channel = await client.channels.fetch(ops.screenshotChannel);
+				// 	if (ops.logsChannel) logs = await client.channels.fetch(ops.logsChannel);
 				// 	const { passAppServ } = require("./commands/approve.js");
 				// 	const { passRevServ } = require("./commands/revert.js");
 				// 	const { passImgServ } = require("./handlers/images.js");
@@ -98,7 +98,7 @@ function loadConfigs(){
 				// 	passImgServ(logs);
 				// }
 				if (ops.dmMail) {
-					const server = (ops.serverID != "0") ? await client.guilds.fetch(ops.serverID) : undefined;
+					const server = (ops.serverID) ? await client.guilds.fetch(ops.serverID) : undefined;
 					await mail.passServ(server.name, server.iconURL());
 				}
 				console.log("\nReloaded configs\n");
@@ -236,12 +236,13 @@ function loadBlacklist(){
 load();
 
 client.once("ready", async () => {
-	const server = (ops.serverID != "0") ? await client.guilds.fetch(ops.serverID) : undefined;
-	const logs = (ops.logsChannel != "0") ? await client.channels.fetch(ops.logsChannel) : undefined;
-	const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? await client.channels.fetch(ops.screenshotChannel) : undefined;
-	// if (ops.profileChannel != "0") profile = await client.channels.fetch(ops.profileChannel);
+	const server = (ops.serverID) ? await client.guilds.fetch(ops.serverID) : undefined;
+	const logs = (ops.logsChannel) ? await client.channels.fetch(ops.logsChannel) : undefined;
+	const channel = (ops.screenshotScanning && ops.screenshotChannel) ? await client.channels.fetch(ops.screenshotChannel) : undefined;
+	if (ops.badgeChannel) await client.channels.fetch(ops.badgeChannel);
+	// if (ops.profileChannel) profile = await client.channels.fetch(ops.profileChannel);
 	// if (ops.screenshotScanning) {
-	// 	if (ops.screenshotChannel != "0") channel = await client.channels.fetch(ops.screenshotChannel);
+	// 	if (ops.screenshotChannel) channel = await client.channels.fetch(ops.screenshotChannel);
 	// 	const { passAppServ } = require("./commands/approve.js");
 	// 	const { passRevServ } = require("./commands/revert.js");
 	// 	const { passImgServ } = require("./handlers/images.js");
@@ -380,7 +381,7 @@ async function checkCleanupList(message) {
 
 client.on("messageCreate", async message => {
 	await checkCleanupList(message);
-	const profile = (ops.profileChannel != "0") ? client.channels.cache.get(ops.profileChannel) : undefined;
+	const profile = (ops.profileChannel) ? client.channels.cache.get(ops.profileChannel) : undefined;
 	if (message.channel == profile) return; // Profile channel? Cancel
 	if (message.author.bot) return; // Bot? Cancel
 	if (message.content == `${client.user.toString().slice(0, 2) + "!" + client.user.toString().slice(2, client.user.toString().length)} wassup` || message.content == `${client.user} wassup`) return message.reply("nm, you?");
@@ -409,7 +410,7 @@ client.on("messageCreate", async message => {
 			} else {
 				message.memb = message.member;
 			}
-			const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? client.channels.cache.get(ops.screenshotChannel) : undefined;
+			const channel = (ops.screenshotScanning && ops.screenshotChannel) ? client.channels.cache.get(ops.screenshotChannel) : undefined;
 			if (!dm && channel == undefined){
 				message.reply(`The screenshot channel could not be found. Please set it correctly using \`${prefix || prefix2}set screenshotChannel <id>\``).catch(() => {
 					errorMessage(postedTime, dm, `Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
@@ -436,7 +437,7 @@ client.on("messageCreate", async message => {
 			const image = message.attachments.first();
 			const fileType = image.url.split(".").pop().toLowerCase();
 			const acceptedFileTypes = ["png", "jpg", "jpeg", "jfif", "tiff", "bmp"];
-			const logs = (ops.logsChannel != "0") ? client.channels.cache.get(ops.logsChannel) : undefined;
+			const logs = (ops.logsChannel) ? client.channels.cache.get(ops.logsChannel) : undefined;
 			if (!acceptedFileTypes.includes(fileType) && !(image.contentType.split("/")[0] == "image")){
 				if (ops.dmMail && dm) return mail.mailDM(message, "wrong");
 				errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused as ${fileType} is an invalid file type: `);
@@ -700,10 +701,10 @@ process.on("uncaughtException", (err) => {
 		imgStats.currentlyImage--;
 	}
 	if (err != null) {
-		const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? client.channels.cache.get(ops.screenshotChannel) : undefined;
+		const channel = (ops.screenshotScanning && ops.screenshotChannel) ? client.channels.cache.get(ops.screenshotChannel) : undefined;
 		if (err.message.substr(0, 35) == "Error: UNKNOWN: unknown error, open"){
 			console.error(`[${dateToTime(new Date())}]: Error: Known imageWrite crash. Consider turning off saveLocalCopy. This error should be handled correctly.`);
-			if (ops.screenshotChannel != "0") channel.send("An internal error occured. Please retry sending the screenshot(s) that failed.").then((errorMsg) => {
+			if (ops.screenshotChannel) channel.send("An internal error occured. Please retry sending the screenshot(s) that failed.").then((errorMsg) => {
 				setTimeout(() => {
 					if (ops.msgDeleteTime > 0){
 						errorMsg.delete().catch(() => {
@@ -714,7 +715,7 @@ process.on("uncaughtException", (err) => {
 			});
 		} else {
 			console.error(`Uncaught Exception: ${err}${err.stack}`);
-			if (ops.screenshotChannel != "0") channel.send(`<@&${ops.modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
+			if (ops.screenshotChannel) channel.send(`<@&${ops.modRole}> An unexpected internal error occured. Please give the developer this information:\n${err}${err.stack}`);
     }
 	} else {
 		console.error(err);
@@ -735,8 +736,8 @@ process.on("unhandledRejection", (err, promise) => {
 
 process.on("SIGINT", () => {
   console.log(`Process ${process.pid} has been interrupted`);
-	const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? client.channels.cache.get(ops.screenshotChannel) : undefined;
-	if (ops.screenshotChannel != "0") channel.send("The bot is sleeping now. Goodbye :wave:").then(() => {
+	const channel = (ops.screenshotScanning && ops.screenshotChannel) ? client.channels.cache.get(ops.screenshotChannel) : undefined;
+	if (ops.screenshotChannel) channel.send("The bot is sleeping now. Goodbye :wave:").then(() => {
 		process.exit(1);
 	});
 	else process.exit(1);

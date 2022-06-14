@@ -14,8 +14,9 @@ module.exports = {
 	scanningOnly: true,
 	type:"Screenshots",
 	execute(message, args) {
-		const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
-		const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
+		const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
+		const channel = (ops.screenshotScanning && ops.screenshotChannel) ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
+		const badges = (ops.badgeChannel) ? message.client.channels.cache.get(ops.badgeChannel) : undefined;
 		return new Promise(function(bigResolve) {
 		if (args[1]){
 			message.reply(`Please provide only one user in the format \`${ops.prefix}r <@mention/ID>\``);
@@ -78,6 +79,11 @@ module.exports = {
 				const had30 = new Promise((had) => {
 					if (ops.targetLevelRole && member.roles.cache.has(ops.targetLevelRole)){
 							member.roles.remove(ops.targetLevelRole).then(() => {
+								if (ops.targetLevelBadge){
+									if (ops.badgeChannel){
+										badges.send(`<@428187007965986826> rb ${ops.targetLevelBadge} ${id}`);
+									} else console.error(`[${execTime}]: Error. badgeChannel is not set.`);
+								}
 								had(true);
 							}).catch((err) => {
 								console.error(`[${execTime}]: Error: Could not take RR role from ${member.user.username}. Error: ${err}`);
@@ -88,6 +94,11 @@ module.exports = {
 				const had40 = new Promise((had) => {
 					if (ops.level40Role && member.roles.cache.has(ops.level40Role)){
 							member.roles.remove(ops.level40Role).then(() => {
+								if (ops.level40Badge){
+									if (ops.badgeChannel){
+										badges.send(`<@428187007965986826> rb ${ops.level40Badge} ${id}`);
+									} else console.error(`[${execTime}]: Error. badgeChannel is not set.`);
+								}
 								had(true);
 							}).catch((err) => {
 								console.error(`[${execTime}]: Error: Could not take Level 40 role from ${member.user.username}. Error: ${err}`);
@@ -98,6 +109,11 @@ module.exports = {
 				const had50 = new Promise((had) => {
 					if (ops.level50Role && member.roles.cache.has(ops.level50Role)){
 							member.roles.remove(ops.level50Role).then(() => {
+								if (ops.level50Badge){
+									if (ops.badgeChannel){
+										badges.send(`<@428187007965986826> rb ${ops.level50Badge} ${id}`);
+									} else console.error(`[${execTime}]: Error. badgeChannel is not set.`);
+								}
 								had(true);
 							}).catch((err) => {
 								console.error(`[${execTime}]: Error: Could not take Level 50 role from ${member.user.username}. Error: ${err}`);

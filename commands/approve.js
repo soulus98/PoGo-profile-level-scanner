@@ -5,10 +5,10 @@ const { saveStats } = require("../func/stats.js"),
 			messagetxt = require("../server/messagetxt.js"),
 			{ messagetxtReplace } = require("../func/misc.js");
 
-// const server = (ops.serverID != "0") ? client.guilds.cache.get(ops.serverID) : undefined;
-// const logs = (ops.logsChannel != "0") ? client.guilds.cache.get(ops.logsChannel) : undefined;
-// const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? client.guilds.cache.get(ops.screenshotChannel) : undefined;
-// const profile = (ops.profileChannel != "0") ? client.guilds.cache.get(ops.profileChannel) : undefined;
+// const server = (ops.serverID) ? client.guilds.cache.get(ops.serverID) : undefined;
+// const logs = (ops.logsChannel) ? client.guilds.cache.get(ops.logsChannel) : undefined;
+// const channel = (ops.screenshotScanning && ops.screenshotChannel) ? client.guilds.cache.get(ops.screenshotChannel) : undefined;
+// const profile = (ops.profileChannel) ? client.guilds.cache.get(ops.profileChannel) : undefined;
 
 module.exports = {
 	name: "confirm-screenshot",
@@ -26,7 +26,7 @@ module.exports = {
 				if (input[1] == undefined) {
 					const inCommand = true;
 					const message = input;
-					const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
+					const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
 					if (args[2] || args[1] > 50 || args[1] < 1 || (args[1] && isNaN(args[1]))){
 						message.reply(`Please provide only one user and one level in the format \`${ops.prefix}c <@mention/ID> [level]\``);
 						bigResolve(", but it failed, since the format was wrong.");
@@ -101,10 +101,11 @@ module.exports = {
 			// role id === undefined
 			// any other mistype === undefined
 			prom.then(function([inCommand, message, postedTime, image, level, id, member]) {
-				const server = (ops.serverID != "0") ? message.client.guilds.cache.get(ops.serverID) : undefined;
-				const logs = (ops.logsChannel != "0") ? message.client.channels.cache.get(ops.logsChannel) : undefined;
-				const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
-				const profile = (ops.profileChannel != "0") ? message.client.channels.cache.get(ops.profileChannel) : undefined;
+				const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
+				const logs = (ops.logsChannel) ? message.client.channels.cache.get(ops.logsChannel) : undefined;
+				const channel = (ops.screenshotScanning && ops.screenshotChannel) ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
+				const profile = (ops.profileChannel) ? message.client.channels.cache.get(ops.profileChannel) : undefined;
+				const badges = (ops.badgeChannel) ? message.client.channels.cache.get(ops.badgeChannel) : undefined;
 				const dm = (message.channel.type == "DM") ? true : false;
 				if (member === null){
 					console.error(`[${execTime}]: Error: #${id} left the server before they could be processed.`);
@@ -200,6 +201,11 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 							setTimeout(() => {
 								member.roles.add(server.roles.cache.get(ops.targetLevelRole)).catch(console.error);
 							}, 250);
+							if (ops.targetLevelBadge){
+								if (ops.badgeChannel){
+									badges.send(`<@428187007965986826> gb ${ops.targetLevelBadge} ${id}`);
+								} else console.error(`[${execTime}]: Error. badgeChannel is not set.`);
+							}
 							setTimeout(() => {
 								profile.send(messagetxtReplace(messagetxt.successProfile, member, (level == "missing") ? `${ops.targetLevel}+` : level));
 							}, 3000);
@@ -213,6 +219,11 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 									if (!member.roles.cache.has(ops.level40Role)) {
 										member.roles.add(server.roles.cache.get(ops.level40Role)).catch(console.error);
 										resolve(true);
+										if (ops.level40Badge){
+											if (ops.badgeChannel){
+												badges.send(`<@428187007965986826> gb ${ops.level40Badge} ${id}`);
+											} else console.error(`[${execTime}]: Error. badgeChannel is not set.`);
+										}
 									} else {
 										resolve(false);
 									}
@@ -229,6 +240,11 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 									if (!member.roles.cache.has(ops.level50Role)) {
 										member.roles.add(server.roles.cache.get(ops.level50Role)).catch(console.error);
 										resolve(true);
+										if (ops.level50Badge){
+											if (ops.badgeChannel){
+												badges.send(`<@428187007965986826> gb ${ops.level50Badge} ${id}`);
+											} else console.error(`[${execTime}]: Error. badgeChannel is not set.`);
+										}
 									} else {
 										resolve(false);
 									}
@@ -301,7 +317,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 };
 
 function deleteStuff(message, execTime, id){
-	const channel = (ops.screenshotScanning && ops.screenshotChannel != "0") ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
+	const channel = (ops.screenshotScanning && ops.screenshotChannel) ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
 	if (ops.msgDeleteTime && !(message.channel.parent && message.channel.parent.id == ops.mailCategory)){
 		setTimeout(function() {
 			message.delete().catch(() => {

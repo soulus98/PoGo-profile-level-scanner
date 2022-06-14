@@ -1,3 +1,7 @@
+# v2.5 (2021-Jun-14)
+* Added a Pokenav badge granting system. The bot will post `$gb` and `$rb` when granting roles.
+* Added `badgeChannel`, `targetLevelBadge`, `level40Badge`, and `level50Badge` settings. Set them to 0 for no action
+
 # v2.4 (2021-Mar-31)
 * Renamed the Pokenav filter to "cleanup", as that makes more sense and helps be with organisation
 * Updated cleanup to work with slash commands, and made 3 groups: `raid`, `badge`, and `pvpiv`.

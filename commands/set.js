@@ -32,7 +32,7 @@ module.exports = {
 				}
 				let was,
 						to;
-				if (numbers[args[0]]){
+				if (numbers[args[0]] != undefined){
 					const value = parseInt(args[1]);
 					if (isNaN(value)) {
 						message.reply(`You must supply a number for ${args[0]}.`);
@@ -42,7 +42,7 @@ module.exports = {
 					was = numbers[args[0]];
 					numbers[args[0]] = value;
 					to = numbers[args[0]];
-				} else if (chars[args[0]]){
+				} else if (chars[args[0]] != undefined){
 					if (typeof (args[1]) != "string") {
 						message.reply(`You must supply a text string for ${args[0]}.`);
 						resolve(`, but it failed, as ${args[0]} requires a string, and ${args[1]} isn't one.`);
@@ -51,7 +51,7 @@ module.exports = {
 					was = chars[args[0]];
 					chars[args[0]] = args[1];
 					to = chars[args[0]];
-				} else if (ids[args[0]]){
+				} else if (ids[args[0]] != undefined){
 					if ((args[1].length < 17 || args[1].length > 19) && (!(args[1] == 0))) {
 						message.reply(`You must supply a valid discord ID for ${args[0]}.`);
 						resolve(`, but it failed, as ${args[0]} requires a discord ID, and ${args[1]} isn't one.`);
@@ -60,6 +60,13 @@ module.exports = {
 					was = ids[args[0]];
 					ids[args[0]] = args[1];
 					to = ids[args[0]];
+				} else {
+					console.error("Impossible error in set command. One group wasn't undefined but then they all were...?");
+					console.error("numbers[args[0]]:", numbers[args[0]]);
+					console.error("chars[args[0]]:", chars[args[0]]);
+					console.error("ids[args[0]]:", ids[args[0]]);
+					message.reply("I similtaneously could & couldn't find that setting. Yes I know that makes no sense. Please tell Soul");
+					return;
 				}
 				const jsonString = JSON.stringify(config);
 				fs.writeFile(path.resolve(__dirname, "../server/config.json"), jsonString, err => {

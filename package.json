@@ -1,6 +1,6 @@
 {
   "name": "ocrboi",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "description": "Pokémon go Trainer Profile OCR developed for the Pokémon GO Raids discord server",
   "main": "bot.js",
   "scripts": {

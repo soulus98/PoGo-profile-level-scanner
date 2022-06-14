@@ -23,7 +23,10 @@
     "threshold":"(The color level at which all values above will be white and all below with be black. Different for different servers for some reason.)",
     "msgDeleteTime":"(How long (in seconds) error/help messages stick around before self destructing. Set to 0 to disable.)",
     "blacklistTime":"(How long (in days) to prevent someone from posting a screenshot after being scanned at under 30.)",
-		"targetLevel":"(The level for the gate role.)"
+		"targetLevel":"(The level for the gate role.)",
+    "targetLevelBadge":"(A Pokenav Badge ID. Set to 0 to avoid badge application)",
+    "level40Badge":"(Same as above, but for level 40+)",
+    "level50Badge":"(Same as above, but for level 50)"
   },
   "chars":{
     "self":"Changed using `{prefix}set [setting] [value]`. Must be a string of characters",
@@ -35,6 +38,7 @@
     "screenshotChannel":"(The channel to scan for screenshots)",
     "logsChannel":"(The channel where the logs are posted. Leave blank for no logs)",
     "profileChannel":"(The channel where the user is tagged afterwards. Leave blank for no tag)",
+    "badgeChannel":"(The channel to execute badge commands, if one of the badge ids are set)",
     "targetLevelRole":"(The role for successful scans at targetLevel. e.g. level 30+)",
     "level40Role":"(The role for level 40+ screenshots)",
     "level50Role":"(The role for level 50+ screenshots)",
