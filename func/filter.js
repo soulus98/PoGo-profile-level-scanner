@@ -36,7 +36,7 @@ function cleanup(message, group) {
 				});
 				return;
 			}
-			return deleteMessage(message);
+			return;
 		case "pvpiv":
 			setTimeout(() => {
 				message.fetch().then(m => {
