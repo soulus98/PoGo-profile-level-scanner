@@ -239,7 +239,7 @@ client.once("ready", async () => {
 	const server = (ops.serverID) ? await client.guilds.fetch(ops.serverID) : undefined;
 	const logs = (ops.logsChannel) ? await client.channels.fetch(ops.logsChannel) : undefined;
 	const channel = (ops.screenshotScanning && ops.screenshotChannel) ? await client.channels.fetch(ops.screenshotChannel) : undefined;
-	if (ops.badgeChannel) await client.channels.fetch(ops.badgeChannel);
+	if (ops.badgeChannel > 0) await client.channels.fetch(ops.badgeChannel);
 	// if (ops.profileChannel) profile = await client.channels.fetch(ops.profileChannel);
 	// if (ops.screenshotScanning) {
 	// 	if (ops.screenshotChannel) channel = await client.channels.fetch(ops.screenshotChannel);
