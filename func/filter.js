@@ -16,27 +16,30 @@ function cleanup(message, group) {
 			) return;
 			return deleteMessage(message);
 		case "badge":
-			if (
-				message.embeds[0]?.title == "No Change Made To Trainer's Badge"
-				|| message.embeds[0]?.description == "Could not convert \"role_or_trainer\" into Role or Trainer."
-			) return;
-			if (
-				message.embeds[0]?.title == "Badge Granted!"
-				|| message.embeds[0]?.title == "Badge Revoked!"
-			) {
-				message.react("👀").then(() => {
-					setTimeout(() => {
-						message.delete().catch(() => console.error(`Can not cleanup pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-					}, 3000);
-				}).catch(() => {
-					console.error(`[${new Date()}]: Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
-					setTimeout(() => {
-						message.delete().catch(() => console.error(`Can not cleanup pokenav message:${message.id} from channel: ${message.channel.name}${message.channel}.`));
-					}, 3000);
+			setTimeout(() => {
+				message.fetch().then(m => {
+					if (
+						m.embeds[0]?.title == "No Change Made To Trainer's Badge"
+						|| m.embeds[0]?.description == "Could not convert \"role_or_trainer\" into Role or Trainer."
+					) return;
+					if (
+						m.embeds[0]?.title == "Badge Granted!"
+						|| m.embeds[0]?.title == "Badge Revoked!"
+					) {
+						m.react("👀").then(() => {
+							setTimeout(() => {
+								return deleteMessage(m);
+							}, 1500);
+						}).catch(() => {
+							console.error(`[${new Date()}]: Error: Could not react 👀 (eyes) to message: ${m.url}\nContent of mesage: "${m.content}"`);
+							setTimeout(() => {
+								return deleteMessage(m);
+							}, 1500);
+						});
+					}
 				});
-				return;
-			}
-			return;
+			}, 750);
+		return;
 		case "pvpiv":
 			setTimeout(() => {
 				message.fetch().then(m => {
