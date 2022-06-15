@@ -2,7 +2,7 @@
 * Added a Pokenav badge granting system. The bot will post `$gb` and `$rb` with specified badge IDs in a specified channel when granting roles.
 * Added `badgeChannel`, `targetLevelBadge`, `level40Badge`, and `level50Badge` settings. Set them to 0 for no action
 
-#### v2.4.1 (2022-Jun-15)
+#### v2.5.1 (2022-Jun-15)
 * Fixed a couple bugs in the cleanup section
 
 # v2.4 (2021-Mar-31)
