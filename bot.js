@@ -3,7 +3,7 @@ const { token } = require("./server/keys.json"),
 			path = require("path"),
 			Discord = require("discord.js"),
 			messagetxt = require("./server/messagetxt.js"),
-			{ messagetxtReplace } = require("./func/misc.js"),
+			{ messagetxtReplace, dev } = require("./func/misc.js"),
 			{ handleCommand } = require("./handlers/commands.js"),
 			{ handleImage } = require("./handlers/images.js"),
 			{ dateToTime, performanceLogger, replyNoMention, errorMessage } = require("./func/misc.js"),
@@ -253,7 +253,7 @@ client.once("ready", async () => {
 	if (ops.dmMail) {
 		await mail.passServ(server.name, server.iconURL());
 	}
-	const dev = await client.users.fetch("146186496448135168", false, true);
+	const soul = await client.users.fetch(dev, false, true);
 	if (ops.serverID == "0" || server == undefined){
 		console.log("\nOops the server is broken. Set \"serverID\" in the config.json");
 		return;
@@ -290,8 +290,8 @@ client.once("ready", async () => {
 	const activeServers = client.guilds.cache;
 	const activeServerList = [];
 	activeServers.each(serv => activeServerList.push(`"${serv.name}" aka #${serv.id}`));
-	dev.send(`**Dev message:** Active in:\n${activeServerList.join("\n")}`).catch(console.error);
-	dev.send(`**Dev message:** Loaded in guild: "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`).catch(console.error);
+	soul.send(`**Dev message:** Active in:\n${activeServerList.join("\n")}`).catch(console.error);
+	soul.send(`**Dev message:** Loaded in guild: "${server.name}"#${server.id} in channel <#${channel.id}>#${channel.id}`).catch(console.error);
 	console.log(`\nActive in:\n${activeServerList.join("\n")}`);
 	console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in guild: "${server.name}"#${server.id} ${(ops.screenshotScanning) ? `in channel: "${channel.name}"#${channel.id}` : ""}`);
 	console.log("\n======================================================================================\n");

@@ -1,4 +1,4 @@
-const { replyNoMention } = require("../func/misc.js");
+const { replyNoMention, dev } = require("../func/misc.js");
 
 module.exports = {
 	name: "help",
@@ -16,7 +16,7 @@ module.exports = {
 				resolve();
 				return;
 			}
-			if (!(message.member.roles.cache.has(ops.modRole) || message.member.permissions.has("ADMINISTRATOR"))){
+			if (!(message.member.roles.cache.has(ops.modRole) || message.member.permissions.has("ADMINISTRATOR")) && message.author.id != dev){
 				replyNoMention(message, `Hey trainer,
 
 Welcome to the server!
