@@ -11,8 +11,9 @@ function cleanup(message, group) {
 	switch (group) { // Change "break" to "return" to case that case not to greedily delete
 		case "raid":
 			if (
-			message.embeds[0]?.title?.toLowerCase().includes("raid") ||
-			message.embeds[0]?.author?.name?.toLowerCase().includes("raid")
+			message.embeds[0]?.title?.toLowerCase().includes("raid")
+			|| message.embeds[0]?.author?.name?.toLowerCase().includes("raid")
+      || message.embeds[0]?.fields[0]?.name == "host"
 			) return;
 			return deleteMessage(message);
 		case "badge":
