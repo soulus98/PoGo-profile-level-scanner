@@ -102,6 +102,13 @@ async function mailDM(message, status, level) {
 				} else {
 					server.channels.fetch(queue.get(member.id)).then((ch) => {
 						res(ch);
+					}).catch((err) => {
+						if (err.code == 10003){
+							queue.delete(member.id);
+							saveQueue();
+							message.reply("An error occured. Please try again.");
+							console.error(`[${dateToTime(new Date())}]: Could not find a mail ticket for ${member.user.username}#${member.id}. Cleared the mailQueue.`);
+						} else console.error(err);
 					});
 				}
 			}).then(async (channel) => {
