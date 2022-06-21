@@ -392,6 +392,12 @@ client.on("messageCreate", async message => {
 	if (!dm && ops.serverID && message.guild.id != ops.serverID){ // If we are in the wrong server
 		return;
 	}
+	if (ops.respondCashEnd && message?.member.roles.cache.has(ops.modRole) && message.content == "$end") {
+		console.log(`[${dateToTime(postedTime)}]: Used $end for ${message.author}`);
+		message.author.send("Don't forget to use `/end` next time. 😉");
+		message.reply("<@428187007965986826> end");
+		return;
+	}
 	let wasDelayed = false;
 	const prefix = (ops.prefix.length == 0) ? undefined : ops.prefix;
 	const prefix2 = (ops.prefix2.length == 0) ? undefined : ops.prefix2;

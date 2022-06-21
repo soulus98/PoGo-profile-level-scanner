@@ -6,9 +6,9 @@ const { saveStats } = require("../func/stats.js"),
 			{ messagetxtReplace } = require("../func/misc.js");
 
 // const server = (ops.serverID) ? client.guilds.cache.get(ops.serverID) : undefined;
-// const logs = (ops.logsChannel) ? client.guilds.cache.get(ops.logsChannel) : undefined;
-// const channel = (ops.screenshotScanning && ops.screenshotChannel) ? client.guilds.cache.get(ops.screenshotChannel) : undefined;
-// const profile = (ops.profileChannel) ? client.guilds.cache.get(ops.profileChannel) : undefined;
+// const logs = (ops.logsChannel) ? client.channels.cache.get(ops.logsChannel) : undefined;
+// const channel = (ops.screenshotScanning && ops.screenshotChannel) ? client.channels.cache.get(ops.screenshotChannel) : undefined;
+// const profile = (ops.profileChannel) ? client.channels.cache.get(ops.profileChannel) : undefined;
 
 module.exports = {
 	name: "confirm-screenshot",

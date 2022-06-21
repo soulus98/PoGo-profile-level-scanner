@@ -16,6 +16,7 @@
     "processInfoMode":"(Whether to log the Node JS process information)",
     "dmAutoReply":"(Whether mail tickets will bypass needing a `=r ` or `=reply ` at the start of the message to successfully send.)",
 		"respondVerify":"(Whether to send a message every time someone successfully verifies through pokenav)",
+		"respondCashEnd":"(Whether to forward $end when mods use it)",
     "dmSymbolDenial":"(Whether to correct people who try to use `$`, `?`, `!`, or `/` in DMs (mainly to avoid `$verify`))"
   },
   "numbers":{

@@ -1,3 +1,6 @@
+# v2.6 (2021-Jun-??)
+* Added `respondCashEnd` option for making the bot end raids for you
+
 # v2.5 (2021-Jun-14)
 * Added a Pokenav badge granting system. The bot will post `$gb` and `$rb` with specified badge IDs in a specified channel when granting roles.
 * Added `badgeChannel`, `targetLevelBadge`, `level40Badge`, and `level50Badge` settings. Set them to 0 for no action

@@ -15,6 +15,7 @@
     "processInfoMode":false,
 		"dmAutoReply":false,
 		"respondVerify":true,
+		"respondCashEnd":true,
     "dmSymbolDenial":true
   },
   "numbers":{
