@@ -11,6 +11,7 @@ const { token } = require("./server/keys.json"),
 			{ saveBlacklist } = require("./func/saveBlacklist.js"),
 			{ cleanup, loadCleanupList } = require("./func/filter.js"),
 			{ respondVerify } = require("./func/verify.js"),
+			{ cacheOps, sweeperOps } = require("./func/clientOptions.js"),
 			mail = require("./handlers/dm.js"),
 			ver = require("./package.json").version,
 			dmMailTog = require("./server/config.json").toggles.dmMail,
@@ -18,6 +19,8 @@ const { token } = require("./server/keys.json"),
 			launchDate = new Date(),
 			act = (dmMailTog) ? messagetxtReplace(messagetxt.activity) : ver,
 client = new Discord.Client({
+	makeCache: Discord.Options.cacheWithLimits(cacheOps),
+	sweepers: sweeperOps,
 	intents: [
 		Discord.Intents.FLAGS.GUILDS,
 		Discord.Intents.FLAGS.GUILD_MEMBERS,
@@ -49,7 +52,8 @@ let loaded = false,
 		screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
 ops = {};
 module.exports = { loadConfigs, clearBlacklist, cooldowns, screensFolder };
-
+let i = 0;
+console.log(["a", "b", "c", "d", "e"].join(i++));
 // Loads all the variables at program launch
 async function load(){
 		console.log("======================================================================================\n");
@@ -392,7 +396,7 @@ client.on("messageCreate", async message => {
 	if (!dm && ops.serverID && message.guild.id != ops.serverID){ // If we are in the wrong server
 		return;
 	}
-	if (ops.respondCashEnd && message?.member.roles.cache.has(ops.modRole) && message.content == "$end") {
+	if (ops.respondCashEnd && message.member?.roles.cache.has(ops.modRole) && message.content == "$end") {
 		console.log(`[${dateToTime(postedTime)}]: Used $end for ${message.author}`);
 		message.author.send("Don't forget to use `/end` next time. 😉");
 		message.reply("<@428187007965986826> end");

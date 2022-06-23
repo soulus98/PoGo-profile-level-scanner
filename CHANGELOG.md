@@ -1,15 +1,16 @@
 # v2.6 (2021-Jun-??)
+* Split out the PokeNav filtering bot to https://github.com/soulus98/Pokenav-mini-helper. This allows both bots to work better for specific purposes
 * Added `respondCashEnd` option for making the bot end raids for you
 
 # v2.5 (2021-Jun-14)
-* Added a Pokenav badge granting system. The bot will post `$gb` and `$rb` with specified badge IDs in a specified channel when granting roles.
+* Added a PokeNav badge granting system. The bot will post `$gb` and `$rb` with specified badge IDs in a specified channel when granting roles.
 * Added `badgeChannel`, `targetLevelBadge`, `level40Badge`, and `level50Badge` settings. Set them to 0 for no action
 
 #### v2.5.1 (2022-Jun-15)
 * Fixed a couple bugs in the cleanup section
 
 # v2.4 (2021-Mar-31)
-* Renamed the Pokenav filter to "cleanup", as that makes more sense and helps be with organisation
+* Renamed the PokeNav filter to "cleanup", as that makes more sense and helps be with organisation
 * Updated cleanup to work with slash commands, and made 3 groups: `raid`, `badge`, and `pvpiv`.
 * Added a mandatory `group` argument to the `]add` and `]rem` commands. `]rem` can have `all` as the group to easily remove it from all 3 groups
 
@@ -80,7 +81,7 @@ hotfix:
 * Added a DM scanning system for profile screenshots
 * Integrated the two, so that failed screenshots are passed on to the mail section
 * Added **dmMail** and **dmScanning** toggles to enable these features
-* Added a Pokenav message deletion filter
+* Added a PokeNav message deletion filter
 * Added `]add` and `]remove` to add channels to the filter list
 * Added "DM" to some error messages
 * Made level 29 screenshots redirect to mail
@@ -88,7 +89,7 @@ hotfix:
 
 #### v2.0.1 (2021-Oct-02)
 * Removed a catastrophic filter issue where it would delete raid embeds!
-* Added "User is on cooldown" to the Pokenav filter
+* Added "User is on cooldown" to the PokeNav filter
 * Fixed a problem with impossible deletions
 * Added await to embedStart so we get them in order
 
@@ -116,7 +117,7 @@ hotfix:
 * Added the user mention in the start of the mail ticket to make it even slightly easier on mobile users
 * Fixed the banned/no DMs message that appears in the channel
 * Added a ignored words filter that includes things such as "thanks" and "ok" which won't ask to start a new channel
-* Mail now ignores `?` and `$`, to allow dyno and pokenav commands (it already ignored bots)
+* Mail now ignores `?` and `$`, to allow dyno and PokeNav commands (it already ignored bots)
 * Added Badge messages to the filter
 * Fixed a dumbass mistake I introduced in `]add` and `]rem`
 * Added time and date to websocket disconnect error logs
