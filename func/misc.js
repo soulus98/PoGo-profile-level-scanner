@@ -52,4 +52,4 @@ function messagetxtReplace(msg, member, level){
 	return msg;
 }
 
-module.exports = { dateToTime, performanceLogger, replyNoMention, errorMessage, messagetxtReplace, groupList: ["raid", "badge", "pvpiv"], dev:"146186496448135168" };
+module.exports = { dateToTime, performanceLogger, replyNoMention, errorMessage, messagetxtReplace, dev:"146186496448135168" };
