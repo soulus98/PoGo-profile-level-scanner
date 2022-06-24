@@ -146,6 +146,8 @@ module.exports = {
 						blacklist.set(id, Date.now());
 						saveBlacklist(blacklist);
 						saveStats("revert");
+						const logs = (ops.logsChannel) ? message.client.channels.cache.get(ops.logsChannel) : undefined;
+						logs.send({ content: `${message.author.username}#${message.author.id} used \`${ops.prefix}revert\` and tagged ${member}. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}${(tookVH ? `${took30 || took40 || took50 ? ", " : ""}VH` : "")}.` });
 						bigResolve(logggString + `. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}${(tookVH ? `${took30 || took40 || took50 ? ", " : ""}VH` : "")}.`);
 						if (ops.msgDeleteTime && !(message.channel.parent && message.channel.parent.id == ops.mailCategory)){
 							setTimeout(function() {

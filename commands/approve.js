@@ -20,12 +20,13 @@ module.exports = {
 	scanningOnly: true,
 	type:"Screenshots",
 	execute(input, args) {
+		// This command uses input rather than message, since it can be called via a command OR by the main screenshot process
 		return new Promise(function(bigResolve) {
 			const execTime = dateToTime(new Date());
 			const prom = new Promise(function(resolve) {
 				if (input[1] == undefined) {
 					const inCommand = true;
-					const message = input;
+					const message = input; // If called by command, message = input
 					const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
 					if (args[2] || args[1] > 50 || args[1] < 1 || (args[1] && isNaN(args[1]))){
 						message.reply(`Please provide only one user and one level in the format \`${ops.prefix}c <@mention/ID> [level]\``);
@@ -86,7 +87,7 @@ module.exports = {
 					// id, level
 				} else {
 					const inCommand = false;
-					const message = input[0];
+					const message = input[0]; // If called from a screenshot, input is [message, postedTime]
 					const postedTime = input[1];
 					const image = message.attachments.first();
 					const level = args[1];
@@ -202,7 +203,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 								member.roles.add(server.roles.cache.get(ops.targetLevelRole)).catch(console.error);
 							}, 250);
 							if (ops.targetLevelBadge){
-								if (ops.badgeChannel){
+								if (ops.badgeChannel && badges){
 									badges.send(`<@428187007965986826> gb ${ops.targetLevelBadge} ${id}`);
 								} else console.error(`[${execTime}]: Error. badgeChannel is not set.`);
 							}
@@ -304,6 +305,8 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 										if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Log img posted\t`, postedTime.getTime()); // testo?
 									});
 								}
+							} else {
+								logs.send({ content: `${message.author.username}#${message.author.id} used \`${ops.prefix}confirm\` and tagged ${member}, who was given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}` });
 							}
 							saveStats(level);
 							bigResolve((logString || "") + `. Given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}. ${(!inCommand) ? `Level ${level}` : ""}.`);

@@ -4,6 +4,7 @@ function channelKeepOver(v){
 	return v.id == ops.screenshotChannel
 	|| v.id == ops.profileChannel
 	|| v.id == ops.logsChannel
+	|| v.id == ops.badgeChannel
 	|| v.id == ops.mailCategory
 	|| v.parent?.id == ops.mailCategory;
 }
