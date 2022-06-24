@@ -19,7 +19,7 @@ const { token } = require("./server/keys.json"),
 			launchDate = new Date(),
 			act = (dmMailTog) ? messagetxtReplace(messagetxt.activity) : ver,
 client = new Discord.Client({
-	makeCache: Discord.Options.cacheWithLimits(cacheOps),
+	makeCache: (require("./server/config.json").toggles.strictCache) ? Discord.Options.cacheWithLimits(cacheOps) : Discord.Options.cacheEverything(),
 	sweepers: sweeperOps,
 	intents: [
 		Discord.Intents.FLAGS.GUILDS,

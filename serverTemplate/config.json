@@ -15,8 +15,9 @@
     "processInfoMode":false,
 		"dmAutoReply":false,
 		"respondVerify":true,
-		"respondCashEnd":true,
-    "dmSymbolDenial":true
+		"respondCashEnd":false,
+    "dmSymbolDenial":true,
+    "strictCache":false
   },
   "numbers":{
     "threshold":228,
