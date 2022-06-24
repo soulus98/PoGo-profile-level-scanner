@@ -1,7 +1,7 @@
 module.exports = {
 	name: "check-memory-usage",
 	description: "responds with the current memory usage stats.",
-  aliases: ["mem"],
+  aliases: ["mem", "memory"],
   usage: `\`${ops.prefix}mem\``,
 	guildOnly:true,
 	type:"Info",
