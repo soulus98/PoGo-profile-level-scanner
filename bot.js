@@ -378,7 +378,7 @@ client.on("messageCreate", async message => {
 	let wasDelayed = false;
 	const prefix = (ops.prefix.length == 0) ? undefined : ops.prefix;
 	const prefix2 = (ops.prefix2.length == 0) ? undefined : ops.prefix2;
-	if (ops.dmMail && !message.content.startsWith(prefix) && !message.content.startsWith(prefix2) && message.channel.parent && message.channel.parent.id == ops.mailCategory) {
+	if (ops.dmMail && !message.content.startsWith(prefix) && !message.content.startsWith(prefix2) && message.channel.parent && message.channel.parentId == ops.mailCategory) {
 		mail.channelMsg(message);
 		return;
 	} else {

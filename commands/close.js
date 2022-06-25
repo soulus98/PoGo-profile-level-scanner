@@ -10,7 +10,7 @@ module.exports = {
 	execute(message, args) {
 		return new Promise(function(resolve, reject) {
       if (ops.dmMail){
-        if (message.channel.parent && message.channel.parent.id == ops.mailCategory) {
+        if (message.channel.parent && message.channel.parentId == ops.mailCategory) {
 					mail.close(message, args.join(" ")).then(() => {
 						resolve();
 					}).catch((log) => {

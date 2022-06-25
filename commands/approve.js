@@ -321,7 +321,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 
 function deleteStuff(message, execTime, id){
 	const channel = (ops.screenshotScanning && ops.screenshotChannel) ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
-	if (ops.msgDeleteTime && !(message.channel.parent && message.channel.parent.id == ops.mailCategory)){
+	if (ops.msgDeleteTime && !(message.channel.parent && message.channel.parentId == ops.mailCategory)){
 		setTimeout(function() {
 			message.delete().catch(() => {
 				console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);

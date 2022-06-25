@@ -149,7 +149,7 @@ module.exports = {
 						const logs = (ops.logsChannel) ? message.client.channels.cache.get(ops.logsChannel) : undefined;
 						logs.send({ content: `${message.author.username}#${message.author.id} used \`${ops.prefix}revert\` and tagged ${member}. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}${(tookVH ? `${took30 || took40 || took50 ? ", " : ""}VH` : "")}.` });
 						bigResolve(logggString + `. I removed ${(took30 ? "RR" : "")}${(took40 ? `${took30 ? ", " : ""}Level 40` : "")}${(took50 ? `${took30 || took40 ? ", " : ""}Level 50` : "")}${(tookVH ? `${took30 || took40 || took50 ? ", " : ""}VH` : "")}.`);
-						if (ops.msgDeleteTime && !(message.channel.parent && message.channel.parent.id == ops.mailCategory)){
+						if (ops.msgDeleteTime && !(message.channel.parent && message.channel.parentId == ops.mailCategory)){
 							setTimeout(function() {
 								message.delete().catch(() => {
 									console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);

@@ -32,7 +32,7 @@ module.exports = {
 				resolve(", but it failed, as dmMail was not toggled on.");
 				return;
 			}
-      if (!message.channel.parent || message.channel.parent.id != ops.mailCategory) {
+      if (!message.channel.parent || message.channel.parentId != ops.mailCategory) {
 				message.reply(`That command can only be used in the mail category: <#${ops.mailCategory}>. Use \`${ops.prefix}set mailCategory <id>\` to set it if it is incorrect.`);
         resolve(`, but it failed, as ${message.channel.name}${message.channel} is not in the mail category: ${ops.mailCategory}.`);
 				return;

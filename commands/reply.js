@@ -14,7 +14,7 @@ module.exports = {
         reject(", but it failed, as dmMail was not toggled on.");
 				return;
       }
-			if (!message.channel.parent || message.channel.parent.id != ops.mailCategory) {
+			if (!message.channel.parent || message.channel.parentId != ops.mailCategory) {
 				message.reply(`That command can only be used in the mail category: <#${ops.mailCategory}>. \nUse \`${ops.prefix}set mailCategory <id>\` if the category is incorrect.\nYou might be looking for \`]revert\` aka \`]re\``);
 				reject(`, but it failed, as ${message.channel.name}${message.channel} is not in the mail category: ${ops.mailCategory}.`);
 				return;

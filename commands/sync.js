@@ -11,7 +11,7 @@ module.exports = {
 	execute(message, args) {
 		return new Promise(function(resolve, reject) {
       if (ops.dmMail){
-        if (message.channel.parent && message.channel.parent.id == ops.mailCategory) {
+        if (message.channel.parent && message.channel.parentId == ops.mailCategory) {
 					if (message.channel.id == ops.mailLogChannel) {
 						message.reply("You cannot use this command in the mail log channel. Please use it in the channel you wish to sync.");
 					} else {
