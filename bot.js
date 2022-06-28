@@ -356,6 +356,32 @@ function processImage(message, postedTime, wasDelayed){
 	});
 }
 
+client.on("guildMemberUpdate", async (oldMember, newMember) => {
+	const audit = await newMember.guild.fetchAuditLogs({
+		limit:1,
+		type: "MEMBER_ROLE_UPDATE",
+	});
+	const entry = audit.entries.first(),
+				entTime = entry.createdTimestamp,
+				entRoleId = entry.changes[0].new[0].id,
+				entKey = entry.changes[0].key,
+				entTargetId = entry.target.id;
+	console.log(
+		entTime > Date.now() - 5000
+		, entRoleId == ops.verifiedRole
+	 	, entKey == "$add"
+	 	, entTargetId == newMember.id
+	);
+	if (
+		entTime > Date.now() - 5000
+		&& entRoleId == ops.verifiedRole
+		&& entKey == "$add"
+		&& entTargetId == newMember.id
+	) {
+		newMember.send(messagetxtReplace(messagetxt.respondVerify, newMember.user));
+	}
+});
+
 client.on("messageCreate", async message => {
 	const profile = (ops.profileChannel) ? client.channels.cache.get(ops.profileChannel) : undefined;
 	if (message.channel == profile) return; // Profile channel? Cancel
@@ -368,13 +394,7 @@ client.on("messageCreate", async message => {
 	if (!dm && ops.serverID && message.guild.id != ops.serverID){ // If we are in the wrong server
 		return;
 	}
-	// Move to mini bot
-	// if (ops.respondCashEnd && message.member?.roles.cache.has(ops.modRole) && message.content == "$end") {
-	// 	console.log(`[${dateToTime(postedTime)}]: Used $end for ${message.author}`);
-	// 	message.author.send("Don't forget to use `/end` next time. 😉");
-	// 	message.reply("<@428187007965986826> end");
-	// 	return;
-	// }
+
 	let wasDelayed = false;
 	const prefix = (ops.prefix.length == 0) ? undefined : ops.prefix;
 	const prefix2 = (ops.prefix2.length == 0) ? undefined : ops.prefix2;
