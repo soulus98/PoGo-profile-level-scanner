@@ -366,12 +366,6 @@ client.on("guildMemberUpdate", async (oldMember, newMember) => {
 				entRoleId = entry.changes[0].new[0].id,
 				entKey = entry.changes[0].key,
 				entTargetId = entry.target.id;
-	console.log(
-		entTime > Date.now() - 5000
-		, entRoleId == ops.verifiedRole
-	 	, entKey == "$add"
-	 	, entTargetId == newMember.id
-	);
 	if (
 		entTime > Date.now() - 5000
 		&& entRoleId == ops.verifiedRole
