@@ -356,7 +356,7 @@ function processImage(message, postedTime, wasDelayed){
 	});
 }
 
-if (ops.testMode) client.on("guildMemberUpdate", async (oldMember, newMember) => {
+client.on("guildMemberUpdate", async (oldMember, newMember) => {
 	const audit = await newMember.guild.fetchAuditLogs({
 		limit:1,
 		type: "MEMBER_ROLE_UPDATE",
@@ -374,6 +374,11 @@ if (ops.testMode) client.on("guildMemberUpdate", async (oldMember, newMember) =>
 	) {
 		newMember.send(messagetxtReplace(messagetxt.respondVerify, newMember.user));
 	}
+});
+
+client.on("interactionCreate", (interaction) => {
+	if (!interaction.isButton()) return;
+	console.log(interaction);
 });
 
 client.on("messageCreate", async message => {

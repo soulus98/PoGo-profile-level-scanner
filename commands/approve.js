@@ -3,7 +3,8 @@ const { saveStats } = require("../func/stats.js"),
 			{ saveBlacklist } = require("../func/saveBlacklist.js"),
 			mail = require("../handlers/dm.js"),
 			messagetxt = require("../server/messagetxt.js"),
-			{ messagetxtReplace } = require("../func/misc.js");
+			{ messagetxtReplace } = require("../func/misc.js"),
+			Discord = require("discord.js");
 
 // const server = (ops.serverID) ? client.guilds.cache.get(ops.serverID) : undefined;
 // const logs = (ops.logsChannel) ? client.channels.cache.get(ops.logsChannel) : undefined;
@@ -172,10 +173,21 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 									mail.mailDM(message, "off-by-one", level);
 								}, 500);
 							}
+							const row = new Discord.MessageActionRow()
+							.addComponents([
+								new Discord.MessageButton()
+								.setCustomId("app")
+								.setLabel("Approve")
+								.setStyle("SUCCESS"),
+								new Discord.MessageButton()
+								.setCustomId("Rej")
+								.setLabel("Reject")
+								.setStyle("DANGER"),
+							]);
 							if (ops.tagModOneOff) {
-								logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nNo action taken.\nManual review, <@&${ops.modRole}>?`, files: [image] });
+								logs.send({ components: [row], content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nNo action taken.\nManual review, <@&${ops.modRole}>?`, files: [image] });
 							} else {
-								logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nNo action taken.`, files: [image] });
+								logs.send({ components: [row], content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nNo action taken.`, files: [image] });
 							}
 						}
 					}
