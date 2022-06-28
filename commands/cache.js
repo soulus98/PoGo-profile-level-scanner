@@ -40,7 +40,7 @@ module.exports = {
 					});
 				} else if (args[0] == "gRoles") {
 					data.push(`Roles loaded in ${message.guild.name}:`);
-					message.guild.roles.cache.each((roles, k) => {
+					message.guild.roles.cache.each((role, k) => {
 						data.push(`${k}: ${role.name}`);
 					});
 				} else return message.reply("Not a valid arg");

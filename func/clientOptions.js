@@ -14,34 +14,50 @@ function channelFilter(channel) {
 		return !channelKeepOver(channel);
 }
 
+function roleKeepOver(v){
+	return v.id == ops.targetLevelRole
+	|| v.id == ops.level40Role
+	|| v.id == ops.level50Role
+	|| v.id == ops.verifiedRole
+	|| v.id == ops.blacklistRole
+	|| v.id == ops.modRole
+	|| v.id == v.guild.roles.everyone;
+}
+
+function roleFilter(role) {
+		if (role.id == ops.targetLevelRole) console.log("Sweeping roles");
+		return !roleKeepOver(role);
+}
+
+const chanObject = {
+	maxSize:chanSize,
+	keepOverLimit:(v, k) => channelKeepOver(v, k),
+	sweepFilter: () => channelFilter,
+	sweepInterval: sweepInt,
+};
+const roleObject = {
+	maxSize:chanSize,
+	keepOverLimit:(v, k) => roleKeepOver(v, k),
+	sweepFilter: () => roleFilter,
+	sweepInterval: sweepInt,
+};
+const userObject = {
+	maxSize:chanSize,
+};
+
 module.exports = {
 	cacheOps: {
-		ChannelManager:{
-			maxSize:chanSize,
-			keepOverLimit:(v, k) => channelKeepOver(v, k),
-			sweepFilter: () => channelFilter,
-			sweepInterval: sweepInt,
-		},
-		GuildChannelManager:{
-			maxSize:chanSize,
-			keepOverLimit:(v, k) => channelKeepOver(v, k),
-			sweepFilter: () => channelFilter,
-			sweepInterval: sweepInt,
-		},
-		UserManager:{
-			maxSize:50,
-			keepOverLimit:(v, k) => {
-				k == v.client.id;
-			},
-		},
-		// GuildMemberManager:,
-		// RoleManager:, // Very scary???
-		// GuildMemberRoleManager:,
-		MessageManager:0, // Scary?
+		ChannelManager:chanObject,
+		GuildChannelManager:chanObject,
+		UserManager:userObject, // Scary?
+		GuildMemberManager:userObject, // Scary?
+		RoleManager:roleObject, // Very scary???
+		GuildMemberRoleManager:roleObject,
+		BaseGuildEmojiManager:0,
+		// MessageManager:0, // Scary? Fixed using sweepers
 		ClientVoiceManager:0,
 		ApplicationCommandManager:0,
 		ApplicationCommandPermissionsManager:0,
-		// BaseGuildEmojiManager:,
 		DataManager:0,
 		GuildApplicationCommandManager:0,
 		GuildBanManager:0,
@@ -60,6 +76,9 @@ module.exports = {
 		ShardingManager:0,
 	},
 	sweeperOps: {
-
+		messages:{
+			interval:4 * 60,
+			lifetime:5 * 60, // *60 for minutes
+		},
 	},
 };

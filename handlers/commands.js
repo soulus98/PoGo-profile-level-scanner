@@ -1,6 +1,7 @@
 const { dateToTime, dev } = require("../func/misc.js");
 
-function handleCommand(message, postedTime){
+async function handleCommand(m, postedTime){
+  const message = await m.fetch();
   let prefix;
   if (message.content.startsWith(ops.prefix)) {
     prefix = ops.prefix;
@@ -11,6 +12,7 @@ function handleCommand(message, postedTime){
   const client = message.client;
   if (message.author.bot) return; // Bot? Cancel
   // finangling the command and argument vars
+  const member = await m.guild.members.fetch(message.author.id, true);
   const args = message.content.slice(prefix.length).trim().split(" ");
   const commandName = args.shift().toLowerCase();
   const command = client.commands.get(commandName)
@@ -30,7 +32,7 @@ function handleCommand(message, postedTime){
       console.log(logString);
       return message.reply(`You must possess the ${command.permissions} permission to execute \`${prefix}${commandName}\``);
     }
-  } else if (!(message.member.roles.cache.has(ops.modRole) || message.member.permissions.has("ADMINISTRATOR")) && message.author.id != dev) return;
+  } else if (!(member.roles.cache.has(ops.modRole) || member.permissions.has("ADMINISTRATOR")) && message.author.id != dev) return;
   if (command.args && !args.length) {																// Checking for arguments if an argument is required
     let reply = "You didn't provide any arguments.";
     if (command.usage) {
@@ -45,7 +47,7 @@ function handleCommand(message, postedTime){
 		if (message.channel.type === "dm") {
       logString = logString + " (in a DM)";
     }
-    command.execute(message, args).then((addToLogString) => {
+    command.execute(message, args, member).then((addToLogString) => {
       if (addToLogString == undefined) {
         console.log(logString);
       } else {
