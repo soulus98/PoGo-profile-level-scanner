@@ -3,8 +3,7 @@ const { saveStats } = require("../func/stats.js"),
 			{ saveBlacklist } = require("../func/saveBlacklist.js"),
 			mail = require("../handlers/dm.js"),
 			messagetxt = require("../server/messagetxt.js"),
-			{ messagetxtReplace } = require("../func/misc.js"),
-			Discord = require("discord.js");
+			{ messagetxtReplace } = require("../func/misc.js");
 
 // const server = (ops.serverID) ? client.guilds.cache.get(ops.serverID) : undefined;
 // const logs = (ops.logsChannel) ? client.channels.cache.get(ops.logsChannel) : undefined;
@@ -20,14 +19,14 @@ module.exports = {
   args: true,
 	scanningOnly: true,
 	type:"Screenshots",
-	execute(input, args) {
+	execute(input, args, button) {
 		// This command uses input rather than message, since it can be called via a command OR by the main screenshot process
 		return new Promise(function(bigResolve) {
 			const execTime = dateToTime(new Date());
 			const prom = new Promise(function(resolve) {
 				if (input[1] == undefined) {
 					const inCommand = true;
-					const message = input; // If called by command, message = input
+					const message = (button) ? input.message : input; // If called by command, message = input, if by button, input.message
 					const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
 					if (args[2] || args[1] > 50 || args[1] < 1 || (args[1] && isNaN(args[1]))){
 						message.reply(`Please provide only one user and one level in the format \`${ops.prefix}c <@mention/ID> [level]\``);
@@ -40,7 +39,6 @@ module.exports = {
 						bigResolve(", but it failed, since they tagged two people in the command.");
 						return;
 					}
-					const image = message.attachments.first();
 					const level = args[1] || "missing";
 					let id = 0;
 					if (args[0].startsWith("<@") && args[0].endsWith(">")) {
@@ -50,7 +48,7 @@ module.exports = {
 						id = args[0];
 					}
 					server.members.fetch(id).then((memb) => {
-						const info = [inCommand, message, false, image, level, id, memb];
+						const info = [inCommand, message, false, false, level, id, memb];
 						resolve(info);
 					}).catch((err) => {
 						if (err.name == "DiscordAPIError"){
@@ -62,7 +60,7 @@ module.exports = {
 									return;
 								} else {
 									server.members.fetch(memb.id).then((mem) => {
-										const info = [inCommand, message, false, image, level, id, mem];
+										const info = [inCommand, message, false, false, level, id, mem];
 										resolve(info);
 										return;
 									}).catch((err) => {
@@ -162,28 +160,28 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 						bigResolve((logString || "") + `. Blacklisted for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"}. Level ${level}.`);
 						if (ops.dmMail) mail.alertMsg(message.author, "under", level);
 						if (!inCommand) logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nBlacklisted for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"}`, files:[image] });
+						else logs.send({ content: `${message.author.username}#${message.author.id} used \`${ops.prefix}confirm\` and tagged ${member}, who was rejected and blacklisted for ${ops.blacklistTime / 86400000} day${(ops.blacklistTime / 86400000 == 1) ? "" : "s"}, for being under ${ops.targetLevel}.` });
 					} else { // Due to the if logic, this block is only accessable if level is one less than targetLevel AND blacklistOneOff is false
 						bigResolve((logString || "") + `. No action taken. Level ${level}.`);
 						if (!dm || (dm && !ops.dmMail)) member.send(messagetxtReplace(messagetxt.underLevel, member, level)).catch(() => {
 							console.error(`[${execTime}]: Error: Could not send DM to ${member.user.username}${member}`);
 						});
 						if (!inCommand) {
-							if (ops.dmMail && dm) {
-								setTimeout(() => {
-									mail.mailDM(message, "off-by-one", level);
-								}, 500);
-							}
+							const Discord = require("discord.js");
 							const row = new Discord.MessageActionRow()
 							.addComponents([
 								new Discord.MessageButton()
-								.setCustomId("app")
-								.setLabel("Approve")
-								.setStyle("SUCCESS"),
-								new Discord.MessageButton()
-								.setCustomId("Rej")
-								.setLabel("Reject")
-								.setStyle("DANGER"),
+								.setCustomId("app").setLabel("Approve").setStyle("SUCCESS"),
 							]);
+							if (ops.dmMail && dm) {
+								row.addComponents([
+									new Discord.MessageButton()
+									.setCustomId("rej").setLabel("Reject").setStyle("DANGER"),
+								]);
+								setTimeout(() => {
+									mail.mailDM(message, "off-by-one", level, row);
+								}, 500);
+							}
 							if (ops.tagModOneOff) {
 								logs.send({ components: [row], content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nNo action taken.\nManual review, <@&${ops.modRole}>?`, files: [image] });
 							} else {
@@ -317,12 +315,14 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 										if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Log img posted\t`, postedTime.getTime()); // testo?
 									});
 								}
-							} else {
+							} else if (!button){
 								logs.send({ content: `${message.author.username}#${message.author.id} used \`${ops.prefix}confirm\` and tagged ${member}, who was given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}` });
+							} else {
+								logs.send({ content: `${input.user.username}#${input.user.id} used \`${ops.prefix}confirm\` and tagged ${member}, who was given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}` });
 							}
 							saveStats(level);
 							bigResolve((logString || "") + `. Given ${(!given30 && !given40 && !given50) ? "no roles" : ""}${(given30 ? "RR" : "")}${(given40 ? `${given30 ? ", " : ""}Level 40` : "")}${(given50 ? `${given30 || given40 ? ", " : ""}Level 50` : "")}. ${(!inCommand) ? `Level ${level}` : ""}.`);
-							if (inCommand) deleteStuff(message, execTime, id);
+							if (inCommand && !button) deleteStuff(message, execTime, id);
 						});
 					});
 				}

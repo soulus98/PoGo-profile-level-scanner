@@ -378,7 +378,23 @@ client.on("guildMemberUpdate", async (oldMember, newMember) => {
 
 client.on("interactionCreate", (interaction) => {
 	if (!interaction.isButton()) return;
-	console.log(interaction);
+	let level;
+	if (interaction.customId == "mailSend") {
+		mail.buttonSend(interaction);
+		return;
+	} else if (interaction.customId == "mailCancel") {
+		mail.buttonCancel(interaction);
+		return;
+	} else {
+		const id = interaction.message.mentions.members.first().id;
+		if (interaction.customId == "app") level = undefined;
+		else if (interaction.customId == "rej") level = ops.targetLevel - 1;
+		else return console.error(errorMessage(Date.now(), false, "Impossible error: button customId is wrong"), interaction.customId);
+		client.commands.get("confirm-screenshot").execute(interaction, [id, level], "button").then((logString) => {
+			console.log(`[${dateToTime(new Date())}]: ${interaction.user.username}${interaction.user} used a button${logString}`);
+			interaction.update({ components : [], content: `${interaction.message.content}\nEdit: Action Completed` });
+		});
+	}
 });
 
 client.on("messageCreate", async message => {
