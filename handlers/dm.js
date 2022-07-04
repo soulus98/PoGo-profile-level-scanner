@@ -134,13 +134,15 @@ module.exports = {
 				}
 				tempQueue.push(member.id);
 				trapEmbed.setTimestamp();
-				message.reply({ components: [trapRow], embeds: [trapEmbed], content:`${(level) ? level : "0"},${(status) ? statuses.indexOf(status) : "0"}` }).then((msg) => {
+				message.reply({ components: [trapRow], embeds: [trapEmbed], content:`${(level) ? level : "0"},${statuses.indexOf(status)}` }).then((msg) => {
 					console.log(`[${dateToTime(new Date())}]: Pending mail ticket from ${message.author.username}`);
 					setTimeout(() => {
-						tempQueue.splice(tempQueue.indexOf(member.id));
-						console.log(`[${dateToTime(new Date())}]: Pending ticket from ${message.author.username} expired`);
-						msg.delete().catch((err) => console.error("Failed to delete dm trap:", err));
-					}, 60 * 1000);
+						msg.fetch().then((m) => {
+							tempQueue.splice(tempQueue.indexOf(member.id));
+							console.log(`[${dateToTime(new Date())}]: Pending ticket from ${message.author.username} expired`);
+							m.delete().then(() => message.reply("Message not sent.\nPlease send another message if you need support.")).catch((err) => console.error("Failed to delete dm trap:", err));
+						}).catch((e) => {if (e.code == 10008) return;else console.error(e);});
+					}, 60 * 1000); // 60 seconds
 				});
 			}
 		}).catch(() => {
@@ -149,16 +151,16 @@ module.exports = {
 		});
 	},
 	async buttonSend(interaction) { // message (interaction reply), member (fetchable from user), server (fetchable), status, level
-		const userId = interaction.user.id;
+		const user = interaction.user;
 		const messageId = interaction.message.reference.messageId;
-		const message = await interaction.client.channels.fetch(userId).messages.fetch(messageId);
+		const message = await user.dmChannel.messages.fetch(messageId);
 		const server = await interaction.client.guilds.fetch(ops.serverID);
-		const member = await server.members.fetch(userId);
+		const member = await server.members.fetch(user.id);
 		const contentArr = interaction.message.content.split(",");
 		let level = undefined,
 				status = undefined;
 		if (contentArr[0] != "0") level = contentArr[0];
-		if (contentArr[1] != "0") status = statuses[contentArr[1]];
+		if (contentArr[1] != "-1") status = statuses[contentArr[1]];
 		newChannel(message, member).then(async ([channel, embedStart]) => {
 			console.log(`[${dateToTime(new Date())}]: ${member.user.username}${member} opened a new ticket via DM`);
 			const embedIn = await newEmbed(message, "userReply");
@@ -176,17 +178,22 @@ module.exports = {
 					embedIn.setTitle("New Ticket Created");
 					const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 					logs.send({ embeds: [embedIn] });
-					member.send({ embeds: [embedOut] });
+					member.send({ embeds: [embedOut] }).then(() => {
+						interaction.message.delete();
+					});
 				});
 			});
 		});
 	},
 	buttonCancel(interaction) {
 		const user = interaction.user;
+		const messageId = interaction.message.reference.messageId;
 		tempQueue.splice(tempQueue.indexOf(user.id));
 		console.log(`[${dateToTime(new Date())}]: Pending ticket from ${user.username} cancelled`);
 		interaction.message.delete().catch((err) => console.error("Failed to delete dm trap:", err));
-		user.send("Message not sent. Please send another message if you need support.");
+		user.dmChannel.messages.fetch(messageId).then((m) => {
+      m.reply("Message not sent.\nPlease send another message if you need support.");
+		});
 	},
 	hostOpen(message, args) {
 		return new Promise(function(resolve, reject) {
@@ -278,7 +285,7 @@ module.exports = {
 				reject(`, but it failed, as channel ${message.channel.name}${message.channel} is not linked to a user.`);
 			});
 		});
-},
+	},
 	reply(message, content) {
 		return new Promise(function(resolve, reject) {
 			getUser(message).then(async ([member, user]) => {
@@ -410,8 +417,6 @@ Or would you like to cancel. (This will last 60 seconds)`)
 };
 
 
-
-
 function saveQueue() {
 	fs.writeFile(path.resolve(__dirname, "../server/mailQueue.json"), JSON.stringify(Array.from(queue)), (err) => {
 		if (err){
@@ -442,7 +447,7 @@ function newChannel(message, member) {
 			} else {
 				embedStart.setDescription("Type `=r <message>` in this channel to reply. All other messages are ignored, and can be used for staff discussion. Use the command `=close [reason]` to close this ticket.");
 			}
-			server.members.fetch(user.id).then((m) => {
+			server.members.fetch(user.id, true).then((m) => {
 				const membRoles = m.roles.cache.map(r => `${r.toString()} `);
 				if (membRoles.length > 1) {
 					embedStart.addField("Roles", membRoles.slice(0, -1).join(""), true);

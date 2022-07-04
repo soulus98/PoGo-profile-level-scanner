@@ -21,7 +21,8 @@ function roleKeepOver(v){
 	|| v.id == ops.verifiedRole
 	|| v.id == ops.blacklistRole
 	|| v.id == ops.modRole
-	|| v.id == v.guild.roles.everyone;
+	|| v.id == v.guild.roles.everyone
+	|| v.color != 0;
 }
 
 function roleFilter(role) {
