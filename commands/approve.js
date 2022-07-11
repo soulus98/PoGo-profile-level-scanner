@@ -20,17 +20,13 @@ module.exports = {
 	scanningOnly: true,
 	type:"Screenshots",
 	execute(input, args, button) {
-		console.log("input", input);
 		// This command uses input rather than message, since it can be called via a command OR by the main screenshot process
 		return new Promise(function(bigResolve) {
 			const execTime = dateToTime(new Date());
 			const prom = new Promise(function(resolve) {
 				if (input[1] == undefined) {
 					const inCommand = true;
-					console.log("button", button);
-					console.log((button)? true:false);
 					const message = (button) ? input.message : input; // If called by command, message = input, if by button, input.message
-					console.log("message", message);
 					const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
 					if (args[2] || args[1] > 50 || args[1] < 1 || (args[1] && isNaN(args[1]))){
 						message.reply(`Please provide only one user and one level in the format \`${ops.prefix}c <@mention/ID> [level]\``);

@@ -47,7 +47,7 @@ async function handleCommand(m, postedTime){
 		if (message.channel.type === "dm") {
       logString = logString + " (in a DM)";
     }
-    command.execute(message, args, member).then((addToLogString) => {
+    command.execute(message, args).then((addToLogString) => {
       if (addToLogString == undefined) {
         console.log(logString);
       } else {
