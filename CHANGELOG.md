@@ -1,9 +1,9 @@
-# v2.6 (2021-Jul-05)
+# v2.6 (2021-Jun-08)
 * Split out the PokeNav filtering bot to https://github.com/soulus98/Pokenav-mini-helper. This allows both bots to work better for specific purposes
 * Added a `strictCache` option for memory saving
 * Added logs for `]c` and `]r` usage
-* Added buttons for level 29 screenshots, and for the DM mail trap
-* Changed the `$verify` responder to go based on roles, instead of the PokeNav message
+* Added buttons to the level 29ers
+* Added buttons to the DM trap
 
 # v2.5 (2021-Jun-14)
 * Added a PokeNav badge granting system. The bot will post `$gb` and `$rb` with specified badge IDs in a specified channel when granting roles.
