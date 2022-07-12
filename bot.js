@@ -390,7 +390,9 @@ client.on("interactionCreate", (interaction) => {
 		try {
 			id = interaction.message.mentions.members.first().id;
 		} catch {
-			interaction.reply("oops left server");
+		  interaction.update({ components : [], content: `${interaction.message.content}\nEdit: Member Left Server` });
+			interaction.message.react("👋");
+			return;
 		}
 		if (interaction.customId == "app") level = undefined;
 		else if (interaction.customId == "rej") level = ops.targetLevel - 1;
