@@ -386,7 +386,12 @@ client.on("interactionCreate", (interaction) => {
 		mail.buttonCancel(interaction);
 		return;
 	} else {
-		const id = interaction.message.mentions.members.first().id;
+		let id;
+		try {
+			id = interaction.message.mentions.members.first().id;
+		} catch {
+			interaction.reply("oops left server");
+		}
 		if (interaction.customId == "app") level = undefined;
 		else if (interaction.customId == "rej") level = ops.targetLevel - 1;
 		else return console.error(errorMessage(Date.now(), false, "Impossible error: button customId is wrong"), interaction.customId);
