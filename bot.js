@@ -379,18 +379,13 @@ client.on("guildMemberUpdate", async (oldMember, newMember) => {
 client.on("interactionCreate", (interaction) => {
 	if (!interaction.isButton()) return;
 	let level;
-	if (interaction.customId == "mailSend") {
-		mail.buttonSend(interaction);
-		return;
-	} else if (interaction.customId == "mailCancel") {
-		mail.buttonCancel(interaction);
-		return;
-	} else {
+	if (interaction.customId == "mailSend" || interaction.customId == "mailCancel") return;
+	else {
 		let id;
 		try {
 			id = interaction.message.mentions.members.first().id;
 		} catch {
-		  interaction.update({ components : [], content: `${interaction.message.content}\nEdit: Member Left Server` });
+			interaction.update({ components : [], content: `${interaction.message.content}\nEdit: Member Left Server` });
 			interaction.message.react("👋");
 			return;
 		}
