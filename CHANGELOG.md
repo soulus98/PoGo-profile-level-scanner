@@ -1,11 +1,11 @@
-# v2.6 (2021-Jun-08)
+# v2.6 (2021-Jul-08)
 * Split out the PokeNav filtering bot to https://github.com/soulus98/Pokenav-mini-helper. This allows both bots to work better for specific purposes
 * Added a `strictCache` option for memory saving
 * Added logs for `]c` and `]r` usage
 * Added buttons to the level 29ers
 * Added buttons to the DM trap
 
-#### v2.6.1 (2021-Jun-20)
+#### v2.6.1 (2021-Jul-20)
 * Fixed a bug involving double mail channels.
 * A couple more small bugs
 
