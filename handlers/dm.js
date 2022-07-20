@@ -227,6 +227,7 @@ module.exports = {
 	},
 	async close(message, args) {
 		return new Promise(function(resolve, reject) {
+			if (!message.channel) return console.error(`[${dateToTime(new Date())}]: Error: I can not close <#${message.channelId}> as it no longer exists.`);
 			getUser(message).then(async ([member, user]) => {
 				const embedIn = await newEmbed(message, "close");
 				embedIn.setTitle("Ticket closed");

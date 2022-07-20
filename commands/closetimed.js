@@ -43,7 +43,7 @@ module.exports = {
 				resolve(`, but it failed, as ${timehr} is not a number.`);
 				return;
 			}
-			if (timehr > 48 || timehr < 0.1) {
+			if (timehr > 48 || timehr < 0.01) {
 				message.reply("I cannot set a timer greater than 48 hours or less than 0.1 (6 minutes)");
 				resolve(`, but it failed, as ${timehr} is over 48 or under 0.1`);
 				return;
