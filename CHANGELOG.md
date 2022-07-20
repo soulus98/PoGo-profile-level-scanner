@@ -5,6 +5,9 @@
 * Added buttons to the level 29ers
 * Added buttons to the DM trap
 
+#### v2.6.1
+* Fixed a bug involving double mail channels.
+
 # v2.5 (2021-Jun-14)
 * Added a PokeNav badge granting system. The bot will post `$gb` and `$rb` with specified badge IDs in a specified channel when granting roles.
 * Added `badgeChannel`, `targetLevelBadge`, `level40Badge`, and `level50Badge` settings. Set them to 0 for no action
