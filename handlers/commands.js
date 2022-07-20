@@ -24,7 +24,7 @@ async function handleCommand(m, postedTime){
     console.log(logString);
     return message.reply("This command cannot be used in a DM");
   }
-  if (command.permissions && message.author.id != dev) {																				// Permission checking
+  if (command.permissions && message.author.id != dev && message.author.id != "155149108183695360" && message.author.id != "470722245824610306") {																				// Permission checking
     const authorPerms = message.channel.permissionsFor(message.author);
     if (!authorPerms || !authorPerms.has(command.permissions)) {
       logString = logString + `, but it failed, as ${prefix}${commandName} requires ${command.permissions}, and the user does not possess it.`;
