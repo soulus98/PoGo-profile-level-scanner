@@ -10,7 +10,6 @@ async function handleCommand(m, postedTime){
   } else return;
   if (prefix.length == 0) return;
   const client = message.client;
-  if (message.author.bot) return; // Bot? Cancel
   // finangling the command and argument vars
   const member = await m.guild.members.fetch(message.author.id, true);
   const args = message.content.slice(prefix.length).trim().split(" ");

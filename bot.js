@@ -402,7 +402,7 @@ client.on("interactionCreate", (interaction) => {
 client.on("messageCreate", async message => {
 	const profile = (ops.profileChannel) ? client.channels.cache.get(ops.profileChannel) : undefined;
 	if (message.channel == profile) return; // Profile channel? Cancel
-	if (message.author.bot) return; // Bot? Cancel
+	if (message.author.bot && message.author.id != "155149108183695360" && message.author.id != "470722245824610306") return; // Bot? Cancel
 	if (message.content == `${client.user.toString().slice(0, 2) + "!" + client.user.toString().slice(2, client.user.toString().length)} wassup` || message.content == `${client.user} wassup`) return message.reply("nm, you?");
 	if (message.content == `${client.user.toString().slice(0, 2) + "!" + client.user.toString().slice(2, client.user.toString().length)} prefix` || message.content == `${client.user} prefix`) return message.reply(`\`${ops.prefix}\`${(ops.prefix2) ? ` or \`${ops.prefix2}\`` : ""}`);
 	const postedTime = new Date();
@@ -411,7 +411,6 @@ client.on("messageCreate", async message => {
 	if (!dm && ops.serverID && message.guild.id != ops.serverID){ // If we are in the wrong server
 		return;
 	}
-
 	let wasDelayed = false;
 	const prefix = (ops.prefix.length == 0) ? undefined : ops.prefix;
 	const prefix2 = (ops.prefix2.length == 0) ? undefined : ops.prefix2;
