@@ -5,7 +5,7 @@
 * Added buttons to the level 29ers
 * Added buttons to the DM trap
 
-#### v2.6.1
+#### v2.6.1 (2021-Jun-20)
 * Fixed a bug involving double mail channels.
 * A couple more small bugs
 
