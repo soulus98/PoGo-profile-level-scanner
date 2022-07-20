@@ -7,6 +7,7 @@
 
 #### v2.6.1 (2021-Jul-20)
 * Fixed a bug involving double mail channels.
+* Allowed dyno to use commands
 * A couple more small bugs
 
 # v2.5 (2021-Jun-14)
