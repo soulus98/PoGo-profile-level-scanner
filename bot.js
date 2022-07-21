@@ -44,6 +44,7 @@ imgStats = {
 	currentlyImage : 0,
 };
 blacklist = new Discord.Collection();
+console.log("testo");
 let loaded = false,
 		config = {},
 		screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
