@@ -145,11 +145,14 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 						bigResolve((logString || "") + `, but it failed. They already have RR, so cannot be rejected${(!inCommand) ? ` for level ${level}` : ""}.`);
 						return;
 					}
-					if (!dm && !inCommand && !ops.deleteScreens) message.react("👎").catch(() => {
+					if (button) message.react("👎").catch(() => {
 						console.error(`[${execTime}]: Error: Could not react 👎 (thumbsdown) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
-					if (inCommand) message.react("👍").catch(() => {
+					else if (inCommand) message.react("👍").catch(() => {
 						console.error(`[${execTime}]: Error: Could not react 👍 (thumbsup) to message: ${message.url}\nContent of mesage: "${message.content}"`);
+					});
+					else if (!dm && !ops.deleteScreens) message.react("👎").catch(() => {
+						console.error(`[${execTime}]: Error: Could not react 👎 (thumbsdown) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 					});
 					if (level < ops.targetLevel - 1 || ops.blacklistOneOff) {
 						member.send(messagetxtReplace(messagetxt.underLevel, member, level)).catch(() => {
@@ -168,28 +171,34 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 						});
 						if (!inCommand) {
 							const Discord = require("discord.js");
-							const row = new Discord.MessageActionRow()
-							.addComponents([
-								new Discord.MessageButton()
-								.setCustomId("app").setLabel("Approve").setStyle("SUCCESS"),
-							]);
+							const appButton = new Discord.MessageButton().setCustomId("app").setLabel("Approve").setStyle("SUCCESS");
+							const rejButton = new Discord.MessageButton().setCustomId("rej").setLabel("Reject").setStyle("DANGER");
+							const canButton = new Discord.MessageButton().setCustomId("canc").setLabel("Cancel").setStyle("DANGER");
+							const row1 = new Discord.MessageActionRow()
+							.addComponents([appButton, rejButton]);
+							const row2 = new Discord.MessageActionRow()
+							.addComponents([appButton, canButton]);
 							if (ops.dmMail && dm) {
-								row.addComponents([
-									new Discord.MessageButton()
-									.setCustomId("rej").setLabel("Reject").setStyle("DANGER"),
-								]);
-								setTimeout(() => {
-									mail.mailDM(message, "off-by-one", level, row);
+								setTimeout(async () => {
+									const mailResult = await mail.mailDM(message, "off-by-one", level, row1);
+									let messageContent = `Sent in a DM\nUser: ${member}\nResult: \`${level}\`\nNo action taken.`;
+									const messsageData = { files: [image] };
+									if (mailResult == "sent") {
+										messageContent = messageContent + "\nManual review via mail ticket";
+									} else if (mailResult == "unsent" && ops.tagModOneOff) {
+										messageContent = messageContent + `\nManual review, <@&${ops.modRole}>?`;
+										messsageData.components = [row2];
+									}
+									messsageData.content = messageContent;
+									logs.send(messsageData);
 								}, 500);
-							}
-							if (ops.tagModOneOff) {
-								logs.send({ components: [row], content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nNo action taken.\nManual review, <@&${ops.modRole}>?`, files: [image] });
-							} else {
-								logs.send({ components: [row], content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nNo action taken.`, files: [image] });
+							}	else {
+								const messageContent = `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nNo action taken.${(ops.tagModOneOff && !dm) ? `\nManual review, <@&${ops.modRole}>?` : ""}`;
+								logs.send({ files: [image], content: messageContent, components: [row2] });
 							}
 						}
 					}
-					if (inCommand) deleteStuff(message, execTime, id);
+					if (inCommand && !button) deleteStuff(message, execTime, id);
 					saveStats(level);
 					return;
 				} else {

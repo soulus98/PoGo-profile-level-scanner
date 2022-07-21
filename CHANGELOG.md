@@ -7,8 +7,12 @@
 
 #### v2.6.1 (2021-Jul-20)
 * Fixed a bug involving double mail channels.
-* Allowed dyno to use commands
+* Added a cancel button to 29ers that deletes the buttons
+* Added relative time to button completion
+* Fixed a bug where rejecting via button would delete the logged screenshot
+* Fixed an unexpected bug involving respondVerify and cache
 * A couple more small bugs
+* Allowed dyno to use commands
 
 # v2.5 (2021-Jun-14)
 * Added a PokeNav badge granting system. The bot will post `$gb` and `$rb` with specified badge IDs in a specified channel when granting roles.

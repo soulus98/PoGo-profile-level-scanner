@@ -30,6 +30,14 @@ function roleFilter(role) {
 		return !roleKeepOver(role);
 }
 
+function userFilter(user) {
+		if (user.id == user.client.user.id) {
+			console.log("Sweeping users");
+			return false;
+		}
+		return true;
+}
+
 const chanObject = {
 	maxSize:chanSize,
 	keepOverLimit:(v, k) => channelKeepOver(v, k),
@@ -50,7 +58,7 @@ module.exports = {
 	cacheOps: {
 		ChannelManager:chanObject,
 		GuildChannelManager:chanObject,
-		UserManager:userObject, // Scary?
+		// UserManager:userObject, // Scary?
 		GuildMemberManager:userObject, // Scary?
 		RoleManager:roleObject, // Very scary???
 		GuildMemberRoleManager:roleObject,
@@ -80,6 +88,10 @@ module.exports = {
 		messages:{
 			interval:4 * 60,
 			lifetime:5 * 60, // *60 for minutes
+		},
+		users:{
+			interval: 5 * 60,
+			filter: () => userFilter,
 		},
 	},
 };

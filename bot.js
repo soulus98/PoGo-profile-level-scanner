@@ -361,8 +361,8 @@ client.on("guildMemberUpdate", async (oldMember, newMember) => {
 		limit:1,
 		type: "MEMBER_ROLE_UPDATE",
 	});
-	const entry = audit.entries.first(),
-				entTime = entry.createdTimestamp,
+	const entry = audit.entries.first();
+	const entTime = entry.createdTimestamp,
 				entRoleId = entry.changes[0].new[0].id,
 				entKey = entry.changes[0].key,
 				entTargetId = entry.target.id;
@@ -389,12 +389,22 @@ client.on("interactionCreate", (interaction) => {
 			interaction.message.react("👋");
 			return;
 		}
-		if (interaction.customId == "app") level = undefined;
+		if (interaction.customId == "canc") {
+			const originalContent = interaction.message.content.split("\n");
+			originalContent.pop();
+			const newContent = originalContent.join("\n") + `\nEdit: buttons cancelled <t:${Math.round(Date.now() / 1000)}:R>`;
+			console.log(`[${dateToTime(new Date())}]: ${interaction.user.username}${interaction.user} cancelled buttons for user ${id}`);
+			interaction.update({ components : [], content: newContent });
+			return;
+		} else if (interaction.customId == "app") level = undefined;
 		else if (interaction.customId == "rej") level = ops.targetLevel - 1;
 		else return console.error(errorMessage(Date.now(), false, "Impossible error: button customId is wrong"), interaction.customId);
 		client.commands.get("confirm-screenshot").execute(interaction, [id, level], "button").then((logString) => {
-			console.log(`[${dateToTime(new Date())}]: ${interaction.user.username}${interaction.user} used a button${logString}`);
-			interaction.update({ components : [], content: `${interaction.message.content}\nEdit: Action Completed` });
+			const originalContent = interaction.message.content.split("\n");
+			originalContent.pop();
+			const newContent = originalContent.join("\n") + `\nEdit: Action Completed <t:${Math.round(Date.now() / 1000)}:R>`;
+			console.log(`[${dateToTime(new Date())}]: ${interaction.user.username}${interaction.user} used a button${logString} for user ${id}`);
+			interaction.update({ components : [], content: newContent });
 		});
 	}
 });

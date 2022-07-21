@@ -88,50 +88,55 @@ module.exports = {
 			wasTemp = true;
 		}
 		if (queue.has(member.id) || wasTemp){
-			new Promise((res) => {
-				if (wasTemp){
-					setTimeout(async () => {
-						const chId = queue.get(member.id);
-						if (chId) {
-							const ch = await server.channels.fetch(queue.get(member.id));
+			try {
+				new Promise((res, rej) => {
+					if (wasTemp){
+						setTimeout(async () => {
+							const chId = queue.get(member.id);
+							if (chId) {
+								const ch = await server.channels.fetch(queue.get(member.id));
+								res(ch);
+							} else {
+								message.reply("This message will not be forwarded to the staff.\nPlease answer the previous question before attempting to send more messages.");
+								rej("unsent");
+							}
+						}, 1000);
+					} else {
+						server.channels.fetch(queue.get(member.id)).then((ch) => {
 							res(ch);
-						} else {
-							message.reply("This message will not be forwarded to the staff.\nPlease answer the previous question before attempting to send more messages.");
-							return;
-						}
-					}, 1000);
-				} else {
-					server.channels.fetch(queue.get(member.id)).then((ch) => {
-						res(ch);
-					}).catch((err) => {
-						if (err.code == 10003){
-							queue.delete(member.id);
-							saveQueue();
-							message.reply("An error occured. Please try again.");
-							console.error(`[${dateToTime(new Date())}]: Could not find a mail ticket for ${member.user.username}#${member.id}. Cleared the mailQueue.`);
-						} else console.error(err);
-					});
-				}
-			}).then(async (channel) => {
-				const embedIn = await newEmbed(message, "userReply");
-				const embedOut = new Discord.MessageEmbed(embedIn);
-				embedIn.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.id, iconURL: member.user.avatarURL({ dynamic:true }) })
-				.setTitle("Message Received");
-				embedOut.setFooter({ text: server.name, iconURL: server.iconURL() })
-				.setTitle("Message Sent");
-				if (status && ops.dmScanning) await checkStatus(status, message, channel, level);
-				await sendWithImg(message, channel, [embedIn]);
-				const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
-				logs.send({ embeds: [embedIn] });
-				member.send({ embeds: [embedOut] });
-				const msg = await module.exports.deleteAndClearTimer(channel.id);
-				if (msg == "not found") return;
-				else channel.send("Close timer cancelled");
-			});
+						}).catch((err) => {
+							if (err.code == 10003){
+								queue.delete(member.id);
+								saveQueue();
+								message.reply("An error occured. Please try again.");
+								console.error(`[${dateToTime(new Date())}]: Could not find a mail ticket for ${member.user.username}#${member.id}. Cleared the mailQueue.`);
+							} else console.error(err);
+							rej("unsent");
+						});
+					}
+				}).then(async (channel) => {
+					const embedIn = await newEmbed(message, "userReply");
+					const embedOut = new Discord.MessageEmbed(embedIn);
+					embedIn.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.id, iconURL: member.user.avatarURL({ dynamic:true }) })
+					.setTitle("Message Received");
+					embedOut.setFooter({ text: server.name, iconURL: server.iconURL() })
+					.setTitle("Message Sent");
+					if (status && ops.dmScanning) await checkStatus(status, message, channel, level);
+					await sendWithImg(message, channel, [embedIn]);
+					const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
+					logs.send({ embeds: [embedIn] });
+					member.send({ embeds: [embedOut] });
+					const msg = await module.exports.deleteAndClearTimer(channel.id);
+					if (msg == "not found") return;
+					else channel.send("Close timer cancelled");
+				});
+			} catch (e) {
+				if (e == "unsent") return "unsent";
+			}
 		} else {
 			if (message.content.length < 10 && !message.attachments.first()) {
 				message.reply("This message is too short to be forwarded to the server staff. Please explain your issue more elaborately.");
-				return;
+				return "unsent";
 			}
 			tempQueue.push(member.id);
 			trapEmbed.setTimestamp();
@@ -148,9 +153,9 @@ module.exports = {
 				trapMessage.delete().catch((err) => console.error("Failed to delete dm trap:", err));
 				tempQueue.splice(tempQueue.indexOf(member.id));
 				message.reply("Message not sent.\nPlease send another message if you need support.");
-				return;
+				return "unsent";
 			});
-			if (!interaction) return;
+			if (interaction == "unsent") return "unsent";
 			toggle = false;
 			if (interaction.customId == "mailSend") {
 				const [channel, embedStart] = await newChannel(message, member);
@@ -172,16 +177,18 @@ module.exports = {
 				logs.send({ embeds: [embedIn] });
 				await member.send({ embeds: [embedOut] });
 				trapMessage.delete();
+				return "sent";
 			} else if (interaction.customId == "mailCancel") {
 				console.log(`[${dateToTime(new Date())}]: Pending ticket from ${member.user.username} cancelled`);
 				trapMessage.delete().catch((err) => console.error("Failed to delete dm trap:", err));
 				tempQueue.splice(tempQueue.indexOf(member.id));
 				message.reply("Message not sent.\nPlease send another message if you need support.");
+				return "unsent";
 			} else console.error("Impossible error involving mail toggle");
 		}
 	},
 	hostOpen(message, args) {
-		return new Promise(function(resolve, reject) {
+		return new Promise((resolve, reject) => {
 			if (message.content.length < 7) message.reply("You must supply a user or an ID to open a new ticket.");
 			let id = 0;
 			if (args.startsWith("<@") && args.endsWith(">")) {
