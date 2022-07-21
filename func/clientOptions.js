@@ -10,7 +10,7 @@ function channelKeepOver(v){
 }
 
 function channelFilter(channel) {
-		if (channel.id == ops.logsChannel) console.log("Sweeping channels");
+		// if (channel.id == ops.logsChannel) console.log("Sweeping channels");
 		return !channelKeepOver(channel);
 }
 
@@ -26,13 +26,13 @@ function roleKeepOver(v){
 }
 
 function roleFilter(role) {
-		if (role.id == ops.targetLevelRole) console.log("Sweeping roles");
+		// if (role.id == ops.targetLevelRole) console.log("Sweeping roles");
 		return !roleKeepOver(role);
 }
 
 function userFilter(user) {
 		if (user.id == user.client.user.id) {
-			console.log("Sweeping users");
+			// console.log("Sweeping users");
 			return false;
 		}
 		return true;
