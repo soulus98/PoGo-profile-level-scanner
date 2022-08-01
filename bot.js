@@ -44,7 +44,6 @@ imgStats = {
 	currentlyImage : 0,
 };
 blacklist = new Discord.Collection();
-console.log("testo");
 let loaded = false,
 		config = {},
 		screensFolder = `./screens/Auto/${launchDate.toDateString()}`;
@@ -232,6 +231,61 @@ function loadBlacklist(){
 
 load();
 
+if (ops.dmMail) {
+	client.on("guildMemberRemove", member => {
+		mail.alertMsg(member.user, "left");
+	});
+}
+
+// Called from clear-blacklist.js to clear the blacklist when requested
+function clearBlacklist(message, idToDelete){
+	if (idToDelete){
+		if (blacklist.has(idToDelete)) {
+			blacklist.delete(idToDelete);
+			replyNoMention(message, `Removed <@${idToDelete}>${idToDelete} from the blacklist.`).catch(() => {
+				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send(`Removed <@${idToDelete}>${idToDelete} from the blacklist.`);
+			});
+			console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete} from the blacklist.`);
+			saveBlacklist(blacklist);
+		} else {
+			message.reply("I can not find that user's ID in the blacklist. Please try again");
+		}
+	} else {
+		fs.writeFile(path.resolve(__dirname, "./server/blacklist.json"), "[]", (err) => {
+			if (err){
+				console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
+				return;
+			}
+			loadBlacklist();
+			replyNoMention(message, "Blacklist cleared.").catch(() => {
+				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
+				message.channel.send("Blacklist cleared.");
+			});
+		});
+	}
+	return;
+}
+
+// TODO: figure out the fucking launch queue checker
+function processImage(message, postedTime, wasDelayed){
+	handleImage(message, postedTime, wasDelayed).then(() => { // This runs after the recognition is finished
+		imgStats.imageLogCount++;
+		imgStats.currentlyImage--;
+		if (imgStats.imageLogCount > 0 && imgStats.imageLogCount % 30 === 0) loadBlacklist();
+		if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", 1);
+		// Potential future queue optimisation here. Currently not neccesary
+		// todo: check queue
+		// todo: fetch message from queue id
+		// processImage(newMessage, newMessage.createdTimestamp, true);
+	}).catch((err) => {
+			imgStats.imageLogCount++;
+			imgStats.currentlyImage--;
+			if (err == "Fail") saveStats("Failure");
+			if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", 1);
+	});
+}
+
 client.once("ready", async () => {
 	const server = (ops.serverID) ? await client.guilds.fetch(ops.serverID) : undefined;
 	const logs = (ops.logsChannel) ? await client.channels.fetch(ops.logsChannel) : undefined;
@@ -292,72 +346,15 @@ client.once("ready", async () => {
 	console.log(`\nActive in:\n${activeServerList.join("\n")}`);
 	console.log(`\nServer started at: ${launchDate.toLocaleString()}. Loaded in guild: "${server.name}"#${server.id} ${(ops.screenshotScanning) ? `in channel: "${channel.name}"#${channel.id}` : ""}`);
 	console.log("\n======================================================================================\n");
-});
-
-client.on("guildMemberAdd", member => {
+})
+.on("guildMemberAdd", member => {
 	// console.log(`[${dateToTime(new Date())}]: New member ${member.user.username}${member} joined the server.`);
   if (!ops.welcomeMsg) return;
   member.send(messagetxtReplace(messagetxt.newMember, member)).catch(() => {
 		console.error(`[${dateToTime(new Date())}]: Error: Could not send welcomeMsg DM to ${member.user.username}${member}`);
 	});
-});
-
-if (ops.dmMail) {
-	client.on("guildMemberRemove", member => {
-		mail.alertMsg(member.user, "left");
-	});
-}
-
-// Called from clear-blacklist.js to clear the blacklist when requested
-function clearBlacklist(message, idToDelete){
-	if (idToDelete){
-		if (blacklist.has(idToDelete)) {
-			blacklist.delete(idToDelete);
-			replyNoMention(message, `Removed <@${idToDelete}>${idToDelete} from the blacklist.`).catch(() => {
-				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.channel.send(`Removed <@${idToDelete}>${idToDelete} from the blacklist.`);
-			});
-			console.log(`[${dateToTime(new Date())}]: Deleted ${idToDelete} from the blacklist.`);
-			saveBlacklist(blacklist);
-		} else {
-			message.reply("I can not find that user's ID in the blacklist. Please try again");
-		}
-	} else {
-		fs.writeFile(path.resolve(__dirname, "./server/blacklist.json"), "[]", (err) => {
-			if (err){
-				console.error(`[${dateToTime(new Date())}]: Error: An error occured while saving the blacklist. Err:${err}`);
-				return;
-			}
-			loadBlacklist();
-			replyNoMention(message, "Blacklist cleared.").catch(() => {
-				console.error(`[${dateToTime(new Date())}]: Error: I can not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
-				message.channel.send("Blacklist cleared.");
-			});
-		});
-	}
-	return;
-}
-
-// TODO: figure out the fucking launch queue checker
-function processImage(message, postedTime, wasDelayed){
-	handleImage(message, postedTime, wasDelayed).then(() => { // This runs after the recognition is finished
-		imgStats.imageLogCount++;
-		imgStats.currentlyImage--;
-		if (imgStats.imageLogCount > 0 && imgStats.imageLogCount % 30 === 0) loadBlacklist();
-		if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", 1);
-		// Potential future queue optimisation here. Currently not neccesary
-		// todo: check queue
-		// todo: fetch message from queue id
-		// processImage(newMessage, newMessage.createdTimestamp, true);
-	}).catch((err) => {
-			imgStats.imageLogCount++;
-			imgStats.currentlyImage--;
-			if (err == "Fail") saveStats("Failure");
-			if (ops.processInfoMode) process.emit("logCurrentMemoryUsage", 1);
-	});
-}
-
-client.on("guildMemberUpdate", async (oldMember, newMember) => {
+})
+.on("guildMemberUpdate", async (oldMember, newMember) => {
 	const audit = await newMember.guild.fetchAuditLogs({
 		limit:1,
 		type: "MEMBER_ROLE_UPDATE",
@@ -373,11 +370,10 @@ client.on("guildMemberUpdate", async (oldMember, newMember) => {
 		&& entKey == "$add"
 		&& entTargetId == newMember.id
 	) {
-		newMember.send(messagetxtReplace(messagetxt.respondVerify, newMember.user));
+		newMember.send(messagetxtReplace(messagetxt.respondVerify, newMember.user)).catch(() => errorMessage(new Date(), false, `Error: I can not send a Verify DM message to ${newMember.user.username}#${newMember.user.id}`));
 	}
-});
-
-client.on("interactionCreate", (interaction) => {
+})
+.on("interactionCreate", (interaction) => {
 	if (!interaction.isButton()) return;
 	let level;
 	if (interaction.customId == "mailSend" || interaction.customId == "mailCancel") return;
@@ -408,9 +404,8 @@ client.on("interactionCreate", (interaction) => {
 			interaction.update({ components : [], content: newContent });
 		});
 	}
-});
-
-client.on("messageCreate", async message => {
+})
+.on("messageCreate", async message => {
 	const profile = (ops.profileChannel) ? client.channels.cache.get(ops.profileChannel) : undefined;
 	if (message.channel == profile) return; // Profile channel? Cancel
 	if (message.author.bot && message.author.id != "155149108183695360" && message.author.id != "470722245824610306") return; // Bot? Cancel
@@ -750,9 +745,8 @@ process.on("uncaughtException", (err) => {
 	} else {
 		console.error(err);
   }
- });
-
-process.on("unhandledRejection", (err, promise) => {
+ })
+ .on("unhandledRejection", (err, promise) => {
 	try {
 		if (err.substr(0, 35) == "Error: UNKNOWN: unknown error, open"){
 			// do nothing
@@ -762,9 +756,8 @@ process.on("unhandledRejection", (err, promise) => {
 	} catch (e) {
 		console.error(`[${dateToTime(new Date())}]: Unhandled rejection at `, promise, `reason: ${err}`);
 	}
-});
-
-process.on("SIGINT", () => {
+})
+.on("SIGINT", () => {
   console.log(`Process ${process.pid} has been interrupted`);
 	const channel = (ops.screenshotScanning && ops.screenshotChannel) ? client.channels.cache.get(ops.screenshotChannel) : undefined;
 	if (ops.screenshotChannel) channel.send("The bot is sleeping now. Goodbye :wave:").then(() => {
