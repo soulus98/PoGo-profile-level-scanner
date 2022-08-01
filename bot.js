@@ -370,7 +370,9 @@ client.once("ready", async () => {
 		&& entKey == "$add"
 		&& entTargetId == newMember.id
 	) {
-		newMember.send(messagetxtReplace(messagetxt.respondVerify, newMember.user)).catch(() => errorMessage(new Date(), false, `Error: I can not send a Verify DM message to ${newMember.user.username}#${newMember.user.id}`));
+		newMember.send(messagetxtReplace(messagetxt.respondVerify, newMember.user)).catch(() => {
+			errorMessage(new Date(), false, `Error: I can not send a Verify DM message to ${newMember.user.username}#${newMember.user.id}`);
+		});
 	}
 })
 .on("interactionCreate", (interaction) => {
@@ -666,16 +668,24 @@ if (ops.processInfoMode) {
 	});
 }
 
-function logMemory(state, mem) {
+async function logMemory(state, mem) {
 	const rss = Math.round(mem.rss / 1024 / 1024);
 	const heapTot = Math.round(mem.heapTotal / 1024 / 1024);
 	const heapUsed = Math.round(mem.heapUsed / 1024 / 1024);
 	const external = Math.round(mem.external / 1024 / 1024 * 100) / 100;
 	const arrayBuffers = Math.round(mem.arrayBuffers / 1024 / 1024 * 100) / 100;
-	fs.appendFile(path.resolve(__dirname, "./server/memory.txt"),
-	`\n[${dateToTime(new Date())}]: ${(state == "Start") ? "Starting memory usage: " : `${state} scan #${(state == "Before") ? imgStats.imageLogCount + 1 : imgStats.imageLogCount}: `}rss = ${rss} Heap: ${heapUsed}/${heapTot} Ext:${external} arrayBuffs: ${arrayBuffers}`, (err) => {
-		if (err) console.error(err);
-	});
+	const memPath = path.resolve(__dirname, "./server/memory.txt");
+	try {
+		await fs.promises.access(memPath, fs.constants.W_OK);
+		const d = new Date();
+		const memString = `\n${d.toLocaleDateString()} ${d.toLocaleTimeString()}, ${state}, ${(state == "Before") ? imgStats.imageLogCount + 1 : imgStats.imageLogCount}, ${rss}, ${heapUsed}, ${heapTot}, ${external}, ${arrayBuffers}`;
+		await fs.promises.appendFile(memPath,	memString);
+	} catch (e) {
+		if (e.code == "ENOENT") {
+			const memString = "timestamp, state, count, rss, heapUsed, heapTot, external, arrayBuffers";
+			await fs.promises.appendFile(memPath,	memString);
+		} else console.error(e);
+	}
 }
 
 client.on("error", (error) => {
@@ -746,7 +756,7 @@ process.on("uncaughtException", (err) => {
 		console.error(err);
   }
  })
- .on("unhandledRejection", (err, promise) => {
+.on("unhandledRejection", (err, promise) => {
 	try {
 		if (err.substr(0, 35) == "Error: UNKNOWN: unknown error, open"){
 			// do nothing
