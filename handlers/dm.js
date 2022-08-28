@@ -88,29 +88,28 @@ module.exports = {
 			wasTemp = true;
 		}
 		if (queue.has(member.id) || wasTemp){
-			try {
-				new Promise((res, rej) => {
-					if (wasTemp){
-						setTimeout(async () => {
-							const chId = queue.get(member.id);
-							if (chId) {
-								const ch = await server.channels.fetch(queue.get(member.id));
-								res(ch);
-							} else {
-								message.reply("This message will not be forwarded to the staff.\nPlease answer the previous question before attempting to send more messages.");
-								rej("unsent");
-							}
-						}, 1000);
-					} else {
-						server.channels.fetch(queue.get(member.id)).then((ch) => {
+			const p = new Promise((res, rej) => {
+				if (wasTemp){
+					setTimeout(async () => {
+						const chId = queue.get(member.id);
+						if (chId) {
+							const ch = await server.channels.fetch(queue.get(member.id));
 							res(ch);
-						}).catch((err) => {
-							if (err.code == 10003){
-								queue.delete(member.id);
-								saveQueue();
-								message.reply("An error occured. Please try again.");
-								console.error(`[${dateToTime(new Date())}]: Could not find a mail ticket for ${member.user.username}#${member.id}. Cleared the mailQueue.`);
-							} else console.error(err);
+						} else {
+							message.reply("This message will not be forwarded to the staff.\nPlease answer the previous question before attempting to send more messages.");
+							rej("unsent");
+						}
+					}, 1000);
+				} else {
+					server.channels.fetch(queue.get(member.id)).then((ch) => {
+						res(ch);
+					}).catch((err) => {
+						if (err.code == 10003){
+							queue.delete(member.id);
+							saveQueue();
+							message.reply("An error occured. Please try again.");
+							console.error(`[${dateToTime(new Date())}]: Could not find a mail ticket for ${member.user.username}#${member.id}. Cleared the mailQueue.`);
+						} else console.error(err);
 							rej("unsent");
 						});
 					}
@@ -129,10 +128,10 @@ module.exports = {
 					const msg = await module.exports.deleteAndClearTimer(channel.id);
 					if (msg == "not found") return;
 					else channel.send("Close timer cancelled");
+				}).catch((e) => {
+					if (e == "unsent") return "unsent";
 				});
-			} catch (e) {
-				if (e == "unsent") return "unsent";
-			}
+			if (p == "unsent") return "unsent";
 		} else {
 			if (message.content.length < 10 && !message.attachments.first()) {
 				message.reply("This message is too short to be forwarded to the server staff. Please explain your issue more elaborately.");
