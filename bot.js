@@ -411,6 +411,7 @@ client.once("ready", async () => {
 	const profile = (ops.profileChannel) ? client.channels.cache.get(ops.profileChannel) : undefined;
 	if (message.channel == profile) return; // Profile channel? Cancel
 	if (message.author.bot && message.author.id != "155149108183695360" && message.author.id != "470722245824610306") return; // Bot? Cancel
+	if (message.guild.id === '873942903364399124' && message.mentions.has(client.user) && message.channel.type != "DM") {message.reply('If you need help please DM me, or tag `@staff`')}; // ADDED FOR PREMIER
 	if (message.content == `${client.user.toString().slice(0, 2) + "!" + client.user.toString().slice(2, client.user.toString().length)} wassup` || message.content == `${client.user} wassup`) return message.reply("nm, you?");
 	if (message.content == `${client.user.toString().slice(0, 2) + "!" + client.user.toString().slice(2, client.user.toString().length)} prefix` || message.content == `${client.user} prefix`) return message.reply(`\`${ops.prefix}\`${(ops.prefix2) ? ` or \`${ops.prefix2}\`` : ""}`);
 	const postedTime = new Date();
@@ -476,7 +477,7 @@ client.once("ready", async () => {
 				saveStats("wrong");
 				return;
 			}
-			if (image.height < 50 || image.width < 50 || fileType.length > 6){
+			if (image.height < 50 || image.width < 50){
 				if (ops.dmMail && dm) return mail.mailDM(message, "tiny");
 				errorMessage(postedTime, dm, `${message.author.username}${message.author} sent an image, which was refused for being Empty/Tiny`);
 				message.reply("I cannot scan tiny images or images with no size information.\nIf you think this is in error, please tell a moderator.").catch(() => {
