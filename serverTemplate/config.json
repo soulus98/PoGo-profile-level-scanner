@@ -2,7 +2,7 @@
   "toggles":{
     "saveLocalCopy":false,
     "deleteScreens":false,
-    "welcomeMsg":false,
+		"welcomeMsg":false,
 		"blacklistOneOff":false,
 		"tagModOneOff":true,
     "screenshotScanning":true,

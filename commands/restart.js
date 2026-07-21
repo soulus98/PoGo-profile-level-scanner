@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs");
 
 // Load the keys from the keys.json file....
-const keys = require(path.resolve(__dirname, '../server/keys.json'));
+const keys = require(path.resolve(__dirname, "../server/keys.json"));
 
 module.exports = {
     name: "restart-bot-server",
@@ -18,14 +18,14 @@ module.exports = {
         const currentDir = process.cwd();
         console.log(`Current working directory: ${currentDir}`);
 
-        let gitRepoPath = keys.dir || currentDir; // Use the current directory as fallback
+        const gitRepoPath = keys.dir || currentDir; // Use the current directory as fallback
         console.log(`Git repository path from keys.json: ${keys.dir}`);
         console.log(`Using git repository path: ${gitRepoPath}`);
 
         const resolvedGitRepoPath = path.resolve(gitRepoPath);
         console.log(`Resolved git repository path: ${resolvedGitRepoPath}`);
 
-        if (!fs.existsSync(path.join(resolvedGitRepoPath, '.git'))) {
+        if (!fs.existsSync(path.join(resolvedGitRepoPath, ".git"))) {
             const errorMsg = `No git repository found at specified path: ${resolvedGitRepoPath}`;
             console.error(errorMsg);
             replyNoMention(message, errorMsg);

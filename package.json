@@ -1,11 +1,17 @@
 {
   "name": "ocrboi",
-  "version": "2.6.1",
+  "version": "3.0.0",
   "description": "Pokémon go Trainer Profile OCR developed for the Pokémon GO Raids discord server",
   "main": "bot.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "start": "nodemon ./bin/www",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node bot.js",
+    "dev": "nodemon bot.js",
+    "register-commands": "node scripts/register-commands.js",
+    "check": "eslint --ignore-pattern node_modules . && node scripts/validate-intents.js && node scripts/validate-commands.js",
+    "test": "npm run check"
   },
   "nodemonConfig": {
     "ignore": [
@@ -25,15 +31,12 @@
   },
   "homepage": "https://github.com/soulus98/ocrbot#readme",
   "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.5",
-    "canvas": "^2.8.0",
-    "discord.js": "^13.0.0",
+    "discord.js": "^14.27.0",
     "gm": "^1.23.1",
-    "imagemagick": "^0.1.3",
-    "tesseract.js": "^2.1.5"
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.12",
-    "eslint": "^7.32.0"
+    "eslint": "^7.32.0",
+    "nodemon": "^3.1.14"
   }
 }

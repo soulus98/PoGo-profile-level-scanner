@@ -6,7 +6,7 @@ let stats = new Discord.Collection();
 
 // Updates the stats and saves the stats to file
 function saveStats(level) {
-	return new Promise(function (resolve) {
+	return new Promise(function(resolve) {
 		if (isNaN(level) || level > 80 || level < 1) {
 			if (level == "Failure") {
 				stats.set("Attempts", stats.get("Attempts") + 1);
@@ -53,7 +53,7 @@ function saveStats(level) {
 
 // Loads the stats from file
 function loadStats() {
-	return new Promise(function (resolve, reject) {
+	return new Promise(function(resolve, reject) {
 		stats = new Discord.Collection();
 		new Promise((res) => {
 			try {

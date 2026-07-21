@@ -1,81 +1,53 @@
+const { PermissionsBitField } = require("discord.js");
 const { replyNoMention, dev } = require("../func/misc.js");
+
+function isStaff(message) {
+	return message.member && (
+		message.member.roles.cache.has(ops.modRole)
+		|| message.member.permissions.has(PermissionsBitField.Flags.Administrator)
+		|| message.author.id == dev
+	);
+}
 
 module.exports = {
 	name: "help",
-	description: "Displays all commands and information for specific commands.",
-  aliases: ["command", "commands"],
-  usage: `\`${ops.prefix}help [command name]\``,
-	permissions: "VIEW_CHANNEL",
-	type:"Info",
+	description: "Displays profile submission help and staff mention commands.",
+	aliases: ["command", "commands"],
+	type: "Info",
 	execute(message, args) {
-		return new Promise(function(resolve) {
-			const data = [];
-			const { commands } = message.client;
-			if (message.channel.type === "dm"){
-				replyNoMention(message, "There is no reason to request help in a dm. Please do so in the relevant server");
-				resolve();
-				return;
-			}
-			if (!(message.member.roles.cache.has(ops.modRole) || message.member.permissions.has("ADMINISTRATOR")) && message.author.id != dev){
-				replyNoMention(message, `Hey trainer,
-
-Welcome to the server!
-To confirm that you are at least level 30, we need you to send a screenshot of your Pokémon GO profile.
-Please do so in <#${ops.screenshotChannel}>.
-
-Thank you. `);
-				resolve();
-				return;
-			}
-			if (!args.length) {
-				data.push("Here's a list of all my commands:");
-				const cg = groupCommands(commands);
-				let x = 0;
-				for (const group in cg) {
-					data.push(group + ":");
-					data.push(cg[group].map(command => "`" + ops.prefix + command.name).join("`\n"));
-					x++;
-					if (x < Object.keys(cg).length) data.push("`");
+		return new Promise((resolve) => {
+			if (args[0] == "admin") {
+				if (!isStaff(message)) {
+					replyNoMention(message, "You are not allowed to view admin commands.");
+					resolve();
+					return;
 				}
-				data.push(`\`You can use \`${ops.prefix}help [command name]\` for information on a specific command.`);
-				replyNoMention(message, data.join("\n"));
-				resolve(", and it was successful.");
+				replyNoMention(message, [
+					"Staff mention commands:",
+					"`@Bot c [user mention/ID] [level]` (`confirm` also works; user is optional in a modmail ticket)",
+					"`@Bot revert <user mention/ID>`",
+					"`@Bot admin config show`",
+					"`@Bot admin config set <setting> <value>`",
+					"`@Bot admin config toggle <setting>`",
+					"`@Bot admin stats [statistic]`",
+					"`@Bot admin diagnostics cache [scope]`",
+					"`@Bot admin diagnostics memory`",
+					"`@Bot admin scan confirm <user> [level]`",
+					"`@Bot admin scan revert <user>`",
+					"`@Bot admin scan clear-blacklist <user-id|all>`",
+					"Owner only: `@Bot admin process restart|quit`",
+					"Ticket actions: use `/ticket`.",
+				].join("\n"));
+				resolve();
 				return;
 			}
-			const name = args[0].toLowerCase();
-			const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
-			if (!command) {
-				message.reply(`\`${ops.prefix}${name}\` is not a valid command.`);
-				resolve(`, but it failed, as ${ops.prefix}${name} not a valid command.`);
-				return;
-			}
-			try {
-				dataPush(data, command);
-				replyNoMention(message, data.join("\n"), { split: true });
-				resolve(", and it was successful.");
-				return;
-			} catch (err){
-				resolve(`, but it failed, due to an unexpected error. Error: ${err}
-Stack: ${err.stack}`);
-				return;
-			}
+			replyNoMention(message, [
+				"Hey trainer,",
+				`Use \`/submit-profile\` in <#${ops.screenshotChannel}> and attach your full Pokémon GO trainer profile screenshot.`,
+				`The bot will scan your level and apply the appropriate role when you meet level ${ops.targetLevel}.`,
+				"If the scan fails or you need staff help, send me a normal DM to open a ticket.",
+			].join("\n\n"));
+			resolve();
 		});
 	},
 };
-function dataPush(data, command){
-	data.push(`\n**Name:** ${command.name}`);
-	if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(", ")}`);
-	if (command.description) data.push(`**Description:** ${command.description}`);
-	if (command.usage) data.push(`**Usage:** ${command.usage}`);
-	if (command.cooldown) data.push(`**Cooldown:** ${command.cooldown} second(s)`);
-	return data;
-}
-function groupCommands(commands) {
-	const commandGroups = commands.reduce((groups, item) => {
-		const group = (groups[item.type] || []);
-		group.push(item);
-		groups[item.type] = group;
-		return groups;
-	}, {});
-	return commandGroups;
-}

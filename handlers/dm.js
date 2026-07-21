@@ -6,20 +6,20 @@ const Discord = require("discord.js"),
 	path = require("path");
 let queue = new Discord.Collection();
 const tempQueue = [],
-	trapEmbed = new Discord.MessageEmbed(),
+	trapEmbed = new Discord.EmbedBuilder(),
 	closeList = new Discord.Collection(),
-	trapRow = new Discord.MessageActionRow()
+	trapRow = new Discord.ActionRowBuilder()
 		.addComponents([
-			new Discord.MessageButton()
-				.setCustomId("mailSend").setLabel("Send").setStyle("SUCCESS"),
-			new Discord.MessageButton()
-				.setCustomId("mailCancel").setLabel("Cancel").setStyle("DANGER"),
+			new Discord.ButtonBuilder()
+				.setCustomId("mailSend").setLabel("Send").setStyle(Discord.ButtonStyle.Success),
+			new Discord.ButtonBuilder()
+				.setCustomId("mailCancel").setLabel("Cancel").setStyle(Discord.ButtonStyle.Danger),
 		]);
 
 
 module.exports = {
 	loadMailQueue() {
-		return new Promise(function (resolve, reject) {
+		return new Promise(function(resolve, reject) {
 			queue = new Discord.Collection();
 			new Promise((res) => {
 				try {
@@ -66,12 +66,6 @@ module.exports = {
 			});
 		});
 	},
-	// Function when a message is sent in the mailCategory
-	channelMsg(message) {
-		if (ops.dmAutoReply) {
-			module.exports.reply(message, false);
-		}
-	},
 	// function when a dm comes in
 	async mailDM(message, status, level) {
 		// if (message.attachments.first() && message.attachments.first().size / 1048576 > 50){ // size checking
@@ -83,12 +77,13 @@ module.exports = {
 			message.reply(`I can't seem to find you in my server, ${server.name}. Please make sure you've joined before sending a message here.`);
 			console.error(`[${dateToTime(new Date())}]: Error: ${message.author.username}${message.author} could not be found in the guild, despite being able to DM the bot... Impossible bug?`);
 		});
+		if (!member) return "unsent";
 		let wasTemp = false;
 		if (tempQueue.includes(member.id)) {
 			wasTemp = true;
 		}
 		if (queue.has(member.id) || wasTemp) {
-			const p = new Promise((res, rej) => {
+			const result = await new Promise((res, rej) => {
 				if (wasTemp) {
 					setTimeout(async () => {
 						const chId = queue.get(member.id);
@@ -115,7 +110,7 @@ module.exports = {
 				}
 			}).then(async (channel) => {
 				const embedIn = await newEmbed(message, "userReply");
-				const embedOut = new Discord.MessageEmbed(embedIn);
+				const embedOut = Discord.EmbedBuilder.from(embedIn);
 				embedIn.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.id, iconURL: member.user.avatarURL({ dynamic: true }) })
 					.setTitle("Message Received");
 				embedOut.setFooter({ text: server.name, iconURL: server.iconURL() })
@@ -123,15 +118,16 @@ module.exports = {
 				if (status && ops.dmScanning) await checkStatus(status, message, channel, level);
 				await sendWithImg(message, channel, [embedIn]);
 				const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
-				logs.send({ embeds: [embedIn] });
-				member.send({ embeds: [embedOut] });
+				if (logs) await logs.send({ embeds: [embedIn] });
+				await member.send({ embeds: [embedOut] });
 				const msg = await module.exports.deleteAndClearTimer(channel.id);
-				if (msg == "not found") return;
-				else channel.send("Close timer cancelled");
+				if (msg != "not found") await channel.send("Close timer cancelled");
+				return "sent";
 			}).catch((e) => {
 				if (e == "unsent") return "unsent";
+				throw e;
 			});
-			if (p == "unsent") return "unsent";
+			return result;
 		} else {
 			if (message.content.length < 10 && !message.attachments.first()) {
 				message.reply("This message is too short to be forwarded to the server staff. Please explain your issue more elaborately.");
@@ -150,7 +146,7 @@ module.exports = {
 			const interaction = await trapMessage.awaitMessageComponent({ filter, time: 60 * 1000 }).catch(() => {
 				console.log(`[${dateToTime(new Date())}]: Pending ticket from ${member.user.username} expired`);
 				trapMessage.delete().catch((err) => console.error("Failed to delete dm trap:", err));
-				tempQueue.splice(tempQueue.indexOf(member.id));
+				removeFromTempQueue(member.id);
 				message.reply("Message not sent.\nPlease send another message if you need support.");
 				return "unsent";
 			});
@@ -160,15 +156,15 @@ module.exports = {
 				const [channel, embedStart] = await newChannel(message, member);
 				console.log(`[${dateToTime(new Date())}]: ${member.user.username}${member} opened a new ticket via DM`);
 				const embedIn = await newEmbed(message, "userReply");
-				const embedOut = new Discord.MessageEmbed(embedIn);
+				const embedOut = Discord.EmbedBuilder.from(embedIn);
 				embedIn.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.id, iconURL: member.user.avatarURL({ dynamic: true }) })
 					.setTitle("Message Received");
 				embedOut.setFooter({ text: server.name, iconURL: server.iconURL() })
 					.setTitle("New Ticket Created")
-					.addField("\u200b", `**${messagetxtReplace(messagetxt.dmOpen, member.user)}**`);
+					.addFields({ name: "\u200b", value: `**${messagetxtReplace(messagetxt.dmOpen, member.user)}**` });
 
 				// Get the guild of the channel and check its ID
-				if (channel.guild && channel.guild.id === '873942903364399124') {
+				if (channel.guild && channel.guild.id === "873942903364399124") {
 					await channel.send({ content: `${member} (${member.id}) \n<@&892415815775838209>`, embeds: [embedStart] });
 					console.log(`[${dateToTime(new Date())}]: Premier Ticket`);
 				} else {
@@ -182,14 +178,14 @@ module.exports = {
 				await sendWithImg(message, channel, [embedIn]);
 				embedIn.setTitle("New Ticket Created");
 				const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
-				logs.send({ embeds: [embedIn] });
+				if (logs) await logs.send({ embeds: [embedIn] });
 				await member.send({ embeds: [embedOut] });
 				trapMessage.delete();
 				return "sent";
 			} else if (interaction.customId == "mailCancel") {
 				console.log(`[${dateToTime(new Date())}]: Pending ticket from ${member.user.username} cancelled`);
 				trapMessage.delete().catch((err) => console.error("Failed to delete dm trap:", err));
-				tempQueue.splice(tempQueue.indexOf(member.id));
+				removeFromTempQueue(member.id);
 				message.reply("Message not sent.\nPlease send another message if you need support.");
 				return "unsent";
 			} else console.error("Impossible error involving mail toggle");
@@ -214,7 +210,7 @@ module.exports = {
 			server.members.fetch(id).then(async (member) => {
 				const embedIn = await newEmbed(message, "hostOpen");
 				embedIn.setTitle("New Ticket");
-				const embedOut = new Discord.MessageEmbed(embedIn);
+				const embedOut = Discord.EmbedBuilder.from(embedIn);
 				embedOut.setDescription(messagetxtReplace(messagetxt.dmHostOpen, message.author).replace(/<server>/g, `**${server.name}**`))
 					.setFooter({ text: server.name, iconURL: server.iconURL() });
 				member.send({ embeds: [embedOut] }).then(() => {
@@ -222,7 +218,7 @@ module.exports = {
 						console.log(`[${dateToTime(new Date())}]: ${message.author.username}${message.author.toString()} opened a new ticket with ${member.user.username}${member.user.toString()}`);
 						embedIn.setDescription(`Ticket opened with: ${member.user.toString()}\n${channel.toString()}\nOpened by: ${message.author.toString()}`)
 							.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.user.id, iconURL: member.user.avatarURL({ dynamic: true }) });
-						embedStart.addField("Ticket opened by:", message.author.toString());
+						embedStart.addFields({ name: "Ticket opened by:", value: message.author.toString() });
 						await channel.send({ content: `${member.user} (${member.user.id})`, embeds: [embedStart] });
 						const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
 						logs.send({ embeds: [embedIn] }).then(() => {
@@ -241,21 +237,21 @@ module.exports = {
 		});
 	},
 	async close(message, args) {
-		return new Promise(function (resolve, reject) {
+		return new Promise(function(resolve, reject) {
 			if (!message.channel) return console.error(`[${dateToTime(new Date())}]: Error: I can not close <#${message.channelId}> as it no longer exists.`);
 			getUser(message).then(async ([member, user]) => {
 				const embedIn = await newEmbed(message, "close");
 				embedIn.setTitle("Ticket closed");
 				if (args == "") embedIn.setDescription("No reason provided.");
 				else embedIn.setDescription(args);
-				const embedOut = new Discord.MessageEmbed(embedIn);
+				const embedOut = Discord.EmbedBuilder.from(embedIn);
 				if (member) {
 					embedIn.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.user.id, iconURL: member.user.avatarURL({ dynamic: true }) });
 				} else {
 					embedIn.setFooter({ text: user.tag + " | " + user.id, iconURL: user.avatarURL({ dynamic: true }) });
 				}
 				embedOut.setFooter({ text: message.guild.name, iconURL: message.guild.iconURL() })
-					.addField("\u200b", `**${messagetxtReplace(messagetxt.dmClose, member.user)}**`);
+					.addFields({ name: "\u200b", value: `**${messagetxtReplace(messagetxt.dmClose, (member || { user }).user)}**` });
 				if (member) {
 					member.send({ embeds: [embedOut] }).catch(() => {
 						console.error(`[${dateToTime(new Date())}]: Error: I can not send a close DM to ${member.user.username}${member.user.id}`);
@@ -288,9 +284,8 @@ module.exports = {
 		});
 	},
 	reply(message, content) {
-		return new Promise(function (resolve, reject) {
+		return new Promise(function(resolve, reject) {
 			getUser(message).then(async ([member, user]) => {
-				if (message.content.startsWith("?") || message.content.startsWith("$") || message.content.startsWith("!") || message.content.startsWith(".")) return;
 				if (!member) {
 					console.error(`[${dateToTime(new Date())}]: Error: I can not send a mail DM to ${user.username}${user}`);
 					message.reply("I can no longer reply to this member. They may have left the server, blocked me, or turned off DMs.");
@@ -298,16 +293,17 @@ module.exports = {
 					return;
 				}
 				const embedIn = await newEmbed(message, "hostReply", content || false);
-				const embedOut = new Discord.MessageEmbed(embedIn);
+				const embedOut = Discord.EmbedBuilder.from(embedIn);
 				embedIn.setFooter({ text: (member.nickname || member.user.tag) + " | " + member.user.id, iconURL: member.user.avatarURL({ dynamic: true }) })
 					.setTitle("Message Sent");
 				embedOut.setFooter({ text: message.guild.name, iconURL: message.guild.iconURL() })
 					.setTitle("Message Received");
-				sendWithImg(message, member.user, [embedOut]).then(() => {
-					const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
-					logs.send({ embeds: [embedIn] });
-					sendWithImg(message, message.channel, [embedIn]).then(() => message.delete());
-					resolve();
+					sendWithImg(message, member.user, [embedOut]).then(async () => {
+						const logs = (ops.mailLogChannel) ? message.client.channels.cache.get(ops.mailLogChannel) : undefined;
+						if (logs) await logs.send({ embeds: [embedIn] });
+						await sendWithImg(message, message.channel, [embedIn]);
+						await message.delete();
+						resolve();
 					module.exports.deleteAndClearTimer(message.channel.id).then((msg) => {
 						if (msg == "not found") return;
 						else message.channel.send("Close timer cancelled");
@@ -319,7 +315,7 @@ module.exports = {
 		});
 	},
 	sync(message, args) {
-		return new Promise(function (resolve, reject) {
+		return new Promise(function(resolve, reject) {
 			let id = 0;
 			if (args.startsWith("<@") && args.endsWith(">")) {
 				id = args.slice(2, -1);
@@ -397,8 +393,27 @@ Bot note:** ${sendMsg}
 		}
 		return listArr.join("\n");
 	},
+	async ticketInfo(message) {
+		const channelId = message.channel.id;
+		let userId;
+		for (const [queuedUserId, queuedChannelId] of queue) {
+			if (queuedChannelId == channelId) {
+				userId = queuedUserId;
+				break;
+			}
+		}
+		if (!userId) return "This channel is not linked to a ticket user.";
+		const server = ops.serverID ? message.client.guilds.cache.get(ops.serverID) : undefined;
+		const member = await server.members.fetch(userId).catch(() => null);
+		const timer = closeList.get(channelId);
+		return [
+			`Ticket user: <@${userId}> (\`${userId}\`)`,
+			`Member state: ${member ? "in server" : "left or unavailable"}`,
+			`Close timer: ${timer ? `${((timer.timeoutTime - Date.now()) / 3600000).toFixed(2)} hours remaining` : "none"}`,
+		].join("\n");
+	},
 	deleteAndClearTimer(ch) {
-		return new Promise(function (resolve) {
+		return new Promise(function(resolve) {
 			if (!closeList.get(ch)) return resolve("not found");
 			clearTimeout(closeList.get(ch).timeout);
 			closeList.delete(ch);
@@ -429,49 +444,54 @@ function saveQueue() {
 // function when a new ticket has to be created
 function newChannel(message, member) {
 	const user = member.user;
-	return new Promise((resolve) => {
+	return new Promise((resolve, reject) => {
 		const ticketName = `${user.username}`;
 		const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
-		server.channels.create(ticketName, {
+		server.channels.create({
+			name: ticketName,
 			parent: ops.mailCategory,
 		}).then((channel) => {
 			queue.set(user.id, channel.id);
 			saveQueue();
-			tempQueue.splice(tempQueue.indexOf(user.id));
-			const embedStart = new Discord.MessageEmbed()
+			removeFromTempQueue(user.id);
+			const embedStart = new Discord.EmbedBuilder()
 				.setColor("#4B85FF")
 				.setTitle("New Ticket")
 				.setFooter({ text: (member.nickname || user.tag) + " | " + user.id, iconURL: user.avatarURL({ dynamic: true }) })
-				.addField("User", user.toString() + "\n" + user.id, true);
-			if (ops.dmAutoReply) {
-				embedStart.setDescription("Type a message in this channel to reply. Messages starting with the mail prefix '=' are ignored, and can be used for staff discussion. Use the command `=close [reason]` to close this ticket.");
-			} else {
-				embedStart.setDescription("Type `=r <message>` in this channel to reply. All other messages are ignored, and can be used for staff discussion. Use the command `=close [reason]` to close this ticket.");
-			}
+				.addFields({ name: "User", value: user.toString() + "\n" + user.id, inline: true });
+			embedStart.setDescription("Use `/ticket reply` to send a message to this user. Ordinary messages in this channel are private staff discussion. Use `/ticket close` or `/ticket close-after` when the ticket is complete.");
 			server.members.fetch(user.id, true).then((m) => {
 				const membRoles = m.roles.cache.map(r => `${r.toString()} `);
 				if (membRoles.length > 1) {
-					embedStart.addField("Roles", membRoles.slice(0, -1).join(""), true);
+					embedStart.addFields({ name: "Roles", value: membRoles.slice(0, -1).join(""), inline: true });
 				} else {
-					embedStart.addField("Roles", "No roles possessed", true);
+					embedStart.addFields({ name: "Roles", value: "No roles possessed", inline: true });
 				}
-				embedStart.addField("Joined the server at:", m.joinedAt.toUTCString(), true);
-				embedStart.addField("Account created at:", m.user.createdAt.toUTCString(), true);
+				embedStart.addFields(
+					{ name: "Joined the server at:", value: m.joinedAt.toUTCString(), inline: true },
+					{ name: "Account created at:", value: m.user.createdAt.toUTCString(), inline: true },
+				);
 				if (m.premiumSince) {
-					embedStart.addField("Supported with Nitro at:", m.premiumSince.toUTCString(), true);
+					embedStart.addFields({ name: "Supported with Nitro at:", value: m.premiumSince.toUTCString(), inline: true });
 				}
 				resolve([channel, embedStart]);
-			});
+			}).catch(reject);
 		}).catch((err) => {
 			console.error("An error occured creating a new channel for modmail: ", err);
 			message.reply("I can not create a channel. Could be a permissions issue");
+			reject(err);
 		});
 	});
+}
+
+function removeFromTempQueue(userId) {
+	const index = tempQueue.indexOf(userId);
+	if (index >= 0) tempQueue.splice(index, 1);
 }
 // green, orange, orange, 		green, 			red
 function newEmbed(message, status, content) { // open, hostOpen, hostReply, userReply, close
 	return new Promise((resolve) => {
-		const embed = new Discord.MessageEmbed();
+		const embed = new Discord.EmbedBuilder();
 		if (status == "close") {
 			embed.setColor("#FF0000")
 				.setAuthor({ name: message.member.nickname || message.author.tag, iconURL: message.author.avatarURL({ dynamic: true }), url: `https://discord.com/users/${message.author.id}` });
@@ -480,7 +500,7 @@ function newEmbed(message, status, content) { // open, hostOpen, hostReply, user
 				.setAuthor({ name: message.member.nickname || message.author.tag, iconURL: message.author.avatarURL({ dynamic: true }), url: `https://discord.com/users/${message.author.id}` });
 		} else {
 			let stickers;
-			if (message.stickers.size > 0) {
+				if (message.stickers && message.stickers.size > 0) {
 				let i = 0;
 				stickers = message.stickers.map((s) => {
 					i++;
@@ -497,7 +517,8 @@ function newEmbed(message, status, content) { // open, hostOpen, hostReply, user
 				});
 				embed.setDescription(`${content}\n\n${files.join("\n")}${(stickers) ? `\n\n${stickers}` : ""}`);
 			} else {
-				embed.setDescription(`${content}${(stickers) ? `\n\n${stickers}` : ""}`);
+				const description = `${content}${(stickers) ? `\n\n${stickers}` : ""}`;
+				if (description) embed.setDescription(description);
 			}
 			if (status == "open") {
 				embed.setColor("#00FF0A");
@@ -513,7 +534,7 @@ function newEmbed(message, status, content) { // open, hostOpen, hostReply, user
 	});
 }
 function sendWithImg(message, target, embArr) { // hostReply
-	return new Promise((resolve) => {
+	return new Promise((resolve, reject) => {
 		let filesArr;
 		if (message.attachments.size > 0) {
 			filesArr = message.attachments.map(a => a);
@@ -536,11 +557,10 @@ function sendWithImg(message, target, embArr) { // hostReply
 				console.error(target);
 				message.reply("An error occured... please tell a moderator that `sendWithImg` failed.");
 			}
+			reject(err);
 		});
 	});
 }
-
-const statuses = ["tiny", "wrong", "left", "man-black", "all", "black", "already", "off-by-one"];
 
 function checkStatus(status, message, channel, level) {
 	return new Promise((resolve) => {
@@ -573,15 +593,15 @@ function checkStatus(status, message, channel, level) {
 			case "off-by-one":
 				channel.send({
 					components: [
-						new Discord.MessageActionRow()
+						new Discord.ActionRowBuilder()
 							.addComponents([
-								new Discord.MessageButton()
-									.setCustomId("app").setLabel("Approve").setStyle("SUCCESS"),
-								new Discord.MessageButton()
-									.setCustomId("rej").setLabel("Reject").setStyle("DANGER"),
+								new Discord.ButtonBuilder()
+									.setCustomId("app").setLabel("Approve").setStyle(Discord.ButtonStyle.Success),
+								new Discord.ButtonBuilder()
+									.setCustomId("rej").setLabel("Reject").setStyle(Discord.ButtonStyle.Danger),
 							]),
 					], content: `**Bot note:** This image was scanned at ${level}, no action was taken.
-User: ${message.author}`
+User: ${message.author}`,
 				}).then(() => resolve());
 				break;
 			default:
@@ -595,7 +615,7 @@ User: ${message.author}`
 // reverse lookups the queue collection to find a user from a channel ID
 // Alternatively, finds them using a userID
 function getUser(message, id) {
-	return new Promise(function (resolve, reject) {
+	return new Promise(function(resolve, reject) {
 		new Promise((res) => {
 			if (id) return res(id);
 			const channelId = message.channel.id;

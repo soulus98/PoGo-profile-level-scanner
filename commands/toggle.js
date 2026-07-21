@@ -17,14 +17,14 @@ module.exports = {
 		config = require("../server/config.json");
 		return new Promise(function(resolve) {
 			if (args.length != 1){
-				message.reply(`You must supply only one argument in the form \`${ops.prefix}toggle [setting-name]\``);
+					message.reply("Use `@Bot admin config toggle [setting-name]`.");
 				resolve(", but it failed, as there were no arguments provided.");
 				return;
 			}
 			try {
 				const toggles = config.toggles;
 				if (toggles[args[0]] === undefined){
-					message.reply(`Sorry, but ${args[0]} is not a valid setting. Use \`${ops.prefix}show\` to see a list of all settings. (case-sensitive)`);
+						message.reply(`Sorry, but ${args[0]} is not a valid setting. Use \`@Bot admin config show\` to see all settings. (case-sensitive)`);
 					resolve(` but it failed, as ${args} is not a valid setting.`);
 					return;
 				}

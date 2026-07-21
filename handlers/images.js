@@ -6,12 +6,12 @@ const Discord = require("discord.js"),
 	mail = require("../handlers/dm.js"),
 	messagetxt = require("../server/messagetxt.js"),
 	{ messagetxtReplace } = require("../func/misc.js");
+const { postScreenshotReview } = require("../func/screenshotReview.js");
 
 function handleImage(message, postedTime, wasDelayed) {
 	return new Promise((resolve, reject) => {
-		const dm = (message.channel.type == "DM") ? true : false;
+		const dm = (message.channel.type == Discord.ChannelType.DM) ? true : false;
 		const image = message.attachments.first();
-		const currentTime = Date.now();
 		let logString = `[${dateToTime(postedTime)}]: ${(dm) ? "DM: " : ""}${message.author.username}${message.author} sent #${imgStats.imageLogCount + 1}`;
 		try {
 			const logAdd = new Promise((res) => {
@@ -38,9 +38,9 @@ function handleImage(message, postedTime, wasDelayed) {
 					if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Crop started\t`, postedTime.getTime());
 					crop(message.attachments.first()).then((imgBuff) => {
 						if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Crop finished\t`, postedTime.getTime());
-						const testSend = new Promise(function (res) {
+						const testSend = new Promise(function(res) {
 							if (ops.testMode && !dm) {
-								const imgAttach = new Discord.MessageAttachment(imgBuff, image.url);
+								const imgAttach = new Discord.AttachmentBuilder(imgBuff, { name: `ocr-${image.name || "image.png"}` });
 								message.reply({ content: "Test mode. This is the image fed to the OCR system:", files: [imgAttach] }).then(() => {
 									if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Test msg posted\t`, postedTime.getTime());
 									res();
@@ -55,7 +55,7 @@ function handleImage(message, postedTime, wasDelayed) {
 								res();
 							}
 						});
-						const saveCropped = new Promise(function (res) {
+						const saveCropped = new Promise(function(res) {
 							if (ops.saveLocalCopy) {
 								saveFile([image, imgBuff]).then(() => {
 									if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Cropped written\t`, postedTime.getTime());
@@ -72,7 +72,8 @@ function handleImage(message, postedTime, wasDelayed) {
 							if (!dm) await message.react("👀").catch(() => {
 								errorMessage(postedTime, dm, `Error: Could not react 👀 (eyes) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 							});
-							recog(imgBuff, message).then(([level, failed, text]) => {
+							try {
+								const [level, failed, text] = await recog(imgBuff, message);
 								if (ops.testMode && !dm) {
 									replyNoMention(message, `Test mode. This image ${(failed) ? `failed. Scanned text: ${text}` : `was scanned at level: ${level}.`} `).catch(() => {
 										errorMessage(postedTime, dm, `Error: Could not reply to ${message.url}${message.channel}.\nContent of mesage: "${message.content}. Sending a backup message...`);
@@ -87,6 +88,9 @@ function handleImage(message, postedTime, wasDelayed) {
 										return;
 									} else {
 										logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${message.author}\nResult: Failed\nScanned text: \`${text}\``, files: [image] });
+										if (!dm) await postScreenshotReview(message, image, text).catch((error) => {
+											errorMessage(postedTime, dm, `Could not post screenshot for staff review: ${error.message}`);
+										});
 										message.react("❌").catch(() => {
 											errorMessage(postedTime, dm, `Error: Could not react ❌ (red_cross) to message: ${message.url}\nContent of mesage: "${message.content}"`);
 										});
@@ -102,16 +106,27 @@ function handleImage(message, postedTime, wasDelayed) {
 									return;
 								} else { // this is the handler for role adding. It looks messy but is fine
 									if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount + 1}: Recog finished\t`, postedTime.getTime());
-									message.client.commands.get("confirm-screenshot").execute([message, postedTime], [message.author.id, level]).then((addToLogString) => {
+									message.client.commands.get("confirm-screenshot").execute([message, postedTime], [message.author.id, level]).then(() => {
 										if (ops.performanceMode) performanceLogger(`#${imgStats.imageLogCount}: Roles confirmed. Total time:`, postedTime.getTime());
-										//(logString + addToLogString + ` Time: ${(Date.now() - currentTime) / 1000}s`);
+										// (logString + addToLogString + ` Time: ${(Date.now() - currentTime) / 1000}s`);
 									});
 									resolve();
 									if (!dm && ops.deleteScreens) message.delete().catch(() => {
 										errorMessage(postedTime, dm, `Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 									});
 								}
-							});
+							} catch (error) {
+								const errorSummary = (error instanceof Error ? error.message : String(error)).slice(0, 1000);
+								errorMessage(postedTime, dm, `OCR engine failure: ${errorSummary}`);
+								if (logs) {
+									await logs.send({
+										content: `${dm ? "Sent in a DM\n" : ""}User: ${message.author}\nOCR engine failure. Check the bot console for the concise error.`,
+										files: [image],
+									}).catch(() => null);
+								}
+								await message.reply("The OCR engine could not process that image. Staff have been notified; please try again shortly.").catch(() => null);
+								reject("Fail");
+							}
 						});
 					}).catch((err) => {
 						if (err == "crash") {

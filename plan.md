@@ -1,8 +1,10 @@
 # Privileged-intent removal plan
 
+> Implementation status: implemented on the `full-update` branch in July 2026. This document remains the design and migration reference; see `KEY_CHANGES.md` for the release test checklist and any implementation-specific decisions.
+
 ## Purpose
 
-This document is a future implementation plan for moving this bot off Discord privileged intents. It is based on the repository as reviewed on 2026-07-20. No source code was changed during this review; `plan.md` is the only intended repository change.
+This document began as the implementation plan for moving this bot off Discord privileged intents, based on the repository as reviewed on 2026-07-20. The follow-up implementation preserves it for future architectural reference.
 
 The target end state is:
 

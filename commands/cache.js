@@ -15,7 +15,7 @@ module.exports = {
 				if (args[0] == "channels") {
 					data.push("Channels loaded bot wide:");
 					message.client.channels.cache.each((channel, k) => {
-						if (channel.type == "DM") data.push(`DM: ${k}: ${channel.recipient.username}`);
+						if (channel.isDMBased()) data.push(`DM: ${k}: ${channel.recipient ? channel.recipient.username : "unknown"}`);
 						else data.push(`<#${k}>: ${channel.name}`);
 					});
 				} else if (args[0] == "guilds") {
@@ -33,12 +33,12 @@ module.exports = {
 					message.guild.channels.cache.each((channel, k) => {
 						data.push(`<#${k}>: ${channel.name}`);
 					});
-				} else if (args[0] == "gMembers") {
-					data.push(`Members loaded in ${message.guild.name}:`);
+				} else if (args[0] == "gMembers" || args[0] == "members") {
+					data.push(`Members observed in the partial cache for ${message.guild.name}:`);
 					message.guild.members.cache.each((member, k) => {
 						data.push(`${k}: ${member.user.username}`);
 					});
-				} else if (args[0] == "gRoles") {
+				} else if (args[0] == "gRoles" || args[0] == "roles") {
 					data.push(`Roles loaded in ${message.guild.name}:`);
 					message.guild.roles.cache.each((role, k) => {
 						data.push(`${k}: ${role.name}`);
@@ -51,7 +51,7 @@ module.exports = {
 				data.push(`Server channels: ${server.channels.cache.size}`);
 				data.push(`Server emoji: ${server.emojis.cache.size}`);
 				data.push(`Server bans: ${server.bans.cache.size}`);
-				data.push(`Server members: ${server.members.cache.size}`);
+				data.push(`Observed member cache entries (not the server total): ${server.members.cache.size}`);
 				data.push(`Server roles: ${server.roles.cache.size}`);
 				data.push(`Server stickers: ${server.stickers.cache.size}`);
 				data.push(`Server commands: ${server.commands.cache.size}`);

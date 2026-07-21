@@ -8,7 +8,6 @@
 	This whole file is one big object, so like JSON, you need commas at the end of strings and whatnot
 
 	My custom auto-replace options here are:
-		<prefix>
 		<targetLevel>
 		<screenshotChannel>
 		<profileChannel>
@@ -26,13 +25,13 @@
 
 module.exports = {
 	// Bot load message
-	load: `The bot has awoken, Hello :wave:`,
+	load: `The bot has awoken. Use /submit-profile to submit a trainer profile screenshot.`,
 	// DM when someone joins the server
 	newMember:`Hey <member>, welcome to Pokémon GO Raids!
 
 :small_blue_diamond: We require trainers to be level <targetLevel> to enter the main server. To gain full access to our server we need to validate your trainer level.
 
-:small_blue_diamond: Please post your screenshot in: <screenshotChannel> or reply to this message.
+	:small_blue_diamond: Use \`/submit-profile\` in <screenshotChannel>, or reply here if DM scanning is enabled.
 
 :small_blue_diamond: If you are under <targetLevel>, feel free to join our sister server, linked in <screenshotChannel>.
 
@@ -92,7 +91,7 @@ Have fun raiding. :wave:`,
 	successSS:`Hey, <member>. Welcome to the server. :partying_face:
 
 :small_blue_diamond: Start by typing \`$verify\` in <profileChannel>. You might be asked for your Trainer Code (so have it ready).`,
-	// DM after using ]r to revert someone's role
+	// DM after staff use the admin scan revert mention command
 	revert:`Hey <member>!
 Please do not try to trick the screenshot bot.
 As I am sure you are aware, we have a level requirement of <targetLevel> to gain full access.

@@ -17,7 +17,7 @@ module.exports = {
 		config = require("../server/config.json");
 		return new Promise(function(resolve) {
 			if (args.length != 2){
-				message.reply(`You must supply two arguments in the form \`${ops.prefix}set [setting-name] [value]\``);
+					message.reply("Use `@Bot admin config set [setting-name] [value]`.");
 				resolve(`, but it failed, as there were an incorrect amount of arguments: ${args}.`);
 				return;
 			}
@@ -26,7 +26,7 @@ module.exports = {
 				const chars = config.chars;
 				const ids = config.ids;
 				if (numbers[args[0]] === undefined && chars[args[0]] === undefined && ids[args[0]] === undefined){
-					message.reply(`Sorry, but ${args[0]} is not a valid setting. Use \`${ops.prefix}show\` to see a list of all settings. (case-sensitive)`);
+						message.reply(`Sorry, but ${args[0]} is not a valid setting. Use \`@Bot admin config show\` to see all settings. (case-sensitive)`);
 					resolve(`, but it failed, as ${args[0]} is not a valid setting.`);
 					return;
 				}

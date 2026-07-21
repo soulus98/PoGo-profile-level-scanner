@@ -19,13 +19,13 @@ module.exports = {
 		const badges = (ops.badgeChannel) ? message.client.channels.cache.get(ops.badgeChannel) : undefined;
 		return new Promise(function(bigResolve) {
 		if (args[1]){
-			message.reply(`Please provide only one user in the format \`${ops.prefix}r <@mention/ID>\``);
+				message.reply("Use `@Bot admin scan revert <@mention/ID>`.");
 			bigResolve(", but it failed, since the format was wrong.");
 			return;
 		}
 		let id = "";
 		const execTime = dateToTime(new Date());
-		const mentions = message.mentions.users;
+			const mentions = message.mentions.users.filter(user => user.id != message.client.user.id);
 			if (mentions.size > 1) {
 				message.reply("Sorry, but I cannot revert more than one user at a time.");
 				bigResolve(", but it failed, since they tagged two people in the command.");
@@ -165,7 +165,7 @@ module.exports = {
 							});
 						});
 					} else {
-						message.reply(`That member had none of the roles that \`${ops.prefix}revert\` can remove. Perhaps you wanted \`${ops.prefix}c\` aka \`${ops.prefix}confirm\``);
+							message.reply("That member had none of the roles this command can remove. You may want `@Bot admin scan confirm <user> [level]`.");
 						bigResolve(logggString + ", but that member had none of the roles that I can remove.");
 					}
 				});

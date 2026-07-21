@@ -4,6 +4,7 @@ const { saveStats } = require("../func/stats.js"),
 	mail = require("../handlers/dm.js"),
 	messagetxt = require("../server/messagetxt.js"),
 	{ messagetxtReplace } = require("../func/misc.js");
+const { deleteScreenshotReviews } = require("../func/screenshotReview.js");
 
 // const server = (ops.serverID) ? client.guilds.cache.get(ops.serverID) : undefined;
 // const logs = (ops.logsChannel) ? client.channels.cache.get(ops.logsChannel) : undefined;
@@ -21,25 +22,25 @@ module.exports = {
 	type: "Screenshots",
 	execute(input, args, button) {
 		// This command uses input rather than message, since it can be called via a command OR by the main screenshot process
-		return new Promise(function (bigResolve) {
+		return new Promise(function(bigResolve) {
 			const execTime = dateToTime(new Date());
-			const prom = new Promise(function (resolve) {
+			const prom = new Promise(function(resolve) {
 				if (input[1] == undefined) {
 					const inCommand = true;
 					const message = (button) ? input.message : input; // If called by command, message = input, if by button, input.message
 					const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
 					if (args[2]) {
-						message.reply(`Please provide only one user and one level in the format \`${ops.prefix}c <@mention/ID> [level]\``);
+							message.reply("Use `@Bot admin scan confirm <@mention/ID> [level]`.");
 						bigResolve(", but it failed, since the format was wrong.");
 						return;
 					}
-					const mentions = message.mentions.users;
+						const mentions = message.mentions.users.filter(user => user.id != message.client.user.id);
 					if (mentions.size > 1) {
 						message.reply("Sorry, but I cannot confirm more than one user at a time.");
 						bigResolve(", but it failed, since they tagged two people in the command.");
 						return;
 					}
-					const isMailTicket = message.channel.parent && message.channel.parentId == ops.mailCategory;
+					const isMailTicket = message.channel.parentId == ops.mailCategory;
 					const firstArgLooksLikeLevel = args[0] && /^\d+$/.test(args[0]) && args[0] >= 1 && args[0] <= 80;
 					const useMailFallback = isMailTicket && (!args[0] || (firstArgLooksLikeLevel && !args[1]));
 					let level = "missing";
@@ -145,13 +146,13 @@ module.exports = {
 			// member leaves midway === null
 			// role id === undefined
 			// any other mistype === undefined
-			prom.then(function ([inCommand, message, postedTime, image, level, id, member]) {
+			prom.then(function([inCommand, message, postedTime, image, level, id, member]) {
 				const server = (ops.serverID) ? message.client.guilds.cache.get(ops.serverID) : undefined;
 				const logs = (ops.logsChannel) ? message.client.channels.cache.get(ops.logsChannel) : undefined;
 				const channel = (ops.screenshotScanning && ops.screenshotChannel) ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
 				const profile = (ops.profileChannel) ? message.client.channels.cache.get(ops.profileChannel) : undefined;
 				const badges = (ops.badgeChannel) ? message.client.channels.cache.get(ops.badgeChannel) : undefined;
-				const dm = (message.channel.type == "DM") ? true : false;
+				const dm = (message.channel.type == require("discord.js").ChannelType.DM) ? true : false;
 				if (member === null) {
 					console.error(`[${execTime}]: Error: #${id} left the server before they could be processed.`);
 					if (inCommand) {
@@ -185,7 +186,7 @@ module.exports = {
 						else if (!inCommand) member.send(`I'll be honest, this is weird.
 Why would you send a screenshot of an account under level when you already have the role that means you are above the gate level...???
 I am honestly curious as to why, so please shoot me a dm at <@146186496448135168>. It is soulus#3935 if that tag doesn't work.`);
-						else message.reply(`Ya silly, they already have Remote Raids. You probably want \`${ops.prefix}revert\`. That or you did a typo.`);
+							else message.reply("They already have the target role. You may want `@Bot admin scan revert <user>`.");
 						if (!inCommand) logs.send({ content: `${(dm) ? "Sent in a DM\n" : ""}User: ${member}\nResult: \`${level}\`\nAlready had RR, no action taken.`, files: [image] });
 						bigResolve((logString || "") + `, but it failed. They already have RR, so cannot be rejected${(!inCommand) ? ` for level ${level}` : ""}.`);
 						return;
@@ -216,12 +217,12 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 						});
 						if (!inCommand) {
 							const Discord = require("discord.js");
-							const appButton = new Discord.MessageButton().setCustomId("app").setLabel("Approve").setStyle("SUCCESS");
-							const rejButton = new Discord.MessageButton().setCustomId("rej").setLabel("Reject").setStyle("DANGER");
-							const canButton = new Discord.MessageButton().setCustomId("canc").setLabel("Cancel").setStyle("DANGER");
-							const row1 = new Discord.MessageActionRow()
+							const appButton = new Discord.ButtonBuilder().setCustomId("app").setLabel("Approve").setStyle(Discord.ButtonStyle.Success);
+							const rejButton = new Discord.ButtonBuilder().setCustomId("rej").setLabel("Reject").setStyle(Discord.ButtonStyle.Danger);
+							const canButton = new Discord.ButtonBuilder().setCustomId("canc").setLabel("Cancel").setStyle(Discord.ButtonStyle.Danger);
+							const row1 = new Discord.ActionRowBuilder()
 								.addComponents([appButton, rejButton]);
-							const row2 = new Discord.MessageActionRow()
+							const row2 = new Discord.ActionRowBuilder()
 								.addComponents([appButton, canButton]);
 							if (ops.dmMail && dm) {
 								setTimeout(async () => {
@@ -247,7 +248,7 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 					saveStats(level);
 					return;
 				} else {
-					new Promise(function (resolve) {
+					new Promise(function(resolve) {
 						if (member.roles.cache.has(ops.targetLevelRole)) {
 							if (inCommand) {
 								resolve(false);
@@ -386,21 +387,17 @@ I am honestly curious as to why, so please shoot me a dm at <@146186496448135168
 };
 
 function deleteStuff(message, execTime, id) {
-	const channel = (ops.screenshotScanning && ops.screenshotChannel) ? message.client.channels.cache.get(ops.screenshotChannel) : undefined;
 	if (ops.msgDeleteTime && !(message.channel.parent && message.channel.parentId == ops.mailCategory)) {
-		setTimeout(function () {
+		setTimeout(function() {
 			message.delete().catch(() => {
 				console.error(`[${execTime}]: Error: Could not delete message: ${message.url}\nContent of mesage: "${message.content}"`);
 			});
 		}, ops.msgDeleteTime);
 	}
-	channel.messages.fetch({ limit: 10 }).then(msgs => {
-		const selfMsgs = msgs.filter(msg =>
-			((msg.author == message.client.user) && (msg.mentions.members.has(id)) && !msg.pinned && msg.content.slice(0, 4) != "Hey,") // bot messages
-			|| ((msg.author.id == id) && !msg.pinned)); // member messages
-		channel.bulkDelete(selfMsgs).catch((err) => {
-			console.error(`[${execTime}]: Error: Could not bulk delete ${selfMsgs.size} messages. Error message: ${err}`);
-		});
+	deleteScreenshotReviews(message.client, id).then((deleted) => {
+		if (deleted) console.log(`[${execTime}]: Deleted ${deleted} screenshot review post${deleted == 1 ? "" : "s"} for user ${id}.`);
+	}).catch((err) => {
+		console.error(`[${execTime}]: Error deleting screenshot review posts for ${id}: ${err}`);
 	});
 }
 
